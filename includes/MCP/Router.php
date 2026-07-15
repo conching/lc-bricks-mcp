@@ -4276,6 +4276,21 @@ final class Router {
 			$args['category_id'] = $args['scale_id'];
 		}
 
+		// Flatten a nested 'settings' object into top-level params. The schema
+		// advertises both a `settings` container (prefix/steps/utility_classes)
+		// AND the same keys at top level, but the create/update handlers only read
+		// the top-level keys — so a caller that follows the "settings (required)"
+		// wording and nests prefix/steps would hit missing_prefix/missing_steps.
+		// Flattening (without clobbering explicit top-level values) makes both
+		// shapes work. Mirrors the color_palette dispatcher's `color` flatten.
+		if ( isset( $args['settings'] ) && is_array( $args['settings'] ) ) {
+			foreach ( $args['settings'] as $sk => $sv ) {
+				if ( ! isset( $args[ $sk ] ) ) {
+					$args[ $sk ] = $sv;
+				}
+			}
+		}
+
 		return match ( $action ) {
 			'list'   => $this->tool_get_typography_scales( $args ),
 			'create' => $this->tool_create_typography_scale( $args ),
