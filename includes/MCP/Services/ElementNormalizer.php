@@ -345,11 +345,29 @@ class ElementNormalizer {
 			return array_merge( $existing, $new_elements );
 		}
 
-		if ( null !== $position ) {
-			array_splice( $existing, $position, 0, $new_elements );
-			return $existing;
+		if ( null === $position ) {
+			return array_merge( $existing, $new_elements );
 		}
 
-		return array_merge( $existing, $new_elements );
+		// Root-level insert: `position` is a SIBLING index among root elements
+		// (parent === 0), NOT a raw offset into the flat array. Count root
+		// elements to find the correct flat-array insertion point — mirroring
+		// BricksService::move_element()'s root branch. Without this, position:1
+		// on a page whose first root element has descendants lands the new
+		// element inside that subtree instead of as the second root sibling.
+		$root_seen       = 0;
+		$insertion_point = count( $existing ); // Default: append after everything.
+		foreach ( $existing as $idx => $elem ) {
+			if ( '0' === (string) ( $elem['parent'] ?? '' ) ) {
+				if ( $root_seen === $position ) {
+					$insertion_point = $idx;
+					break;
+				}
+				++$root_seen;
+			}
+		}
+
+		array_splice( $existing, $insertion_point, 0, $new_elements );
+		return $existing;
 	}
 }
