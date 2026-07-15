@@ -821,18 +821,38 @@ final class Router {
 		// Template consolidated tool (replaces list_templates, get_template_content, create_template, update_template, delete_template, duplicate_template).
 		$this->register_tool(
 			'template',
-			__( "Manage Bricks templates (headers, footers, sections, popups, etc.).\n\nActions:\n- list: List templates (optional: type, status, tag, bundle)\n- get: Get template with element content (requires: template_id)\n- create: Create template (requires: title, type; optional: elements, status, tags, bundles)\n- update: Update template metadata (requires: template_id; optional: title, status, type, tags, bundles)\n- delete: Delete template (requires: template_id)\n- duplicate: Duplicate template (requires: template_id; optional: title)\n- get_popup_settings: Get popup display settings (requires: template_id; template must be type popup)\n- set_popup_settings: Set popup display settings (requires: template_id, settings; template must be type popup)\n- export: Export template as Bricks-compatible JSON (requires: template_id; optional: include_classes)\n- import: Import template from JSON data (requires: template_data)\n- import_url: Import template from remote URL (requires: url)", 'lc-bricks-mcp' ),
+			__( "Manage Bricks templates (headers, footers, sections, popups, etc.).\n\nActions:\n- list: List templates (optional: type, status, tag, bundle)\n- get: Get template with element content (requires: template_id)\n- create: Create template (requires: title, type; optional: elements, status, tags, bundles)\n- create_from_elements: Create a template by deep-copying a subtree of an existing page (requires: source_post_id, root_element_id; optional: title, type [default section], status). IDs are regenerated; response includes template_id and resulting root order.\n- insert_reference: Insert a template-reference element into a target page (requires: target_post_id, template_id; optional: parent_id [default '0'], position). Response includes the inserted element_id and the target page's resulting root order.\n- update: Update template metadata (requires: template_id; optional: title, status, type, tags, bundles)\n- delete: Delete template (requires: template_id)\n- duplicate: Duplicate template (requires: template_id; optional: title)\n- get_popup_settings: Get popup display settings (requires: template_id; template must be type popup)\n- set_popup_settings: Set popup display settings (requires: template_id, settings; template must be type popup)\n- export: Export template as Bricks-compatible JSON (requires: template_id; optional: include_classes)\n- import: Import template from JSON data (requires: template_data)\n- import_url: Import template from remote URL (requires: url)", 'lc-bricks-mcp' ),
 			array(
 				'type'       => 'object',
 				'properties' => array(
 					'action'      => array(
 						'type'        => 'string',
-						'enum'        => array( 'list', 'get', 'create', 'update', 'delete', 'duplicate', 'get_popup_settings', 'set_popup_settings', 'export', 'import', 'import_url' ),
+						'enum'        => array( 'list', 'get', 'create', 'create_from_elements', 'insert_reference', 'update', 'delete', 'duplicate', 'get_popup_settings', 'set_popup_settings', 'export', 'import', 'import_url' ),
 						'description' => __( 'Action to perform', 'lc-bricks-mcp' ),
 					),
 					'template_id' => array(
 						'type'        => 'integer',
-						'description' => __( 'Template post ID (get, update, delete, duplicate, export: required)', 'lc-bricks-mcp' ),
+						'description' => __( 'Template post ID (get, update, delete, duplicate, export: required; insert_reference: required = template to reference)', 'lc-bricks-mcp' ),
+					),
+					'source_post_id' => array(
+						'type'        => 'integer',
+						'description' => __( 'Source page ID to copy elements from (create_from_elements: required)', 'lc-bricks-mcp' ),
+					),
+					'root_element_id' => array(
+						'type'        => 'string',
+						'description' => __( 'Element ID of the subtree root to copy from the source page (create_from_elements: required)', 'lc-bricks-mcp' ),
+					),
+					'target_post_id' => array(
+						'type'        => 'integer',
+						'description' => __( 'Target page ID to insert the template reference into (insert_reference: required)', 'lc-bricks-mcp' ),
+					),
+					'parent_id'   => array(
+						'type'        => 'string',
+						'description' => __( "Parent element ID for the inserted reference (insert_reference: optional, use '0' for root level)", 'lc-bricks-mcp' ),
+					),
+					'position'    => array(
+						'type'        => 'integer',
+						'description' => __( "Sibling position for the inserted reference (insert_reference: optional, 0-indexed, omit to append)", 'lc-bricks-mcp' ),
 					),
 					'title'       => array(
 						'type'        => 'string',
@@ -4009,26 +4029,91 @@ final class Router {
 
 
 		return match ( $action ) {
-			'list'                => $this->tool_list_templates( $args ),
-			'get'                 => $this->tool_get_template_content( $args ),
-			'create'              => $this->tool_create_template( $args ),
-			'update'              => $this->tool_update_template( $args ),
-			'delete'              => $this->tool_delete_template( $args ),
-			'duplicate'           => $this->tool_duplicate_template( $args ),
-			'get_popup_settings'  => $this->tool_get_popup_settings( $args ),
-			'set_popup_settings'  => $this->tool_set_popup_settings( $args ),
-			'export'              => $this->tool_export_template( $args ),
-			'import'              => $this->tool_import_template( $args ),
-			'import_url'          => $this->tool_import_template_url( $args ),
-			default               => new \WP_Error(
+			'list'                 => $this->tool_list_templates( $args ),
+			'get'                  => $this->tool_get_template_content( $args ),
+			'create'               => $this->tool_create_template( $args ),
+			'create_from_elements' => $this->tool_create_template_from_elements( $args ),
+			'insert_reference'     => $this->tool_insert_template_reference( $args ),
+			'update'               => $this->tool_update_template( $args ),
+			'delete'               => $this->tool_delete_template( $args ),
+			'duplicate'            => $this->tool_duplicate_template( $args ),
+			'get_popup_settings'   => $this->tool_get_popup_settings( $args ),
+			'set_popup_settings'   => $this->tool_set_popup_settings( $args ),
+			'export'               => $this->tool_export_template( $args ),
+			'import'               => $this->tool_import_template( $args ),
+			'import_url'           => $this->tool_import_template_url( $args ),
+			default                => new \WP_Error(
 				'invalid_action',
 				sprintf(
 					/* translators: %s: Action name */
-					__( 'Invalid action "%s". Valid actions: list, get, create, update, delete, duplicate, get_popup_settings, set_popup_settings, export, import, import_url', 'lc-bricks-mcp' ),
+					__( 'Invalid action "%s". Valid actions: list, get, create, create_from_elements, insert_reference, update, delete, duplicate, get_popup_settings, set_popup_settings, export, import, import_url', 'lc-bricks-mcp' ),
 					$action
 				)
 			),
 		};
+	}
+
+	/**
+	 * Tool: Create a template from a subtree of an existing page's elements.
+	 *
+	 * @param array<string, mixed> $args Tool arguments.
+	 * @return array<string, mixed>|\WP_Error Result data or error.
+	 */
+	private function tool_create_template_from_elements( array $args ): array|\WP_Error {
+		$bricks_error = $this->require_bricks();
+		if ( null !== $bricks_error ) {
+			return $bricks_error;
+		}
+
+		if ( empty( $args['source_post_id'] ) ) {
+			return new \WP_Error( 'missing_source_post_id', __( 'source_post_id is required. Use page:list to find valid post IDs.', 'lc-bricks-mcp' ) );
+		}
+
+		if ( empty( $args['root_element_id'] ) ) {
+			return new \WP_Error( 'missing_root_element_id', __( 'root_element_id is required. Use page:get to find the element ID of the subtree root to copy.', 'lc-bricks-mcp' ) );
+		}
+
+		$persistence = null;
+		$result      = $this->bricks_service->create_template_from_elements( $args, $persistence );
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return array_merge( $result, $this->bricks_service->build_persistence_response( $persistence, ! empty( $args['return_persisted'] ) ) );
+	}
+
+	/**
+	 * Tool: Insert a template-reference element into a target page.
+	 *
+	 * @param array<string, mixed> $args Tool arguments.
+	 * @return array<string, mixed>|\WP_Error Result data or error.
+	 */
+	private function tool_insert_template_reference( array $args ): array|\WP_Error {
+		$bricks_error = $this->require_bricks();
+		if ( null !== $bricks_error ) {
+			return $bricks_error;
+		}
+
+		if ( empty( $args['target_post_id'] ) ) {
+			return new \WP_Error( 'missing_target_post_id', __( 'target_post_id is required. Use page:list to find valid post IDs.', 'lc-bricks-mcp' ) );
+		}
+
+		if ( empty( $args['template_id'] ) ) {
+			return new \WP_Error( 'missing_template_id', __( 'template_id is required. Use template:list to find valid template IDs.', 'lc-bricks-mcp' ) );
+		}
+
+		$target_post_id = (int) $args['target_post_id'];
+		$template_id    = (int) $args['template_id'];
+		$parent_id      = isset( $args['parent_id'] ) ? (string) $args['parent_id'] : '0';
+		$position       = isset( $args['position'] ) ? (int) $args['position'] : null;
+
+		$persistence = null;
+		$result      = $this->bricks_service->insert_template_reference( $target_post_id, $template_id, $parent_id, $position, $persistence );
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return array_merge( $result, $this->bricks_service->build_persistence_response( $persistence, ! empty( $args['return_persisted'] ) ) );
 	}
 
 	/**
