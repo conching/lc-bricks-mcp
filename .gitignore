@@ -1,0 +1,16 @@
+# Build output
+/dist/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/
+
+# Logs
+*.log
+
+# JS tooling (not used at runtime; vendor/ PHP deps ARE committed intentionally)
+node_modules/

@@ -1,0 +1,22 @@
+# .distignore — paths excluded from the distributable ZIP built by bin/build-zip.sh.
+# Syntax: rsync --exclude-from patterns. Lines starting with '#' and blank lines
+# are ignored. A leading '/' anchors the pattern to the plugin root.
+
+# Version control / OS cruft
+/.git
+/.github
+.gitignore
+.gitkeep
+.DS_Store
+Thumbs.db
+
+# Build + dev tooling — never ship
+/.distignore
+/bin
+/dev
+/dist
+/CHANGELOG.md
+/phpunit-unit.xml
+
+# Dev-only mu-plugin (App-Passwords-over-HTTP enabler) lives in /dev and is
+# excluded by the /dev rule above. Do NOT add it back to the shipped tree.
