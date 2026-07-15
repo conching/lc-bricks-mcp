@@ -3896,10 +3896,15 @@ final class Router {
 			$elements[ $target_index ]['settings']['_conditions'] = $conditions;
 		}
 
-		// Save elements back to post meta.
-		$this->bricks_service->unhook_bricks_meta_filters();
-		update_post_meta( $post_id, BricksService::META_KEY, $elements );
-		$this->bricks_service->rehook_bricks_meta_filters();
+		// Save elements back through save_elements so the correct meta key is
+		// resolved — a header/footer template's elements come from and must be
+		// written to _bricks_page_header_2 / _bricks_page_footer_2, not the
+		// hardcoded META_KEY — and the write gets linkage/schema validation plus
+		// read-back verification instead of a blind update_post_meta().
+		$saved = $this->bricks_service->save_elements( $post_id, $elements );
+		if ( is_wp_error( $saved ) ) {
+			return $saved;
+		}
 
 		$result = array(
 			'post_id'        => $post_id,
