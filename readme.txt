@@ -3,7 +3,7 @@ Contributors: conching, cristianuibar, optiwebopz
 Tags: ai, bricks builder, mcp, artificial intelligence, page builder
 Requires at least: 6.4
 Tested up to: 6.8
-Stable tag: 2.1.0
+Stable tag: 2.1.1
 Requires PHP: 8.2
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -122,6 +122,11 @@ Yes, when configured correctly. The plugin enforces WordPress Application Passwo
 3. An AI assistant creating a Bricks Builder hero section from a plain-text prompt.
 
 == Changelog ==
+
+= 2.1.1 =
+* Fix: the `stripped` diff in save responses is now anchored at the caller's raw input — sanitization strips recorded inside the normalizer are merged into the persistence read-back diff, so removed content (e.g. a `<script>` tag) actually appears in the response instead of an empty diff.
+* Fix: stripped entries now include `removed_tags` (names of HTML tags removed), alongside before/after byte lengths.
+* Fix: `page:create` responses now include `persisted` and `stripped` for the initial elements write, matching element/template saves.
 
 = 2.1.0 =
 * New tool `verify` — read-only page verification. `verify:page` returns the ordered root sections (element_id, name, label, DOM id override) and, given an element_id, its parent chain, straight from the stored tree (deterministic, no HTTP); pass `rendered: true` to verify against the rendered permalink instead. Response includes a `mode` field. Replaces the curl+grep verification loop.
@@ -248,6 +253,9 @@ Yes, when configured correctly. The plugin enforces WordPress Application Passwo
 * Unsplash API integration for image search.
 
 == Upgrade Notice ==
+
+= 2.1.1 =
+Fixes the empty `stripped` diff in save responses: sanitization strips are now recorded against the caller's raw input and include removed tag names; `page:create` now returns the persisted/stripped fragment. No breaking changes; endpoint and auth unchanged.
 
 = 2.1.0 =
 Adds the `verify` tool (assert page/section order without curl+grep, stored or rendered) and an orphaned-CSS scan, plus template-first tooling (create a template from a page subtree; insert a template reference). Also normalizes the global-class response key to `styles`. No breaking changes; the MCP endpoint and auth are unchanged.

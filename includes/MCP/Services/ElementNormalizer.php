@@ -63,6 +63,15 @@ class ElementNormalizer {
 	 */
 	private ElementIdGenerator $id_generator;
 
+	/**
+	 * Log of settings values altered by sanitize_settings() during the most
+	 * recent normalize() call. Anchored here because the caller's raw
+	 * pre-sanitization values are no longer visible once normalize() returns.
+	 *
+	 * @var array<int, array{element_id: string, key: string, before_len: int, after_len: int, removed_tags: array<int, string>}>
+	 */
+	private array $strip_log = [];
+
 	public function __construct( ElementIdGenerator $id_generator ) {
 		$this->id_generator = $id_generator;
 	}
@@ -71,6 +80,8 @@ class ElementNormalizer {
 	 * Normalize element input to native Bricks flat array format.
 	 */
 	public function normalize( array $input, array $existing_elements = [] ): array {
+		$this->strip_log = [];
+
 		if ( empty( $input ) ) {
 			return [];
 		}
@@ -78,6 +89,30 @@ class ElementNormalizer {
 			return $input;
 		}
 		return $this->simplified_to_flat( $input, $existing_elements );
+	}
+
+	/**
+	 * Sanitization alterations recorded by the most recent normalize() call.
+	 *
+	 * @return array<int, array{element_id: string, key: string, before_len: int, after_len: int, removed_tags: array<int, string>}>
+	 */
+	public function get_strip_log(): array {
+		return $this->strip_log;
+	}
+
+	/**
+	 * Return the strip log and clear it.
+	 *
+	 * Used by the save path so each save reports only the strips from its own
+	 * normalize() call — a save that ran without normalization (e.g. raw
+	 * element updates) must not inherit a previous call's log.
+	 *
+	 * @return array<int, array{element_id: string, key: string, before_len: int, after_len: int, removed_tags: array<int, string>}>
+	 */
+	public function consume_strip_log(): array {
+		$log             = $this->strip_log;
+		$this->strip_log = [];
+		return $log;
 	}
 
 	/**
@@ -122,6 +157,9 @@ class ElementNormalizer {
 
 			// Sanitize with Bricks-aware strategy.
 			$sanitized_settings = $this->sanitize_settings( $settings, $name );
+
+			// Record what sanitization altered, against the caller's raw values.
+			$this->log_strips( $settings, $sanitized_settings, $element_id );
 
 			$child_flat   = $this->simplified_to_flat( $children, array_merge( $all_existing, [ [ 'id' => $element_id ] ] ), $element_id );
 			$children_ids = array_map(
@@ -369,5 +407,76 @@ class ElementNormalizer {
 
 		array_splice( $existing, $insertion_point, 0, $new_elements );
 		return $existing;
+	}
+
+	/**
+	 * Record string settings values that sanitize_settings() altered.
+	 *
+	 * Recursively walks the pre-sanitization settings against the sanitized
+	 * result. Any string leaf whose value changed is appended to the strip
+	 * log with the element id, dotted key path, before/after byte lengths,
+	 * and the names of HTML tags removed by the change.
+	 *
+	 * @param array<string, mixed> $before     Settings before sanitization (post key-correction).
+	 * @param array<string, mixed> $after      Settings after sanitization.
+	 * @param string               $element_id Element the settings belong to.
+	 * @param string               $path       Dotted key-path prefix for recursion.
+	 * @return void
+	 */
+	private function log_strips( array $before, array $after, string $element_id, string $path = '' ): void {
+		foreach ( $before as $key => $value ) {
+			$key_path = '' === $path ? (string) $key : $path . '.' . $key;
+
+			if ( is_array( $value ) ) {
+				$after_branch = ( isset( $after[ $key ] ) && is_array( $after[ $key ] ) ) ? $after[ $key ] : [];
+				$this->log_strips( $value, $after_branch, $element_id, $key_path );
+				continue;
+			}
+
+			if ( ! is_string( $value ) ) {
+				continue;
+			}
+
+			$after_value = ( isset( $after[ $key ] ) && is_string( $after[ $key ] ) ) ? $after[ $key ] : '';
+
+			if ( $value === $after_value ) {
+				continue;
+			}
+
+			$this->strip_log[] = [
+				'element_id'   => $element_id,
+				'key'          => $key_path,
+				'before_len'   => strlen( $value ),
+				'after_len'    => strlen( $after_value ),
+				'removed_tags' => self::removed_tags( $value, $after_value ),
+			];
+		}
+	}
+
+	/**
+	 * Names of HTML tags present in $before that no longer appear (or appear
+	 * fewer times) in $after.
+	 *
+	 * @param string $before Value before sanitization.
+	 * @param string $after  Value after sanitization.
+	 * @return array<int, string> Unique lowercase tag names, e.g. ["script"].
+	 */
+	public static function removed_tags( string $before, string $after ): array {
+		$count_tags = static function ( string $html ): array {
+			preg_match_all( '/<\s*([a-zA-Z][a-zA-Z0-9-]*)/', $html, $matches );
+			return array_count_values( array_map( 'strtolower', $matches[1] ) );
+		};
+
+		$before_tags = $count_tags( $before );
+		$after_tags  = $count_tags( $after );
+
+		$removed = [];
+		foreach ( $before_tags as $tag => $count ) {
+			if ( ( $after_tags[ $tag ] ?? 0 ) < $count ) {
+				$removed[] = $tag;
+			}
+		}
+
+		return $removed;
 	}
 }

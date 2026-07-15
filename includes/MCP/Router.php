@@ -3425,7 +3425,8 @@ final class Router {
 			);
 		}
 
-		$post_id = $this->bricks_service->create_page( $args );
+		$persistence = null;
+		$post_id     = $this->bricks_service->create_page( $args, $persistence );
 
 		if ( is_wp_error( $post_id ) ) {
 			return $post_id;
@@ -3434,13 +3435,18 @@ final class Router {
 		$post     = get_post( $post_id );
 		$elements = $this->bricks_service->get_elements( $post_id );
 
-		return array(
-			'post_id'       => $post_id,
-			'title'         => $post ? $post->post_title : $args['title'],
-			'status'        => $post ? $post->post_status : ( $args['status'] ?? 'draft' ),
-			'permalink'     => get_permalink( $post_id ),
-			'element_count' => count( $elements ),
-			'edit_url'      => admin_url( 'post.php?post=' . $post_id . '&action=edit' ),
+		return array_merge(
+			array(
+				'post_id'       => $post_id,
+				'title'         => $post ? $post->post_title : $args['title'],
+				'status'        => $post ? $post->post_status : ( $args['status'] ?? 'draft' ),
+				'permalink'     => get_permalink( $post_id ),
+				'element_count' => count( $elements ),
+				'edit_url'      => admin_url( 'post.php?post=' . $post_id . '&action=edit' ),
+			),
+			// Save-verification fragment for the initial elements write; empty
+			// when the page was created without elements (no save ran).
+			$this->bricks_service->build_persistence_response( $persistence, ! empty( $args['return_persisted'] ) )
 		);
 	}
 

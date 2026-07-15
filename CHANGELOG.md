@@ -6,6 +6,36 @@ Library Creative fork of [`cristianuibar/bricks-mcp`](https://github.com/cristia
 v1.5.1 and remains licensed under GPL-2.0-or-later, retaining the original
 copyright (© 2025 BUFF UP MEDIA S.R.L., author Uibar Ion-Cristian).
 
+## [2.1.1] — 2026-07-14
+
+Fix release from FIF pilot E2E verification: the `stripped` diff now actually
+reports what sanitization removed.
+
+### Fixed — stripped-diff baseline (E2E check 4)
+
+- **Strip log anchored at the caller's input.** The `stripped` diff previously
+  compared the elements handed to `save_elements()` against the read-back —
+  but callers pass already-normalized (sanitized) elements, so the diff was
+  structurally empty: sanitization ran in `ElementNormalizer` before the
+  baseline was captured. `ElementNormalizer` now records every settings value
+  that `sanitize_settings()` alters (element id, dotted key path, before/after
+  byte lengths) during `normalize()`, and `save_elements()` consumes that log
+  and merges it with the persistence read-back diff. A `<script>` payload
+  submitted to any normalizing save path now appears in `stripped`.
+- **`removed_tags` on stripped entries.** Both strip-log and read-back diff
+  entries now include the names of HTML tags removed by the alteration
+  (e.g. `["script"]`), so callers can assert on tags instead of byte lengths.
+- **`page:create` now returns `persisted` + `stripped`** for the initial
+  elements write (via a persistence out-param on `create_page()`), matching
+  element/template save responses. Pages created without elements omit the
+  fragment — no save ran, nothing to verify.
+
+### Notes
+
+- Raw flat-format writes (`element:update`, native-format `update_content`)
+  remain un-sanitized by design (see source audit §4); their strip log is
+  empty because nothing is stripped on those paths.
+
 ## [2.1.0] — 2026-07-14
 
 Enhancement layer on top of the 2.0.0 correctness release: read-only

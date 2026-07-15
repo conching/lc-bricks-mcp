@@ -221,18 +221,26 @@ class BricksService {
 			$this->rehook_bricks_meta_filters( $sh_meta_key );
 		}
 
+		// Strips recorded at the input boundary by this save's normalize() call.
+		// Consumed (not just read) so a save that ran without normalization
+		// cannot inherit a previous call's log.
+		$input_strips = $this->normalizer->consume_strip_log();
+
 		if ( ! is_array( $stored ) || count( $stored ) !== count( $elements ) ) {
-			$persistence = array( 'persisted' => false, 'stripped' => array() );
+			$persistence = array( 'persisted' => false, 'stripped' => $input_strips );
 			return new \WP_Error(
 				'save_elements_failed',
 				__( 'Elements appeared to save but verification read-back failed. The database may have rejected the write.', 'lc-bricks-mcp' )
 			);
 		}
 
-		// Expose read-back verification data for the caller's response (fix #5).
+		// Expose verification data for the caller's response (fix #5). "stripped"
+		// merges two baselines: normalizer sanitization (anchored at the caller's
+		// raw input) and the persistence read-back diff (anchored at what
+		// save_elements() was handed).
 		$persistence = array(
 			'persisted' => true,
-			'stripped'  => $this->compute_stripped_diff( $elements, $stored ),
+			'stripped'  => array_merge( $input_strips, $this->compute_stripped_diff( $elements, $stored ) ),
 			'stored'    => $stored,
 		);
 
@@ -284,14 +292,16 @@ class BricksService {
 				if ( ! isset( $sub_settings[ $key ] ) || ! is_string( $sub_settings[ $key ] ) ) {
 					continue;
 				}
-				$before = strlen( $sub_settings[ $key ] );
-				$after  = ( isset( $sto_settings[ $key ] ) && is_string( $sto_settings[ $key ] ) ) ? strlen( $sto_settings[ $key ] ) : 0;
+				$after_value = ( isset( $sto_settings[ $key ] ) && is_string( $sto_settings[ $key ] ) ) ? $sto_settings[ $key ] : '';
+				$before      = strlen( $sub_settings[ $key ] );
+				$after       = strlen( $after_value );
 				if ( $before !== $after ) {
 					$diff[] = array(
-						'element_id' => $id,
-						'key'        => $key,
-						'before_len' => $before,
-						'after_len'  => $after,
+						'element_id'   => $id,
+						'key'          => $key,
+						'before_len'   => $before,
+						'after_len'    => $after,
+						'removed_tags' => ElementNormalizer::removed_tags( $sub_settings[ $key ], $after_value ),
 					);
 				}
 			}
@@ -3023,9 +3033,14 @@ class BricksService {
 	 *     @type string $status    Post status, default 'draft'.
 	 *     @type array  $elements  Optional initial elements (native or simplified format).
 	 * }
+	 * @param array<string, mixed>|null $persistence Out-param populated with save
+	 *                                               verification data when initial
+	 *                                               elements are written (see
+	 *                                               save_elements()); stays null
+	 *                                               when no elements are provided.
 	 * @return int|\WP_Error New post ID on success, WP_Error on failure.
 	 */
-	public function create_page( array $args ): int|\WP_Error {
+	public function create_page( array $args, ?array &$persistence = null ): int|\WP_Error {
 		if ( empty( $args['title'] ) ) {
 			return new \WP_Error(
 				'missing_title',
@@ -3052,7 +3067,7 @@ class BricksService {
 		// Save elements if provided.
 		if ( ! empty( $args['elements'] ) && is_array( $args['elements'] ) ) {
 			$elements = $this->normalizer->normalize( $args['elements'] );
-			$saved    = $this->save_elements( $post_id, $elements );
+			$saved    = $this->save_elements( $post_id, $elements, $persistence );
 
 			if ( is_wp_error( $saved ) ) {
 				// Clean up the post we just created.
