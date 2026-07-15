@@ -794,6 +794,21 @@ class BricksService {
 		// Enable Bricks editor.
 		$this->enable_bricks_editor( $post_id );
 
+		// Save initial elements if provided. Route through save_elements so the
+		// correct meta key is resolved — header/footer templates use dedicated
+		// keys and the template type meta was set above — and the write is
+		// validated + read-back verified. Mirrors create_page().
+		if ( ! empty( $args['elements'] ) && is_array( $args['elements'] ) ) {
+			$elements = $this->normalizer->normalize( $args['elements'] );
+			$saved    = $this->save_elements( $post_id, $elements );
+
+			if ( is_wp_error( $saved ) ) {
+				// Clean up the template we just created so we don't leave an empty shell.
+				wp_delete_post( $post_id, true );
+				return $saved;
+			}
+		}
+
 		// Set conditions if provided — merge into existing settings to preserve other keys.
 		if ( ! empty( $args['conditions'] ) && is_array( $args['conditions'] ) ) {
 			$this->unhook_bricks_meta_filters();
