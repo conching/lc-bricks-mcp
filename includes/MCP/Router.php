@@ -733,6 +733,10 @@ final class Router {
 						'type'        => 'string',
 						'description' => __( 'Focus keyword for SEO analysis (update_seo: optional; Yoast/Rank Math only)', 'lc-bricks-mcp' ),
 					),
+					'return_persisted'    => array(
+						'type'        => 'boolean',
+						'description' => __( 'Include the full read-back element tree in the response (create, update_content: optional, default false). The response always includes persisted (bool) and a compact stripped diff.', 'lc-bricks-mcp' ),
+					),
 				),
 				'required'   => array( 'action' ),
 			),
@@ -803,6 +807,10 @@ final class Router {
 								),
 							),
 						),
+					),
+					'return_persisted' => array(
+						'type'        => 'boolean',
+						'description' => __( 'Include the full read-back element tree in the response (add, update, bulk_update, set_conditions: optional, default false). The response always includes persisted (bool) and a compact stripped diff.', 'lc-bricks-mcp' ),
 					),
 				),
 				'required'   => array( 'action' ),
@@ -885,6 +893,10 @@ final class Router {
 					'url'         => array(
 						'type'        => 'string',
 						'description' => __( 'Remote URL to fetch template JSON from (import_url: required)', 'lc-bricks-mcp' ),
+					),
+					'return_persisted' => array(
+						'type'        => 'boolean',
+						'description' => __( 'Include the full read-back element tree in the response (create: optional, default false). The response always includes persisted (bool) and a compact stripped diff when elements are saved.', 'lc-bricks-mcp' ),
 					),
 				),
 				'required'   => array( 'action' ),
@@ -3409,8 +3421,9 @@ final class Router {
 		}
 
 		// Normalize via ElementNormalizer (handles both native and simplified format).
-		$elements = $this->bricks_service->normalize_elements( $args['elements'] );
-		$saved    = $this->bricks_service->save_elements( $post_id, $elements );
+		$elements    = $this->bricks_service->normalize_elements( $args['elements'] );
+		$persistence = null;
+		$saved       = $this->bricks_service->save_elements( $post_id, $elements, $persistence );
 
 		if ( is_wp_error( $saved ) ) {
 			return $saved;
@@ -3418,10 +3431,13 @@ final class Router {
 
 		$metadata = $this->bricks_service->get_page_metadata( $post_id );
 
-		return array(
-			'post_id'       => $post_id,
-			'element_count' => count( $elements ),
-			'metadata'      => $metadata,
+		return array_merge(
+			array(
+				'post_id'       => $post_id,
+				'element_count' => count( $elements ),
+				'metadata'      => $metadata,
+			),
+			$this->bricks_service->build_persistence_response( $persistence, ! empty( $args['return_persisted'] ) )
 		);
 	}
 
@@ -3544,7 +3560,13 @@ final class Router {
 			'settings' => isset( $args['settings'] ) && is_array( $args['settings'] ) ? $args['settings'] : array(),
 		);
 
-		return $this->bricks_service->add_element( $post_id, $element, $parent_id, $position );
+		$persistence = null;
+		$result      = $this->bricks_service->add_element( $post_id, $element, $parent_id, $position, $persistence );
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return array_merge( $result, $this->bricks_service->build_persistence_response( $persistence, ! empty( $args['return_persisted'] ) ) );
 	}
 
 	/**
@@ -3575,7 +3597,13 @@ final class Router {
 		$element_id = sanitize_text_field( $args['element_id'] );
 		$settings   = $args['settings'];
 
-		return $this->bricks_service->update_element( $post_id, $element_id, $settings );
+		$persistence = null;
+		$result      = $this->bricks_service->update_element( $post_id, $element_id, $settings, $persistence );
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return array_merge( $result, $this->bricks_service->build_persistence_response( $persistence, ! empty( $args['return_persisted'] ) ) );
 	}
 
 	/**
@@ -3643,7 +3671,13 @@ final class Router {
 			return new \WP_Error( 'missing_updates', __( 'updates array is required with at least one {element_id, settings} object.', 'lc-bricks-mcp' ) );
 		}
 
-		return $this->bricks_service->bulk_update_elements( $post_id, $updates );
+		$persistence = null;
+		$result      = $this->bricks_service->bulk_update_elements( $post_id, $updates, $persistence );
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return array_merge( $result, $this->bricks_service->build_persistence_response( $persistence, ! empty( $args['return_persisted'] ) ) );
 	}
 
 	/**
@@ -3901,7 +3935,8 @@ final class Router {
 		// written to _bricks_page_header_2 / _bricks_page_footer_2, not the
 		// hardcoded META_KEY — and the write gets linkage/schema validation plus
 		// read-back verification instead of a blind update_post_meta().
-		$saved = $this->bricks_service->save_elements( $post_id, $elements );
+		$persistence = null;
+		$saved       = $this->bricks_service->save_elements( $post_id, $elements, $persistence );
 		if ( is_wp_error( $saved ) ) {
 			return $saved;
 		}
@@ -3913,6 +3948,8 @@ final class Router {
 			'condition_sets' => count( $conditions ),
 			'action'         => empty( $conditions ) ? 'cleared' : 'set',
 		);
+
+		$result = array_merge( $result, $this->bricks_service->build_persistence_response( $persistence, ! empty( $args['return_persisted'] ) ) );
 
 		if ( ! empty( $warnings ) ) {
 			$result['warnings'] = $warnings;
@@ -4543,7 +4580,8 @@ final class Router {
 			);
 		}
 
-		$template_id = $this->bricks_service->create_template( $args );
+		$persistence = null;
+		$template_id = $this->bricks_service->create_template( $args, $persistence );
 
 		if ( is_wp_error( $template_id ) ) {
 			return $template_id;
@@ -4563,7 +4601,8 @@ final class Router {
 				'status'    => $post ? $post->post_status : ( $args['status'] ?? 'publish' ),
 				'permalink' => get_permalink( $template_id ),
 				'edit_url'  => admin_url( 'post.php?post=' . $template_id . '&action=edit' ),
-			)
+			),
+			$this->bricks_service->build_persistence_response( $persistence, ! empty( $args['return_persisted'] ) )
 		);
 	}
 

@@ -162,11 +162,15 @@ class BricksService {
 	 *    to delete_post_meta + add_post_meta to force the write.
 	 * 3. Verify write via cache-cleared read-back; return WP_Error if data did not persist.
 	 *
-	 * @param int                              $post_id  The post ID.
-	 * @param array<int, array<string, mixed>> $elements Flat array of elements to save.
+	 * @param int                              $post_id     The post ID.
+	 * @param array<int, array<string, mixed>> $elements    Flat array of elements to save.
+	 * @param array<string, mixed>|null        $persistence Out-param populated with read-back
+	 *                                                      verification data: persisted (bool),
+	 *                                                      stripped (compact HTML-key diff) and
+	 *                                                      stored (the read-back tree).
 	 * @return true|\WP_Error True on success, WP_Error on failure.
 	 */
-	public function save_elements( int $post_id, array $elements ): true|\WP_Error {
+	public function save_elements( int $post_id, array $elements, ?array &$persistence = null ): true|\WP_Error {
 		// Always run structural linkage validation.
 		$linkage_validation = $this->validate_element_linkage( $elements );
 
@@ -215,13 +219,110 @@ class BricksService {
 		}
 
 		if ( ! is_array( $stored ) || count( $stored ) !== count( $elements ) ) {
+			$persistence = array( 'persisted' => false, 'stripped' => array() );
 			return new \WP_Error(
 				'save_elements_failed',
 				__( 'Elements appeared to save but verification read-back failed. The database may have rejected the write.', 'lc-bricks-mcp' )
 			);
 		}
 
+		// Expose read-back verification data for the caller's response (fix #5).
+		$persistence = array(
+			'persisted' => true,
+			'stripped'  => $this->compute_stripped_diff( $elements, $stored ),
+			'stored'    => $stored,
+		);
+
 		return true;
+	}
+
+	/**
+	 * HTML-content setting keys whose values may be altered by sanitization on
+	 * write. Used to build the compact "stripped" diff. Mirrors the content
+	 * keys ElementNormalizer::sanitize_settings() runs wp_kses_post() over.
+	 *
+	 * @var array<int, string>
+	 */
+	private const HTML_CONTENT_KEYS = array(
+		'text', 'content', 'html', 'innerHtml', 'body', 'excerpt', 'description', 'label', 'caption',
+	);
+
+	/**
+	 * Compute a compact diff of HTML-content settings that changed length between
+	 * what was submitted to save_elements() and what was read back from the DB.
+	 *
+	 * A non-empty result means the persistence layer altered a value (e.g.
+	 * wp_kses_post stripped a disallowed tag). Keeps the response small — only
+	 * element_id, key, and before/after byte lengths.
+	 *
+	 * @param array<int, array<string, mixed>> $submitted Elements passed to save_elements().
+	 * @param array<int, array<string, mixed>> $stored    Elements read back after the write.
+	 * @return array<int, array{element_id: string, key: string, before_len: int, after_len: int}>
+	 */
+	private function compute_stripped_diff( array $submitted, array $stored ): array {
+		$stored_by_id = array();
+		foreach ( $stored as $el ) {
+			if ( isset( $el['id'] ) ) {
+				$stored_by_id[ (string) $el['id'] ] = $el;
+			}
+		}
+
+		$diff = array();
+		foreach ( $submitted as $el ) {
+			$id = isset( $el['id'] ) ? (string) $el['id'] : '';
+			if ( '' === $id || ! isset( $stored_by_id[ $id ] ) ) {
+				continue;
+			}
+
+			$sub_settings = ( isset( $el['settings'] ) && is_array( $el['settings'] ) ) ? $el['settings'] : array();
+			$sto_settings = ( isset( $stored_by_id[ $id ]['settings'] ) && is_array( $stored_by_id[ $id ]['settings'] ) ) ? $stored_by_id[ $id ]['settings'] : array();
+
+			foreach ( self::HTML_CONTENT_KEYS as $key ) {
+				if ( ! isset( $sub_settings[ $key ] ) || ! is_string( $sub_settings[ $key ] ) ) {
+					continue;
+				}
+				$before = strlen( $sub_settings[ $key ] );
+				$after  = ( isset( $sto_settings[ $key ] ) && is_string( $sto_settings[ $key ] ) ) ? strlen( $sto_settings[ $key ] ) : 0;
+				if ( $before !== $after ) {
+					$diff[] = array(
+						'element_id' => $id,
+						'key'        => $key,
+						'before_len' => $before,
+						'after_len'  => $after,
+					);
+				}
+			}
+		}
+
+		return $diff;
+	}
+
+	/**
+	 * Build the standard persistence fragment for a save-path tool response.
+	 *
+	 * Always returns persisted (bool) and stripped (compact diff). The full
+	 * read-back tree is included only when the caller opts in via
+	 * $return_persisted (keeps responses compact by default).
+	 *
+	 * @param array<string, mixed>|null $persistence      Out-param from save_elements().
+	 * @param bool                      $return_persisted Include the full persisted tree.
+	 * @return array<string, mixed> Fragment to merge into the tool response.
+	 */
+	public function build_persistence_response( ?array $persistence, bool $return_persisted = false ): array {
+		if ( ! is_array( $persistence ) ) {
+			return array();
+		}
+
+		$out = array(
+			'persisted' => ! empty( $persistence['persisted'] ),
+			'stripped'  => $persistence['stripped'] ?? array(),
+		);
+
+		if ( $return_persisted && isset( $persistence['stored'] ) ) {
+			$out['persisted_elements'] = $persistence['stored'];
+		}
+
+		return $out;
 	}
 
 	/**
@@ -740,7 +841,7 @@ class BricksService {
 	 * }
 	 * @return int|\WP_Error New template post ID on success, WP_Error on failure.
 	 */
-	public function create_template( array $args ): int|\WP_Error {
+	public function create_template( array $args, ?array &$persistence = null ): int|\WP_Error {
 		if ( empty( $args['title'] ) ) {
 			return new \WP_Error(
 				'missing_title',
@@ -800,7 +901,7 @@ class BricksService {
 		// validated + read-back verified. Mirrors create_page().
 		if ( ! empty( $args['elements'] ) && is_array( $args['elements'] ) ) {
 			$elements = $this->normalizer->normalize( $args['elements'] );
-			$saved    = $this->save_elements( $post_id, $elements );
+			$saved    = $this->save_elements( $post_id, $elements, $persistence );
 
 			if ( is_wp_error( $saved ) ) {
 				// Clean up the template we just created so we don't leave an empty shell.
@@ -3067,7 +3168,7 @@ class BricksService {
 	 * @param int|null             $position  Position in parent's children array (null = append at end).
 	 * @return array<string, mixed>|\WP_Error Array with element_id on success, WP_Error on failure.
 	 */
-	public function add_element( int $post_id, array $element, string $parent_id = '0', ?int $position = null ): array|\WP_Error {
+	public function add_element( int $post_id, array $element, string $parent_id = '0', ?int $position = null, ?array &$persistence = null ): array|\WP_Error {
 		$post = get_post( $post_id );
 		if ( ! $post ) {
 			return new \WP_Error(
@@ -3110,7 +3211,7 @@ class BricksService {
 		}
 
 		$merged = $this->normalizer->merge_elements( $existing, $normalized, $parent_id, $position );
-		$saved  = $this->save_elements( $post_id, $merged );
+		$saved  = $this->save_elements( $post_id, $merged, $persistence );
 
 		if ( is_wp_error( $saved ) ) {
 			return $saved;
@@ -3134,7 +3235,7 @@ class BricksService {
 	 * @param array<string, mixed> $settings   Settings to merge with existing.
 	 * @return array<string, mixed>|\WP_Error Updated info on success, WP_Error on failure.
 	 */
-	public function update_element( int $post_id, string $element_id, array $settings ): array|\WP_Error {
+	public function update_element( int $post_id, string $element_id, array $settings, ?array &$persistence = null ): array|\WP_Error {
 		$post = get_post( $post_id );
 		if ( ! $post ) {
 			return new \WP_Error(
@@ -3168,7 +3269,7 @@ class BricksService {
 			);
 		}
 
-		$saved = $this->save_elements( $post_id, $elements );
+		$saved = $this->save_elements( $post_id, $elements, $persistence );
 		if ( is_wp_error( $saved ) ) {
 			return $saved;
 		}
@@ -3583,7 +3684,7 @@ class BricksService {
 	 * @param array $updates Array of {element_id: string, settings: array} objects.
 	 * @return array<string, mixed>|\WP_Error Partial result or WP_Error if all fail.
 	 */
-	public function bulk_update_elements( int $post_id, array $updates ): array|\WP_Error {
+	public function bulk_update_elements( int $post_id, array $updates, ?array &$persistence = null ): array|\WP_Error {
 		if ( count( $updates ) > 50 ) {
 			return new \WP_Error(
 				'batch_too_large',
@@ -3668,7 +3769,7 @@ class BricksService {
 			);
 		}
 
-		$saved = $this->save_elements( $post_id, $elements );
+		$saved = $this->save_elements( $post_id, $elements, $persistence );
 		if ( is_wp_error( $saved ) ) {
 			return $saved;
 		}
