@@ -1,10 +1,10 @@
 # Security
 
-This document describes the security model of the Bricks MCP plugin — how it authenticates requests, how it limits traffic, what operations require explicit opt-in, and what the plugin explicitly does not do.
+This document describes the security model of the LC Bricks MCP plugin — how it authenticates requests, how it limits traffic, what operations require explicit opt-in, and what the plugin explicitly does not do.
 
 ## Security Model
 
-Bricks MCP exposes WordPress data through MCP (Model Context Protocol) endpoints. All communication uses HTTP/REST only — there is no stdio transport, no WebSocket transport, and no persistent background process. Every request goes through WordPress's built-in REST API infrastructure, which means WordPress authentication, nonces, and capability checks apply normally.
+LC Bricks MCP exposes WordPress data through MCP (Model Context Protocol) endpoints. All communication uses HTTP/REST only — there is no stdio transport, no WebSocket transport, and no persistent background process. Every request goes through WordPress's built-in REST API infrastructure, which means WordPress authentication, nonces, and capability checks apply normally.
 
 ## Authentication
 
@@ -26,7 +26,7 @@ The plugin enforces a per-user request rate limit to prevent runaway AI agent lo
 
 - Default: 120 requests per minute per authenticated user
 - Configurable from **Bricks > MCP > Rate Limit** (range: 10–1000 RPM)
-- Per-user tracking uses WordPress transients keyed by user ID (`bricks_mcp_rl_{user_id}`)
+- Per-user tracking uses WordPress transients keyed by user ID (`lc_bricks_mcp_rl_{user_id}`)
 - When the limit is exceeded, the server returns HTTP `429` Too Many Requests with a `Retry-After` header indicating when the window resets
 - Applies to both REST API routes and the Streamable HTTP (SSE) endpoint
 - Rate limiting is only active when authentication is required — without a user identity, there is no user to track

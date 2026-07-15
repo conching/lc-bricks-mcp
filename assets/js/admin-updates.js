@@ -1,10 +1,10 @@
 /**
- * Bricks MCP Admin Updates & Onboarding JS.
+ * LC Bricks MCP Admin Updates & Onboarding JS.
  *
  * Handles: tab switching, copy to clipboard, Check Now AJAX, Test Connection AJAX.
  * Data passed via bricksMcpUpdates global from wp_localize_script.
  *
- * @package BricksMCP
+ * @package LCBricksMCP
  * @license GPL-2.0-or-later
  */
 
@@ -21,7 +21,7 @@
 			return;
 		}
 
-		var container = tab.closest('.bricks-mcp-tabs');
+		var container = tab.closest('.lc-bricks-mcp-tabs');
 		if (!container) {
 			return;
 		}
@@ -61,7 +61,7 @@
 			return;
 		}
 
-		var container = tab.closest('.bricks-mcp-tabs');
+		var container = tab.closest('.lc-bricks-mcp-tabs');
 		if (!container) {
 			return;
 		}
@@ -94,7 +94,7 @@
 	});
 
 	// -------------------------------------------------------------------------
-	// Copy to clipboard (event delegation on .bricks-mcp-copy-btn)
+	// Copy to clipboard (event delegation on .lc-bricks-mcp-copy-btn)
 	// -------------------------------------------------------------------------
 
 	/**
@@ -147,7 +147,7 @@
 	}
 
 	document.addEventListener('click', function(e) {
-		var btn = e.target.closest('.bricks-mcp-copy-btn');
+		var btn = e.target.closest('.lc-bricks-mcp-copy-btn');
 		if (!btn) {
 			return;
 		}
@@ -170,10 +170,10 @@
 	// -------------------------------------------------------------------------
 
 	function initCheckNow() {
-		var btn = document.getElementById('bricks-mcp-check-update-btn');
-		var spinner = document.getElementById('bricks-mcp-check-update-spinner');
-		var versionText = document.getElementById('bricks-mcp-version-text');
-		var versionCard = document.querySelector('.bricks-mcp-version-card');
+		var btn = document.getElementById('lc-bricks-mcp-check-update-btn');
+		var spinner = document.getElementById('lc-bricks-mcp-check-update-spinner');
+		var versionText = document.getElementById('lc-bricks-mcp-version-text');
+		var versionCard = document.querySelector('.lc-bricks-mcp-version-card');
 
 		if (!btn) {
 			return;
@@ -186,7 +186,7 @@
 			}
 
 			var formData = new FormData();
-			formData.append('action', 'bricks_mcp_check_update');
+			formData.append('action', 'lc_bricks_mcp_check_update');
 			formData.append('nonce', bricksMcpUpdates.nonce);
 
 			fetch(bricksMcpUpdates.ajaxUrl, {
@@ -236,17 +236,17 @@
 	// -------------------------------------------------------------------------
 
 	function initTestConnection() {
-		var btn = document.getElementById('bricks-mcp-test-connection-btn');
-		var spinner = document.getElementById('bricks-mcp-test-spinner');
-		var resultDiv = document.getElementById('bricks-mcp-test-result');
+		var btn = document.getElementById('lc-bricks-mcp-test-connection-btn');
+		var spinner = document.getElementById('lc-bricks-mcp-test-spinner');
+		var resultDiv = document.getElementById('lc-bricks-mcp-test-result');
 
 		if (!btn) {
 			return;
 		}
 
 		btn.addEventListener('click', function() {
-			var usernameInput = document.getElementById('bricks-mcp-test-username');
-			var passwordInput = document.getElementById('bricks-mcp-test-app-password');
+			var usernameInput = document.getElementById('lc-bricks-mcp-test-username');
+			var passwordInput = document.getElementById('lc-bricks-mcp-test-app-password');
 
 			var username = usernameInput ? usernameInput.value.trim() : '';
 			var appPassword = passwordInput ? passwordInput.value.trim() : '';
@@ -267,7 +267,7 @@
 			}
 
 			var formData = new FormData();
-			formData.append('action', 'bricks_mcp_test_connection');
+			formData.append('action', 'lc_bricks_mcp_test_connection');
 			formData.append('nonce', bricksMcpUpdates.nonce);
 			formData.append('username', username);
 			formData.append('app_password', appPassword);
@@ -310,13 +310,13 @@
 	// -------------------------------------------------------------------------
 
 	function initGenerateCommand() {
-		var btn = document.getElementById('bricks-mcp-generate-btn');
-		var spinner = document.getElementById('bricks-mcp-generate-spinner');
-		var resultDiv = document.getElementById('bricks-mcp-generated-result');
-		var errorDiv = document.getElementById('bricks-mcp-generate-error');
-		var commandEl = document.getElementById('bricks-mcp-generated-command');
-		var claudeConfigEl = document.getElementById('bricks-mcp-generated-claude-config');
-		var geminiConfigEl = document.getElementById('bricks-mcp-generated-gemini-config');
+		var btn = document.getElementById('lc-bricks-mcp-generate-btn');
+		var spinner = document.getElementById('lc-bricks-mcp-generate-spinner');
+		var resultDiv = document.getElementById('lc-bricks-mcp-generated-result');
+		var errorDiv = document.getElementById('lc-bricks-mcp-generate-error');
+		var commandEl = document.getElementById('lc-bricks-mcp-generated-command');
+		var claudeConfigEl = document.getElementById('lc-bricks-mcp-generated-claude-config');
+		var geminiConfigEl = document.getElementById('lc-bricks-mcp-generated-gemini-config');
 
 		if (!btn) {
 			return;
@@ -333,7 +333,7 @@
 			}
 
 			var formData = new FormData();
-			formData.append('action', 'bricks_mcp_generate_app_password');
+			formData.append('action', 'lc_bricks_mcp_generate_app_password');
 			formData.append('nonce', bricksMcpUpdates.nonce);
 
 			fetch(bricksMcpUpdates.ajaxUrl, {
@@ -363,7 +363,7 @@
 					}
 
 					// Auto-fill the test connection password field.
-					var passwordInput = document.getElementById('bricks-mcp-test-app-password');
+					var passwordInput = document.getElementById('lc-bricks-mcp-test-app-password');
 					if (passwordInput && data.data.password) {
 						passwordInput.value = data.data.password;
 					}

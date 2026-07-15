@@ -2,13 +2,13 @@
 /**
  * Bricks element validation service.
  *
- * @package BricksMCP
+ * @package LCBricksMCP
  * @license GPL-2.0-or-later
  */
 
 declare(strict_types=1);
 
-namespace BricksMCP\MCP\Services;
+namespace LCBricksMCP\MCP\Services;
 
 use Opis\JsonSchema\Validator;
 use Opis\JsonSchema\ValidationResult;
@@ -56,15 +56,15 @@ class ValidationService {
 		if ( ! isset( $element['name'] ) || ! is_string( $element['name'] ) ) {
 			return new \WP_Error(
 				'validation_failed',
-				__( 'Element is missing required "name" field.', 'bricks-mcp' ),
+				__( 'Element is missing required "name" field.', 'lc-bricks-mcp' ),
 				[
 					'element_id'   => $element['id'] ?? 'unknown',
 					'element_type' => 'unknown',
 					'errors'       => [
 						[
 							'path'       => 'name',
-							'message'    => __( 'Required field "name" is missing or not a string.', 'bricks-mcp' ),
-							'suggestion' => __( 'Add a "name" field with the element type (e.g., "heading", "section"). Use get_element_schemas to discover valid element types.', 'bricks-mcp' ),
+							'message'    => __( 'Required field "name" is missing or not a string.', 'lc-bricks-mcp' ),
+							'suggestion' => __( 'Add a "name" field with the element type (e.g., "heading", "section"). Use get_element_schemas to discover valid element types.', 'lc-bricks-mcp' ),
 						],
 					],
 				]
@@ -92,10 +92,10 @@ class ValidationService {
 			$suggestions = $error_data['suggestions'] ?? [];
 
 			$suggestion_text = empty( $suggestions )
-				? __( 'Use get_element_schemas to discover valid element types.', 'bricks-mcp' )
+				? __( 'Use get_element_schemas to discover valid element types.', 'lc-bricks-mcp' )
 				: sprintf(
 					/* translators: %s: Comma-separated list of suggested element types */
-					__( 'Did you mean one of: %s? Use get_element_schemas to see all available element types.', 'bricks-mcp' ),
+					__( 'Did you mean one of: %s? Use get_element_schemas to see all available element types.', 'lc-bricks-mcp' ),
 					implode( ', ', $suggestions )
 				);
 
@@ -103,7 +103,7 @@ class ValidationService {
 				'unknown_element_type',
 				sprintf(
 					/* translators: %s: Element type name */
-					__( 'Unknown element type: "%s".', 'bricks-mcp' ),
+					__( 'Unknown element type: "%s".', 'lc-bricks-mcp' ),
 					$element_type
 				),
 				[
@@ -114,7 +114,7 @@ class ValidationService {
 							'path'       => 'name',
 							'message'    => sprintf(
 								/* translators: %s: Element type name */
-								__( '"%s" is not a registered Bricks element type.', 'bricks-mcp' ),
+								__( '"%s" is not a registered Bricks element type.', 'lc-bricks-mcp' ),
 								$element_type
 							),
 							'suggestion' => $suggestion_text,
@@ -136,7 +136,7 @@ class ValidationService {
 					'validation_failed',
 					sprintf(
 						/* translators: %s: Element type name */
-						__( 'Element "%s" settings failed validation.', 'bricks-mcp' ),
+						__( 'Element "%s" settings failed validation.', 'lc-bricks-mcp' ),
 						$element_type
 					),
 					[
@@ -199,7 +199,7 @@ class ValidationService {
 						'%d element failed validation.',
 						'%d elements failed validation.',
 						$error_count,
-						'bricks-mcp'
+						'lc-bricks-mcp'
 					),
 					$error_count
 				),
@@ -229,7 +229,7 @@ class ValidationService {
 		if ( str_contains( $error_message, 'required' ) || str_contains( $error_message, 'Required' ) ) {
 			return sprintf(
 				/* translators: %s: Field name */
-				__( 'Add the "%s" property to element settings.', 'bricks-mcp' ),
+				__( 'Add the "%s" property to element settings.', 'lc-bricks-mcp' ),
 				$field
 			);
 		}
@@ -238,7 +238,7 @@ class ValidationService {
 		if ( preg_match( '/expected\s+(\w+)\s+but\s+got\s+(\w+)/i', $error_message, $matches ) ) {
 			return sprintf(
 				/* translators: 1: Expected type, 2: Actual type */
-				__( 'Expected %1$s but got %2$s. Provide a valid %1$s value.', 'bricks-mcp' ),
+				__( 'Expected %1$s but got %2$s. Provide a valid %1$s value.', 'lc-bricks-mcp' ),
 				$matches[1],
 				$matches[2]
 			);
@@ -248,7 +248,7 @@ class ValidationService {
 		if ( str_contains( $error_message, 'enum' ) || str_contains( $error_message, 'allowed values' ) ) {
 			return sprintf(
 				/* translators: 1: Field name, 2: Element type */
-				__( '"%1$s" is not a valid option for %2$s. Check get_element_schemas for valid settings.', 'bricks-mcp' ),
+				__( '"%1$s" is not a valid option for %2$s. Check get_element_schemas for valid settings.', 'lc-bricks-mcp' ),
 				$field,
 				$element_type
 			);
@@ -258,7 +258,7 @@ class ValidationService {
 		if ( str_contains( $error_message, 'additional' ) || str_contains( $error_message, 'unknown' ) ) {
 			return sprintf(
 				/* translators: 1: Field name, 2: Element type */
-				__( '"%1$s" is not a recognized setting for %2$s. Check get_element_schemas for valid settings.', 'bricks-mcp' ),
+				__( '"%1$s" is not a recognized setting for %2$s. Check get_element_schemas for valid settings.', 'lc-bricks-mcp' ),
 				$field,
 				$element_type
 			);
@@ -267,7 +267,7 @@ class ValidationService {
 		// Default suggestion.
 		return sprintf(
 			/* translators: %s: Element type */
-			__( 'Check get_element_schemas for the correct format for %s settings.', 'bricks-mcp' ),
+			__( 'Check get_element_schemas for the correct format for %s settings.', 'lc-bricks-mcp' ),
 			$element_type
 		);
 	}
@@ -287,7 +287,7 @@ class ValidationService {
 		if ( ! class_exists( Validator::class ) ) {
 			return new \WP_Error(
 				'validation_unavailable',
-				__( 'Schema validation library is not available. Tool execution blocked for safety.', 'bricks-mcp' ),
+				__( 'Schema validation library is not available. Tool execution blocked for safety.', 'lc-bricks-mcp' ),
 				[ 'status' => 500 ]
 			);
 		}
@@ -303,7 +303,7 @@ class ValidationService {
 			if ( null === $arguments_json || null === $schema_json ) {
 				return new \WP_Error(
 					'validation_error',
-					__( 'Schema validation failed unexpectedly. Tool execution blocked for safety.', 'bricks-mcp' ),
+					__( 'Schema validation failed unexpectedly. Tool execution blocked for safety.', 'lc-bricks-mcp' ),
 					[ 'status' => 500 ]
 				);
 			}
@@ -326,7 +326,7 @@ class ValidationService {
 				'invalid_arguments',
 				sprintf(
 					/* translators: %s: Tool name */
-					__( 'Tool "%s" received invalid arguments.', 'bricks-mcp' ),
+					__( 'Tool "%s" received invalid arguments.', 'lc-bricks-mcp' ),
 					$tool_name
 				),
 				[ 'errors' => $formatted_errors ]
@@ -334,7 +334,7 @@ class ValidationService {
 		} catch ( \Throwable $e ) {
 			return new \WP_Error(
 				'validation_error',
-				__( 'Schema validation failed unexpectedly. Tool execution blocked for safety.', 'bricks-mcp' ),
+				__( 'Schema validation failed unexpectedly. Tool execution blocked for safety.', 'lc-bricks-mcp' ),
 				[ 'status' => 500 ]
 			);
 		}

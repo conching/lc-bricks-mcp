@@ -39,7 +39,7 @@ if ( wp_get_environment_type() !== 'local' ) {
  * Uses a named function so the filter can cleanly remove/re-add itself
  * to avoid infinite recursion when re-issuing the corrected request.
  */
-function bricks_mcp_fix_loopback_request( $preempt, $parsed_args, $url ) {
+function lc_bricks_mcp_fix_loopback_request( $preempt, $parsed_args, $url ) {
 	$url_parts = wp_parse_url( $url );
 	$site_port = (int) wp_parse_url( site_url(), PHP_URL_PORT );
 
@@ -69,7 +69,7 @@ function bricks_mcp_fix_loopback_request( $preempt, $parsed_args, $url ) {
 
 	return $result;
 }
-add_filter( 'pre_http_request', 'bricks_mcp_fix_loopback_request', 10, 3 );
+add_filter( 'pre_http_request', 'lc_bricks_mcp_fix_loopback_request', 10, 3 );
 
 /**
  * Enable Application Passwords without HTTPS.

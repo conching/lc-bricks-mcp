@@ -5,7 +5,7 @@
  * This file is executed when the plugin is uninstalled via the WordPress admin.
  * It removes all plugin data from the database.
  *
- * @package BricksMCP
+ * @package LCBricksMCP
  * @license GPL-2.0-or-later
  */
 
@@ -21,11 +21,11 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
  *
  * @return void
  */
-function bricks_mcp_delete_options(): void {
+function lc_bricks_mcp_delete_options(): void {
 	$options = [
-		'bricks_mcp_settings',
-		'bricks_mcp_version',
-		'bricks_mcp_activated_at',
+		'lc_bricks_mcp_settings',
+		'lc_bricks_mcp_version',
+		'lc_bricks_mcp_activated_at',
 	];
 
 	foreach ( $options as $option ) {
@@ -38,15 +38,15 @@ function bricks_mcp_delete_options(): void {
  *
  * @return void
  */
-function bricks_mcp_delete_transients(): void {
+function lc_bricks_mcp_delete_transients(): void {
 	global $wpdb;
 
 	// Delete all transients with the plugin prefix.
 	$wpdb->query(
 		$wpdb->prepare(
 			"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
-			$wpdb->esc_like( '_transient_bricks_mcp_' ) . '%',
-			$wpdb->esc_like( '_transient_timeout_bricks_mcp_' ) . '%'
+			$wpdb->esc_like( '_transient_lc_bricks_mcp_' ) . '%',
+			$wpdb->esc_like( '_transient_timeout_lc_bricks_mcp_' ) . '%'
 		)
 	);
 }
@@ -56,14 +56,14 @@ function bricks_mcp_delete_transients(): void {
  *
  * @return void
  */
-function bricks_mcp_delete_user_meta(): void {
+function lc_bricks_mcp_delete_user_meta(): void {
 	global $wpdb;
 
 	// Delete all user meta with the plugin prefix.
 	$wpdb->query(
 		$wpdb->prepare(
 			"DELETE FROM {$wpdb->usermeta} WHERE meta_key LIKE %s",
-			$wpdb->esc_like( 'bricks_mcp_' ) . '%'
+			$wpdb->esc_like( 'lc_bricks_mcp_' ) . '%'
 		)
 	);
 }
@@ -73,9 +73,9 @@ function bricks_mcp_delete_user_meta(): void {
  *
  * @return void
  */
-function bricks_mcp_clear_cron(): void {
+function lc_bricks_mcp_clear_cron(): void {
 	$cron_hooks = [
-		'bricks_mcp_cleanup',
+		'lc_bricks_mcp_cleanup',
 	];
 
 	foreach ( $cron_hooks as $hook ) {
@@ -87,10 +87,10 @@ function bricks_mcp_clear_cron(): void {
 }
 
 // Run cleanup.
-bricks_mcp_delete_options();
-bricks_mcp_delete_transients();
-bricks_mcp_delete_user_meta();
-bricks_mcp_clear_cron();
+lc_bricks_mcp_delete_options();
+lc_bricks_mcp_delete_transients();
+lc_bricks_mcp_delete_user_meta();
+lc_bricks_mcp_clear_cron();
 
 // Flush rewrite rules.
 flush_rewrite_rules();

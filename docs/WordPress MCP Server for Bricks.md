@@ -183,17 +183,17 @@ Each element in Bricks defines "Controls" (inputs in the editor sidebar). For th
 
 **5\. Architectural Blueprint: The Bricks-MCP-Server Plugin**
 
-This section details the concrete implementation of the plugin. We will name the plugin bricks-mcp-server.
+This section details the concrete implementation of the plugin. We will name the plugin lc-bricks-mcp-server.
 
 ### **5.1 Directory Structure**
 
 A professional plugin structure is required to maintain separation of concerns, especially when handling different transport layers.
 
-bricks-mcp-server/
+lc-bricks-mcp-server/
 
 ├── composer.json \# Dependency management
 
-├── bricks-mcp-server.php \# Main entry point
+├── lc-bricks-mcp-server.php \# Main entry point
 
 ├── src/
 
@@ -246,12 +246,12 @@ The plugin should rely on the official modelcontextprotocol/php-sdk (if availabl
 
 ### **5.3 Initialization and Bootstrapping**
 
-The bricks-mcp-server.php file must determine the context and initialize the correct transport.
+The lc-bricks-mcp-server.php file must determine the context and initialize the correct transport.
 
 PHP
 
 /\*\*  
- \* Plugin Name: Bricks MCP Server  
+ \* Plugin Name: LC Bricks MCP Server  
  \* Description: Connects AI Agents to Bricks Builder via Model Context Protocol.  
  \*/
 

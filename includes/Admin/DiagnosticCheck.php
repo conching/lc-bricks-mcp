@@ -2,13 +2,13 @@
 /**
  * DiagnosticCheck interface.
  *
- * @package BricksMCP
+ * @package LCBricksMCP
  * @license GPL-2.0-or-later
  */
 
 declare(strict_types=1);
 
-namespace BricksMCP\Admin;
+namespace LCBricksMCP\Admin;
 
 // Prevent direct access.
 if ( ! defined( 'ABSPATH' ) ) {

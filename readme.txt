@@ -1,4 +1,4 @@
-=== Bricks MCP ===
+=== LC Bricks MCP ===
 Contributors: cristianuibar, optiwebopz
 Tags: ai, bricks builder, mcp, artificial intelligence, page builder
 Requires at least: 6.4
@@ -12,7 +12,7 @@ Connect AI assistants like Claude to your Bricks Builder site. Build and edit pa
 
 == Description ==
 
-Bricks MCP turns your WordPress site into an AI-controlled page builder. It implements the Model Context Protocol (MCP) — an open standard for connecting AI assistants to external tools — so that any MCP-compatible client (Claude Desktop, Claude Code, and others) can read and modify your Bricks Builder pages through plain conversation.
+LC Bricks MCP turns your WordPress site into an AI-controlled page builder. It implements the Model Context Protocol (MCP) — an open standard for connecting AI assistants to external tools — so that any MCP-compatible client (Claude Desktop, Claude Code, and others) can read and modify your Bricks Builder pages through plain conversation.
 
 Tell your AI assistant "create a hero section with a headline and a call-to-action button" and it happens. No template hunting. No clicking through panels.
 
@@ -34,7 +34,7 @@ The plugin registers a REST API endpoint on your WordPress site that speaks the 
 * **update_bricks_page** — Modify the element tree of an existing Bricks Builder page
 * **delete_bricks_element** — Remove a specific element from a page
 
-All tools are free to use. The plugin is open source and hosted on [GitHub](https://github.com/cristianuibar/bricks-mcp).
+All tools are free to use. The plugin is open source and hosted on [GitHub](https://github.com/cristianuibar/lc-bricks-mcp).
 
 = Authentication =
 
@@ -49,12 +49,12 @@ All requests are authenticated using WordPress Application Passwords, the built-
 = Getting Started =
 
 1. Install and activate the plugin.
-2. Go to **Settings > Bricks MCP** and enable the plugin.
+2. Go to **Settings > LC Bricks MCP** and enable the plugin.
 3. Create a WordPress Application Password under **Users > Profile**.
 4. Add the MCP server URL to your AI client configuration.
 5. Start building pages with natural language.
 
-Full setup documentation is available in the [GitHub repository](https://github.com/cristianuibar/bricks-mcp).
+Full setup documentation is available in the [GitHub repository](https://github.com/cristianuibar/lc-bricks-mcp).
 
 == External Services ==
 
@@ -73,12 +73,12 @@ No other external services are contacted by this plugin.
 
 == Installation ==
 
-1. Upload the `bricks-mcp` folder to the `/wp-content/plugins/` directory, or install the plugin via the WordPress Plugins screen.
+1. Upload the `lc-bricks-mcp` folder to the `/wp-content/plugins/` directory, or install the plugin via the WordPress Plugins screen.
 2. Activate the plugin through the **Plugins** screen in WordPress.
-3. Navigate to **Settings > Bricks MCP** to configure the plugin.
+3. Navigate to **Settings > LC Bricks MCP** to configure the plugin.
 4. Enable the MCP server and optionally require authentication (strongly recommended for production sites).
 5. Go to **Users > Your Profile** and scroll to **Application Passwords**. Create a new Application Password and copy it — you will need it for your AI client.
-6. Add your site's MCP endpoint URL and credentials to your AI client (see the [GitHub repository](https://github.com/cristianuibar/bricks-mcp) for client-specific setup guides).
+6. Add your site's MCP endpoint URL and credentials to your AI client (see the [GitHub repository](https://github.com/cristianuibar/lc-bricks-mcp) for client-specific setup guides).
 7. (Optional) Enter an Unsplash API key in the settings to enable image search.
 
 == Frequently Asked Questions ==
@@ -101,7 +101,7 @@ Yes, when configured correctly. The plugin enforces WordPress Application Passwo
 
 == Screenshots ==
 
-1. The Bricks MCP settings page under Settings > Bricks MCP.
+1. The LC Bricks MCP settings page under Settings > LC Bricks MCP.
 2. Example Claude Desktop configuration connecting to the MCP server endpoint.
 3. An AI assistant creating a Bricks Builder hero section from a plain-text prompt.
 
@@ -144,7 +144,7 @@ Yes, when configured correctly. The plugin enforces WordPress Application Passwo
 = 1.4.0 =
 * New: Connection diagnostics system — 9 automated checks detect what's blocking MCP API endpoints or App Passwords.
 * New: Diagnostic panel on MCP Settings page replaces Test Connection button with richer output and fix instructions.
-* New: WP Site Health integration — 3 Bricks MCP checks appear in Tools > Site Health.
+* New: WP Site Health integration — 3 LC Bricks MCP checks appear in Tools > Site Health.
 * New: Plugin activation checks — lightweight PHP-only checks run on activate and surface issues as admin notices.
 * New: MCP `get_site_info(action: 'diagnose')` returns structured JSON diagnostics for AI agents.
 * New: Hosting provider detection (WP Engine, Kinsta, Flywheel, Cloudways, GoDaddy, SiteGround, Pantheon) with provider-specific fix instructions.

@@ -2,13 +2,13 @@
 /**
  * Menu service for WordPress navigation menu CRUD operations.
  *
- * @package BricksMCP
+ * @package LCBricksMCP
  * @license GPL-2.0-or-later
  */
 
 declare(strict_types=1);
 
-namespace BricksMCP\MCP\Services;
+namespace LCBricksMCP\MCP\Services;
 
 // Prevent direct access.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -41,7 +41,7 @@ class MenuService {
 			return new \WP_Error(
 				'menu_fetch_failed',
 				/* translators: %d: menu ID */
-				sprintf( __( 'Menu created (ID %d) but could not fetch its data.', 'bricks-mcp' ), $term_id )
+				sprintf( __( 'Menu created (ID %d) but could not fetch its data.', 'lc-bricks-mcp' ), $term_id )
 			);
 		}
 
@@ -66,7 +66,7 @@ class MenuService {
 			return new \WP_Error(
 				'menu_not_found',
 				/* translators: %d: menu ID */
-				sprintf( __( 'Menu %d not found. Use list_menus to find valid menu IDs.', 'bricks-mcp' ), $menu_id )
+				sprintf( __( 'Menu %d not found. Use list_menus to find valid menu IDs.', 'lc-bricks-mcp' ), $menu_id )
 			);
 		}
 
@@ -85,7 +85,7 @@ class MenuService {
 			return new \WP_Error(
 				'menu_fetch_failed',
 				/* translators: %d: menu ID */
-				sprintf( __( 'Menu %d updated but could not fetch its data.', 'bricks-mcp' ), $menu_id )
+				sprintf( __( 'Menu %d updated but could not fetch its data.', 'lc-bricks-mcp' ), $menu_id )
 			);
 		}
 
@@ -111,7 +111,7 @@ class MenuService {
 			return new \WP_Error(
 				'menu_not_found',
 				/* translators: %d: menu ID */
-				sprintf( __( 'Menu %d not found. Use list_menus to find valid menu IDs.', 'bricks-mcp' ), $menu_id )
+				sprintf( __( 'Menu %d not found. Use list_menus to find valid menu IDs.', 'lc-bricks-mcp' ), $menu_id )
 			);
 		}
 
@@ -151,7 +151,7 @@ class MenuService {
 			return new \WP_Error(
 				'menu_not_found',
 				/* translators: %d: menu ID */
-				sprintf( __( 'Menu %d not found. Use list_menus to find valid menu IDs.', 'bricks-mcp' ), $menu_id )
+				sprintf( __( 'Menu %d not found. Use list_menus to find valid menu IDs.', 'lc-bricks-mcp' ), $menu_id )
 			);
 		}
 
@@ -362,7 +362,7 @@ class MenuService {
 			return new \WP_Error(
 				'menu_not_found',
 				/* translators: %d: menu ID */
-				sprintf( __( 'Menu %d not found. Use list_menus to find valid menu IDs.', 'bricks-mcp' ), $menu_id )
+				sprintf( __( 'Menu %d not found. Use list_menus to find valid menu IDs.', 'lc-bricks-mcp' ), $menu_id )
 			);
 		}
 
@@ -406,7 +406,7 @@ class MenuService {
 		foreach ( $items as $item ) {
 			// Validate required title.
 			if ( empty( $item['title'] ) || ! is_string( $item['title'] ) ) {
-				$errors[] = __( 'Item skipped: title is required and must be a non-empty string.', 'bricks-mcp' );
+				$errors[] = __( 'Item skipped: title is required and must be a non-empty string.', 'lc-bricks-mcp' );
 				++$position;
 				continue;
 			}
@@ -418,7 +418,7 @@ class MenuService {
 				if ( empty( $item['object'] ) || ! isset( $item['object_id'] ) ) {
 					$errors[] = sprintf(
 						/* translators: %s: item title */
-						__( 'Item "%s" skipped: post_type items require object (post type) and object_id.', 'bricks-mcp' ),
+						__( 'Item "%s" skipped: post_type items require object (post type) and object_id.', 'lc-bricks-mcp' ),
 						$item['title']
 					);
 					++$position;
@@ -429,7 +429,7 @@ class MenuService {
 				if ( null === $post ) {
 					$errors[] = sprintf(
 						/* translators: 1: item title, 2: object_id */
-						__( 'Item "%1$s" skipped: post with ID %2$d not found.', 'bricks-mcp' ),
+						__( 'Item "%1$s" skipped: post with ID %2$d not found.', 'lc-bricks-mcp' ),
 						$item['title'],
 						(int) $item['object_id']
 					);
@@ -440,7 +440,7 @@ class MenuService {
 				if ( get_post_type( (int) $item['object_id'] ) !== $item['object'] ) {
 					$errors[] = sprintf(
 						/* translators: 1: item title, 2: object, 3: actual post type */
-						__( 'Item "%1$s" skipped: post %2$d is type "%3$s", not "%4$s".', 'bricks-mcp' ),
+						__( 'Item "%1$s" skipped: post %2$d is type "%3$s", not "%4$s".', 'lc-bricks-mcp' ),
 						$item['title'],
 						(int) $item['object_id'],
 						get_post_type( (int) $item['object_id'] ),
@@ -456,7 +456,7 @@ class MenuService {
 				if ( empty( $item['object'] ) || ! isset( $item['object_id'] ) ) {
 					$errors[] = sprintf(
 						/* translators: %s: item title */
-						__( 'Item "%s" skipped: taxonomy items require object (taxonomy) and object_id.', 'bricks-mcp' ),
+						__( 'Item "%s" skipped: taxonomy items require object (taxonomy) and object_id.', 'lc-bricks-mcp' ),
 						$item['title']
 					);
 					++$position;
@@ -467,7 +467,7 @@ class MenuService {
 				if ( null === $term || is_wp_error( $term ) ) {
 					$errors[] = sprintf(
 						/* translators: 1: item title, 2: object_id */
-						__( 'Item "%1$s" skipped: term with ID %2$d not found.', 'bricks-mcp' ),
+						__( 'Item "%1$s" skipped: term with ID %2$d not found.', 'lc-bricks-mcp' ),
 						$item['title'],
 						(int) $item['object_id']
 					);
@@ -499,7 +499,7 @@ class MenuService {
 			if ( is_wp_error( $new_item_id ) ) {
 				$errors[] = sprintf(
 					/* translators: 1: item title, 2: error message */
-					__( 'Item "%1$s" failed: %2$s', 'bricks-mcp' ),
+					__( 'Item "%1$s" failed: %2$s', 'lc-bricks-mcp' ),
 					$item['title'],
 					$new_item_id->get_error_message()
 				);
@@ -540,7 +540,7 @@ class MenuService {
 			return new \WP_Error(
 				'menu_not_found',
 				/* translators: %d: menu ID */
-				sprintf( __( 'Menu %d not found. Use list_menus to find valid menu IDs.', 'bricks-mcp' ), $menu_id )
+				sprintf( __( 'Menu %d not found. Use list_menus to find valid menu IDs.', 'lc-bricks-mcp' ), $menu_id )
 			);
 		}
 
@@ -550,7 +550,7 @@ class MenuService {
 				'location_not_found',
 				sprintf(
 					/* translators: %s: location slug */
-					__( "Menu location '%s' not found. Use list_menu_locations to see available locations.", 'bricks-mcp' ),
+					__( "Menu location '%s' not found. Use list_menu_locations to see available locations.", 'lc-bricks-mcp' ),
 					$location
 				)
 			);
@@ -572,7 +572,7 @@ class MenuService {
 			$response['replaced_menu_id'] = $old_menu_id;
 			$response['warning']          = sprintf(
 				/* translators: 1: location slug, 2: old menu ID */
-				__( "Location '%1\$s' was previously assigned to menu ID %2\$d. That menu still exists but is now unassigned from this location.", 'bricks-mcp' ),
+				__( "Location '%1\$s' was previously assigned to menu ID %2\$d. That menu still exists but is now unassigned from this location.", 'lc-bricks-mcp' ),
 				$location,
 				$old_menu_id
 			);
@@ -596,7 +596,7 @@ class MenuService {
 				'location_not_found',
 				sprintf(
 					/* translators: %s: location slug */
-					__( "Menu location '%s' not found. Use list_menu_locations to see available locations.", 'bricks-mcp' ),
+					__( "Menu location '%s' not found. Use list_menu_locations to see available locations.", 'lc-bricks-mcp' ),
 					$location
 				)
 			);
@@ -609,7 +609,7 @@ class MenuService {
 			return array(
 				'location'   => $location,
 				'unassigned' => false,
-				'message'    => __( 'Location has no menu assigned.', 'bricks-mcp' ),
+				'message'    => __( 'Location has no menu assigned.', 'lc-bricks-mcp' ),
 			);
 		}
 

@@ -2,13 +2,13 @@
 /**
  * MCP Server implementation.
  *
- * @package BricksMCP
+ * @package LCBricksMCP
  * @license GPL-2.0-or-later
  */
 
 declare(strict_types=1);
 
-namespace BricksMCP\MCP;
+namespace LCBricksMCP\MCP;
 
 // Prevent direct access.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -28,7 +28,7 @@ final class Server {
 	 *
 	 * @var string
 	 */
-	public const API_NAMESPACE = 'bricks-mcp/v1';
+	public const API_NAMESPACE = 'lc-bricks-mcp/v1';
 
 	/**
 	 * Router instance.
@@ -125,11 +125,11 @@ final class Server {
 		}
 
 		$resource_url = rest_url( self::API_NAMESPACE . '/mcp' );
-		$settings_url = admin_url( 'options-general.php?page=bricks-mcp' );
+		$settings_url = admin_url( 'options-general.php?page=lc-bricks-mcp' );
 
 		$auth_hint = sprintf(
 			/* translators: 1: settings URL */
-			__( 'This server uses WordPress Application Passwords, not OAuth. Generate one at Users > Profile > Application Passwords, then configure your MCP client with Basic auth (base64 of "username:app-password"). Settings: %1$s', 'bricks-mcp' ),
+			__( 'This server uses WordPress Application Passwords, not OAuth. Generate one at Users > Profile > Application Passwords, then configure your MCP client with Basic auth (base64 of "username:app-password"). Settings: %1$s', 'lc-bricks-mcp' ),
 			$settings_url
 		);
 
@@ -143,8 +143,8 @@ final class Server {
 			echo wp_json_encode( [
 				'error'                   => 'oauth_not_supported',
 				'error_description'       => $auth_hint,
-				'bricks_mcp_auth_method'  => 'application_password',
-				'bricks_mcp_settings_url' => $settings_url,
+				'lc_bricks_mcp_auth_method'  => 'application_password',
+				'lc_bricks_mcp_settings_url' => $settings_url,
 			] );
 			exit;
 		}
@@ -158,9 +158,9 @@ final class Server {
 			'authorization_servers'    => [],
 			'bearer_methods_supported' => [ 'header' ],
 			'resource_documentation'   => 'https://aiforbricks.com/docs/authentication',
-			'bricks_mcp_auth_method'   => 'application_password',
-			'bricks_mcp_auth_hint'     => $auth_hint,
-			'bricks_mcp_settings_url'  => $settings_url,
+			'lc_bricks_mcp_auth_method'   => 'application_password',
+			'lc_bricks_mcp_auth_hint'     => $auth_hint,
+			'lc_bricks_mcp_settings_url'  => $settings_url,
 		] );
 		exit;
 	}
@@ -251,13 +251,13 @@ final class Server {
 	 * @return bool|\WP_Error True if allowed, WP_Error otherwise.
 	 */
 	public function check_permissions( \WP_REST_Request $request ): bool|\WP_Error { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
-		$settings = get_option( 'bricks_mcp_settings', [] );
+		$settings = get_option( 'lc_bricks_mcp_settings', [] );
 
 		// Check if plugin is enabled.
 		if ( empty( $settings['enabled'] ) ) {
 			return new \WP_Error(
-				'bricks_mcp_disabled',
-				__( 'The Bricks MCP server is currently disabled.', 'bricks-mcp' ),
+				'lc_bricks_mcp_disabled',
+				__( 'The LC Bricks MCP server is currently disabled.', 'lc-bricks-mcp' ),
 				[ 'status' => 503 ]
 			);
 		}
@@ -266,8 +266,8 @@ final class Server {
 		if ( ! empty( $settings['require_auth'] ) ) {
 			if ( ! is_user_logged_in() ) {
 				return new \WP_Error(
-					'bricks_mcp_unauthorized',
-					__( 'Authentication is required to access the MCP server.', 'bricks-mcp' ),
+					'lc_bricks_mcp_unauthorized',
+					__( 'Authentication is required to access the MCP server.', 'lc-bricks-mcp' ),
 					[ 'status' => 401 ]
 				);
 			}
@@ -275,8 +275,8 @@ final class Server {
 			// Check user capabilities.
 			if ( ! current_user_can( 'manage_options' ) ) {
 				return new \WP_Error(
-					'bricks_mcp_forbidden',
-					__( 'You do not have permission to access the MCP server.', 'bricks-mcp' ),
+					'lc_bricks_mcp_forbidden',
+					__( 'You do not have permission to access the MCP server.', 'lc-bricks-mcp' ),
 					[ 'status' => 403 ]
 				);
 			}

@@ -2,15 +2,15 @@
 /**
  * Security plugin compatibility check.
  *
- * @package BricksMCP
+ * @package LCBricksMCP
  * @license GPL-2.0-or-later
  */
 
 declare(strict_types=1);
 
-namespace BricksMCP\Admin\Checks;
+namespace LCBricksMCP\Admin\Checks;
 
-use BricksMCP\Admin\DiagnosticCheck;
+use LCBricksMCP\Admin\DiagnosticCheck;
 
 // Prevent direct access.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -56,7 +56,7 @@ class SecurityPluginCheck implements DiagnosticCheck {
 		'perfmatters/perfmatters.php'                                      => array(
 			'name' => 'Perfmatters',
 			'risk' => 'high',
-			'note' => 'May disable REST API. Add "bricks-mcp" to Perfmatters > REST API > Allowed Routes.',
+			'note' => 'May disable REST API. Add "lc-bricks-mcp" to Perfmatters > REST API > Allowed Routes.',
 		),
 		'wp-cerber/wp-cerber.php'                                          => array(
 			'name' => 'WP Cerber',
@@ -66,7 +66,7 @@ class SecurityPluginCheck implements DiagnosticCheck {
 		'disable-wp-rest-api/disable-wp-rest-api.php'                     => array(
 			'name' => 'Disable WP REST API',
 			'risk' => 'critical',
-			'note' => 'Blocks REST API for non-authenticated users. Deactivate or whitelist bricks-mcp namespace.',
+			'note' => 'Blocks REST API for non-authenticated users. Deactivate or whitelist lc-bricks-mcp namespace.',
 		),
 		'disable-json-api/disable-json-api.php'                           => array(
 			'name' => 'Disable REST API',
@@ -95,7 +95,7 @@ class SecurityPluginCheck implements DiagnosticCheck {
 	 * @return string
 	 */
 	public function label(): string {
-		return __( 'Security Plugin Compatibility', 'bricks-mcp' );
+		return __( 'Security Plugin Compatibility', 'lc-bricks-mcp' );
 	}
 
 	/**
@@ -158,7 +158,7 @@ class SecurityPluginCheck implements DiagnosticCheck {
 				'status'    => 'fail',
 				'message'   => sprintf(
 					// translators: %s is a comma-separated list of plugin names.
-					__( 'Detected plugin(s) that block REST API or Application Passwords: %s', 'bricks-mcp' ),
+					__( 'Detected plugin(s) that block REST API or Application Passwords: %s', 'lc-bricks-mcp' ),
 					$names
 				),
 				'fix_steps' => $fix_steps,
@@ -180,7 +180,7 @@ class SecurityPluginCheck implements DiagnosticCheck {
 				'status'    => 'warn',
 				'message'   => sprintf(
 					// translators: %s is a comma-separated list of plugin names.
-					__( 'Detected security plugin(s) that may restrict REST API or Application Passwords: %s', 'bricks-mcp' ),
+					__( 'Detected security plugin(s) that may restrict REST API or Application Passwords: %s', 'lc-bricks-mcp' ),
 					$names
 				),
 				'fix_steps' => $fix_steps,
@@ -197,7 +197,7 @@ class SecurityPluginCheck implements DiagnosticCheck {
 				'status'    => 'pass',
 				'message'   => sprintf(
 					// translators: %s is a comma-separated list of plugin names.
-					__( 'Detected security plugin(s) with low compatibility risk: %s', 'bricks-mcp' ),
+					__( 'Detected security plugin(s) with low compatibility risk: %s', 'lc-bricks-mcp' ),
 					$names
 				),
 				'fix_steps' => array(),
@@ -209,7 +209,7 @@ class SecurityPluginCheck implements DiagnosticCheck {
 			'id'        => $this->id(),
 			'label'     => $this->label(),
 			'status'    => 'pass',
-			'message'   => __( 'No known conflicting security plugins detected.', 'bricks-mcp' ),
+			'message'   => __( 'No known conflicting security plugins detected.', 'lc-bricks-mcp' ),
 			'fix_steps' => array(),
 			'category'  => $this->category(),
 		);

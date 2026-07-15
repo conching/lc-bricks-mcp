@@ -2,15 +2,15 @@
 /**
  * Permalink structure check.
  *
- * @package BricksMCP
+ * @package LCBricksMCP
  * @license GPL-2.0-or-later
  */
 
 declare(strict_types=1);
 
-namespace BricksMCP\Admin\Checks;
+namespace LCBricksMCP\Admin\Checks;
 
-use BricksMCP\Admin\DiagnosticCheck;
+use LCBricksMCP\Admin\DiagnosticCheck;
 
 // Prevent direct access.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -39,7 +39,7 @@ class PermalinkStructureCheck implements DiagnosticCheck {
 	 * @return string
 	 */
 	public function label(): string {
-		return __( 'Permalink Structure', 'bricks-mcp' );
+		return __( 'Permalink Structure', 'lc-bricks-mcp' );
 	}
 
 	/**
@@ -73,9 +73,9 @@ class PermalinkStructureCheck implements DiagnosticCheck {
 				'id'        => $this->id(),
 				'label'     => $this->label(),
 				'status'    => 'fail',
-				'message'   => __( 'Permalinks are set to "Plain" -- the REST API requires pretty permalinks.', 'bricks-mcp' ),
+				'message'   => __( 'Permalinks are set to "Plain" -- the REST API requires pretty permalinks.', 'lc-bricks-mcp' ),
 				'fix_steps' => array(
-					__( 'Go to Settings > Permalinks and select any structure other than "Plain".', 'bricks-mcp' ),
+					__( 'Go to Settings > Permalinks and select any structure other than "Plain".', 'lc-bricks-mcp' ),
 				),
 				'category'  => $this->category(),
 			);
@@ -85,7 +85,7 @@ class PermalinkStructureCheck implements DiagnosticCheck {
 			'id'        => $this->id(),
 			'label'     => $this->label(),
 			'status'    => 'pass',
-			'message'   => __( 'Pretty permalinks are enabled.', 'bricks-mcp' ),
+			'message'   => __( 'Pretty permalinks are enabled.', 'lc-bricks-mcp' ),
 			'fix_steps' => array(),
 			'category'  => $this->category(),
 		);

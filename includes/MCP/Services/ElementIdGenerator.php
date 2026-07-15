@@ -2,13 +2,13 @@
 /**
  * Bricks element ID generator.
  *
- * @package BricksMCP
+ * @package LCBricksMCP
  * @license GPL-2.0-or-later
  */
 
 declare(strict_types=1);
 
-namespace BricksMCP\MCP\Services;
+namespace LCBricksMCP\MCP\Services;
 
 // Prevent direct access.
 if ( ! defined( 'ABSPATH' ) ) {

@@ -2,15 +2,15 @@
 /**
  * REST API reachability check.
  *
- * @package BricksMCP
+ * @package LCBricksMCP
  * @license GPL-2.0-or-later
  */
 
 declare(strict_types=1);
 
-namespace BricksMCP\Admin\Checks;
+namespace LCBricksMCP\Admin\Checks;
 
-use BricksMCP\Admin\DiagnosticCheck;
+use LCBricksMCP\Admin\DiagnosticCheck;
 
 // Prevent direct access.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -40,7 +40,7 @@ class RestApiReachableCheck implements DiagnosticCheck {
 	 * @return string
 	 */
 	public function label(): string {
-		return __( 'REST API Reachable', 'bricks-mcp' );
+		return __( 'REST API Reachable', 'lc-bricks-mcp' );
 	}
 
 	/**
@@ -74,9 +74,9 @@ class RestApiReachableCheck implements DiagnosticCheck {
 				'id'        => $this->id(),
 				'label'     => $this->label(),
 				'status'    => 'fail',
-				'message'   => __( 'Could not determine REST API URL.', 'bricks-mcp' ),
+				'message'   => __( 'Could not determine REST API URL.', 'lc-bricks-mcp' ),
 				'fix_steps' => array(
-					__( 'Ensure pretty permalinks are enabled under Settings > Permalinks.', 'bricks-mcp' ),
+					__( 'Ensure pretty permalinks are enabled under Settings > Permalinks.', 'lc-bricks-mcp' ),
 				),
 				'category'  => $this->category(),
 			);
@@ -97,13 +97,13 @@ class RestApiReachableCheck implements DiagnosticCheck {
 				'status'    => 'fail',
 				'message'   => sprintf(
 					// translators: %s is the WP_Error message.
-					__( 'REST API loopback request failed: %s', 'bricks-mcp' ),
+					__( 'REST API loopback request failed: %s', 'lc-bricks-mcp' ),
 					$response->get_error_message()
 				),
 				'fix_steps' => array(
-					__( 'Check that loopback requests are allowed on your server.', 'bricks-mcp' ),
-					__( 'If using a firewall or security plugin, whitelist loopback connections from the server to itself.', 'bricks-mcp' ),
-					__( 'Check the WordPress Site Health page for loopback request status.', 'bricks-mcp' ),
+					__( 'Check that loopback requests are allowed on your server.', 'lc-bricks-mcp' ),
+					__( 'If using a firewall or security plugin, whitelist loopback connections from the server to itself.', 'lc-bricks-mcp' ),
+					__( 'Check the WordPress Site Health page for loopback request status.', 'lc-bricks-mcp' ),
 				),
 				'category'  => $this->category(),
 			);
@@ -116,7 +116,7 @@ class RestApiReachableCheck implements DiagnosticCheck {
 				'id'        => $this->id(),
 				'label'     => $this->label(),
 				'status'    => 'warn',
-				'message'   => __( 'REST API requires authentication for all requests. This is normal if a security plugin restricts unauthenticated access -- MCP clients authenticate via Application Passwords.', 'bricks-mcp' ),
+				'message'   => __( 'REST API requires authentication for all requests. This is normal if a security plugin restricts unauthenticated access -- MCP clients authenticate via Application Passwords.', 'lc-bricks-mcp' ),
 				'fix_steps' => array(),
 				'category'  => $this->category(),
 			);
@@ -127,7 +127,7 @@ class RestApiReachableCheck implements DiagnosticCheck {
 				'id'        => $this->id(),
 				'label'     => $this->label(),
 				'status'    => 'pass',
-				'message'   => __( 'WordPress REST API is reachable.', 'bricks-mcp' ),
+				'message'   => __( 'WordPress REST API is reachable.', 'lc-bricks-mcp' ),
 				'fix_steps' => array(),
 				'category'  => $this->category(),
 			);
@@ -139,12 +139,12 @@ class RestApiReachableCheck implements DiagnosticCheck {
 			'status'    => 'warn',
 			'message'   => sprintf(
 				// translators: %d is the HTTP status code.
-				__( 'REST API returned unexpected HTTP status: %d', 'bricks-mcp' ),
+				__( 'REST API returned unexpected HTTP status: %d', 'lc-bricks-mcp' ),
 				$http_code
 			),
 			'fix_steps' => array(
-				__( 'Check your .htaccess file for rules that may block /wp-json/ requests.', 'bricks-mcp' ),
-				__( 'Check your Nginx configuration for REST API blocking rules.', 'bricks-mcp' ),
+				__( 'Check your .htaccess file for rules that may block /wp-json/ requests.', 'lc-bricks-mcp' ),
+				__( 'Check your Nginx configuration for REST API blocking rules.', 'lc-bricks-mcp' ),
 			),
 			'category'  => $this->category(),
 		);

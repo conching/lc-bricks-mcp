@@ -2,15 +2,15 @@
 /**
  * Application Passwords per-user check.
  *
- * @package BricksMCP
+ * @package LCBricksMCP
  * @license GPL-2.0-or-later
  */
 
 declare(strict_types=1);
 
-namespace BricksMCP\Admin\Checks;
+namespace LCBricksMCP\Admin\Checks;
 
-use BricksMCP\Admin\DiagnosticCheck;
+use LCBricksMCP\Admin\DiagnosticCheck;
 
 // Prevent direct access.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -39,7 +39,7 @@ class AppPasswordsUserCheck implements DiagnosticCheck {
 	 * @return string
 	 */
 	public function label(): string {
-		return __( 'Application Passwords Available for Current User', 'bricks-mcp' );
+		return __( 'Application Passwords Available for Current User', 'lc-bricks-mcp' );
 	}
 
 	/**
@@ -75,13 +75,13 @@ class AppPasswordsUserCheck implements DiagnosticCheck {
 				'status'    => 'fail',
 				'message'   => sprintf(
 					// translators: %s is the current WordPress username.
-					__( 'Application Passwords are not available for user "%s". A plugin may be restricting them by role.', 'bricks-mcp' ),
+					__( 'Application Passwords are not available for user "%s". A plugin may be restricting them by role.', 'lc-bricks-mcp' ),
 					esc_html( $user->user_login )
 				),
 				'fix_steps' => array(
-					__( 'Check iThemes Security role restrictions.', 'bricks-mcp' ),
-					__( 'Check WP Cerber user group settings.', 'bricks-mcp' ),
-					__( 'Check for custom per-user filters on wp_is_application_passwords_available_for_user.', 'bricks-mcp' ),
+					__( 'Check iThemes Security role restrictions.', 'lc-bricks-mcp' ),
+					__( 'Check WP Cerber user group settings.', 'lc-bricks-mcp' ),
+					__( 'Check for custom per-user filters on wp_is_application_passwords_available_for_user.', 'lc-bricks-mcp' ),
 				),
 				'category'  => $this->category(),
 			);
@@ -93,7 +93,7 @@ class AppPasswordsUserCheck implements DiagnosticCheck {
 			'status'    => 'pass',
 			'message'   => sprintf(
 				// translators: %s is the current WordPress username.
-				__( 'Application Passwords are available for user "%s".', 'bricks-mcp' ),
+				__( 'Application Passwords are available for user "%s".', 'lc-bricks-mcp' ),
 				esc_html( $user->user_login )
 			),
 			'fix_steps' => array(),

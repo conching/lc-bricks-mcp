@@ -2,13 +2,13 @@
 /**
  * Streamable HTTP transport handler for MCP.
  *
- * @package BricksMCP
+ * @package LCBricksMCP
  * @license GPL-2.0-or-later
  */
 
 declare(strict_types=1);
 
-namespace BricksMCP\MCP;
+namespace LCBricksMCP\MCP;
 
 // Prevent direct access.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -121,7 +121,7 @@ final class StreamableHttpHandler {
 
 		// Check body size before parsing.
 		$body     = $request->get_body();
-		$max_body = (int) apply_filters( 'bricks_mcp_max_body_size', self::MAX_BODY_SIZE );
+		$max_body = (int) apply_filters( 'lc_bricks_mcp_max_body_size', self::MAX_BODY_SIZE );
 		if ( strlen( $body ) > $max_body ) {
 			status_header( 413 );
 			header( 'Content-Type: application/json' );
@@ -316,11 +316,11 @@ final class StreamableHttpHandler {
 		];
 
 		$server_info = [
-			'name'    => 'bricks-mcp',
-			'version' => BRICKS_MCP_VERSION,
+			'name'    => 'lc-bricks-mcp',
+			'version' => LC_BRICKS_MCP_VERSION,
 		];
 
-		$instructions = 'Bricks MCP connects AI assistants to a WordPress site running Bricks Builder. '
+		$instructions = 'LC Bricks MCP connects AI assistants to a WordPress site running Bricks Builder. '
 			. 'IMPORTANT: Before creating or modifying any Bricks page, call the get_builder_guide tool to learn element settings, CSS gotchas, animation formats, and workflow patterns. '
 			. 'This avoids common mistakes like using wrong style property names or deprecated settings. '
 			. 'Use get_site_info to understand the site context (theme, plugins, Bricks version) before making changes.';
@@ -394,7 +394,7 @@ final class StreamableHttpHandler {
 	 * Emit SSE response headers.
 	 *
 	 * Flushes output buffers, extends PHP execution time via the filterable
-	 * bricks_mcp_sse_timeout filter (default 1800 seconds), enables
+	 * lc_bricks_mcp_sse_timeout filter (default 1800 seconds), enables
 	 * connection_aborted() polling via ignore_user_abort( true ), sets SSE
 	 * headers, and registers a shutdown function to emit a stream-end comment
 	 * so proxies know the stream closed unexpectedly.
@@ -406,7 +406,7 @@ final class StreamableHttpHandler {
 			ob_end_flush();
 		}
 
-		$timeout = (int) apply_filters( 'bricks_mcp_sse_timeout', 1800 );
+		$timeout = (int) apply_filters( 'lc_bricks_mcp_sse_timeout', 1800 );
 		set_time_limit( $timeout );
 		ignore_user_abort( true );
 

@@ -2,15 +2,15 @@
 /**
  * Bricks Builder active check.
  *
- * @package BricksMCP
+ * @package LCBricksMCP
  * @license GPL-2.0-or-later
  */
 
 declare(strict_types=1);
 
-namespace BricksMCP\Admin\Checks;
+namespace LCBricksMCP\Admin\Checks;
 
-use BricksMCP\Admin\DiagnosticCheck;
+use LCBricksMCP\Admin\DiagnosticCheck;
 
 // Prevent direct access.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Checks whether Bricks Builder theme is installed and active.
  *
- * Bricks MCP requires Bricks Builder to function for layout tools.
+ * LC Bricks MCP requires Bricks Builder to function for layout tools.
  */
 class BricksActiveCheck implements DiagnosticCheck {
 
@@ -39,7 +39,7 @@ class BricksActiveCheck implements DiagnosticCheck {
 	 * @return string
 	 */
 	public function label(): string {
-		return __( 'Bricks Builder Active', 'bricks-mcp' );
+		return __( 'Bricks Builder Active', 'lc-bricks-mcp' );
 	}
 
 	/**
@@ -71,9 +71,9 @@ class BricksActiveCheck implements DiagnosticCheck {
 				'id'        => $this->id(),
 				'label'     => $this->label(),
 				'status'    => 'fail',
-				'message'   => __( 'Bricks Builder is not active. Bricks MCP requires Bricks Builder theme to be installed and active.', 'bricks-mcp' ),
+				'message'   => __( 'Bricks Builder is not active. LC Bricks MCP requires Bricks Builder theme to be installed and active.', 'lc-bricks-mcp' ),
 				'fix_steps' => array(
-					__( 'Install and activate the Bricks Builder theme from bricksbuilder.io.', 'bricks-mcp' ),
+					__( 'Install and activate the Bricks Builder theme from bricksbuilder.io.', 'lc-bricks-mcp' ),
 				),
 				'category'  => $this->category(),
 			);
@@ -83,7 +83,7 @@ class BricksActiveCheck implements DiagnosticCheck {
 			'id'        => $this->id(),
 			'label'     => $this->label(),
 			'status'    => 'pass',
-			'message'   => __( 'Bricks Builder is active.', 'bricks-mcp' ),
+			'message'   => __( 'Bricks Builder is active.', 'lc-bricks-mcp' ),
 			'fix_steps' => array(),
 			'category'  => $this->category(),
 		);

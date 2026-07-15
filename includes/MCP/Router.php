@@ -2,21 +2,21 @@
 /**
  * MCP Router implementation.
  *
- * @package BricksMCP
+ * @package LCBricksMCP
  * @license GPL-2.0-or-later
  */
 
 declare(strict_types=1);
 
-namespace BricksMCP\MCP;
+namespace LCBricksMCP\MCP;
 
-use BricksMCP\MCP\Services\BricksService;
-use BricksMCP\MCP\Services\ElementIdGenerator;
-use BricksMCP\MCP\Services\MediaService;
-use BricksMCP\MCP\Services\MenuService;
-use BricksMCP\MCP\Services\SchemaGenerator;
-use BricksMCP\MCP\Services\ValidationService;
-use BricksMCP\Plugin;
+use LCBricksMCP\MCP\Services\BricksService;
+use LCBricksMCP\MCP\Services\ElementIdGenerator;
+use LCBricksMCP\MCP\Services\MediaService;
+use LCBricksMCP\MCP\Services\MenuService;
+use LCBricksMCP\MCP\Services\SchemaGenerator;
+use LCBricksMCP\MCP\Services\ValidationService;
+use LCBricksMCP\Plugin;
 
 // Prevent direct access.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -120,14 +120,14 @@ final class Router {
 		// Get site info tool.
 		$this->register_tool(
 			'get_site_info',
-			__( "Get WordPress site information.\n\nActions:\n- info: Basic site info (default)\n- diagnose: Run connection diagnostics (REST API, App Passwords, security plugins, hosting provider, MCP endpoint)", 'bricks-mcp' ),
+			__( "Get WordPress site information.\n\nActions:\n- info: Basic site info (default)\n- diagnose: Run connection diagnostics (REST API, App Passwords, security plugins, hosting provider, MCP endpoint)", 'lc-bricks-mcp' ),
 			array(
 				'type'       => 'object',
 				'properties' => array(
 					'action' => array(
 						'type'        => 'string',
 						'enum'        => array( 'info', 'diagnose' ),
-						'description' => __( 'Action to perform (default: info)', 'bricks-mcp' ),
+						'description' => __( 'Action to perform (default: info)', 'lc-bricks-mcp' ),
 					),
 				),
 			),
@@ -137,52 +137,52 @@ final class Router {
 		// WordPress consolidated tool (replaces get_posts, get_post, get_users, get_plugins).
 		$this->register_tool(
 			'wordpress',
-			__( "Query WordPress data.\n\nActions:\n- get_posts: List published posts (optional: post_type, posts_per_page, orderby, order)\n- get_post: Get single post/page by ID (requires: id)\n- get_users: List users (no required params)\n- get_plugins: List plugins (no required params)", 'bricks-mcp' ),
+			__( "Query WordPress data.\n\nActions:\n- get_posts: List published posts (optional: post_type, posts_per_page, orderby, order)\n- get_post: Get single post/page by ID (requires: id)\n- get_users: List users (no required params)\n- get_plugins: List plugins (no required params)", 'lc-bricks-mcp' ),
 			array(
 				'type'       => 'object',
 				'properties' => array(
 					'action'         => array(
 						'type'        => 'string',
 						'enum'        => array( 'get_posts', 'get_post', 'get_users', 'get_plugins' ),
-						'description' => __( 'Action to perform', 'bricks-mcp' ),
+						'description' => __( 'Action to perform', 'lc-bricks-mcp' ),
 					),
 					'post_type'      => array(
 						'type'        => 'string',
-						'description' => __( 'Post type to query (get_posts: default post)', 'bricks-mcp' ),
+						'description' => __( 'Post type to query (get_posts: default post)', 'lc-bricks-mcp' ),
 					),
 					'posts_per_page' => array(
 						'type'        => 'integer',
-						'description' => __( 'Number of posts to return (get_posts: default 10, max 100)', 'bricks-mcp' ),
+						'description' => __( 'Number of posts to return (get_posts: default 10, max 100)', 'lc-bricks-mcp' ),
 					),
 					'orderby'        => array(
 						'type'        => 'string',
-						'description' => __( 'Order by field (get_posts: date, title, modified, etc.)', 'bricks-mcp' ),
+						'description' => __( 'Order by field (get_posts: date, title, modified, etc.)', 'lc-bricks-mcp' ),
 					),
 					'order'          => array(
 						'type'        => 'string',
 						'enum'        => array( 'ASC', 'DESC' ),
-						'description' => __( 'Sort order (get_posts: ASC or DESC)', 'bricks-mcp' ),
+						'description' => __( 'Sort order (get_posts: ASC or DESC)', 'lc-bricks-mcp' ),
 					),
 					'id'             => array(
 						'type'        => 'integer',
-						'description' => __( 'Post ID (get_post: required)', 'bricks-mcp' ),
+						'description' => __( 'Post ID (get_post: required)', 'lc-bricks-mcp' ),
 					),
 					'role'           => array(
 						'type'        => 'string',
-						'description' => __( 'Filter by user role (get_users)', 'bricks-mcp' ),
+						'description' => __( 'Filter by user role (get_users)', 'lc-bricks-mcp' ),
 					),
 					'number'         => array(
 						'type'        => 'integer',
-						'description' => __( 'Number of users to return (get_users: default 10)', 'bricks-mcp' ),
+						'description' => __( 'Number of users to return (get_users: default 10)', 'lc-bricks-mcp' ),
 					),
 					'status'         => array(
 						'type'        => 'string',
 						'enum'        => array( 'all', 'active', 'inactive' ),
-						'description' => __( 'Filter by plugin status (get_plugins)', 'bricks-mcp' ),
+						'description' => __( 'Filter by plugin status (get_plugins)', 'lc-bricks-mcp' ),
 					),
 					'include_pii'    => array(
 						'type'        => 'boolean',
-						'description' => __( 'Include sensitive fields (email, login). Warning: data may be logged by AI services. (get_users: default false)', 'bricks-mcp' ),
+						'description' => __( 'Include sensitive fields (email, login). Warning: data may be logged by AI services. (get_users: default false)', 'lc-bricks-mcp' ),
 					),
 				),
 				'required'   => array( 'action' ),
@@ -197,7 +197,7 @@ final class Router {
 		 *
 		 * @param array $tools Registered tools.
 		 */
-		$this->tools = apply_filters( 'bricks_mcp_tools', $this->tools );
+		$this->tools = apply_filters( 'lc_bricks_mcp_tools', $this->tools );
 	}
 
 	/**
@@ -258,7 +258,7 @@ final class Router {
 			return Response::error(
 				'unknown_tool',
 				/* translators: %s: Tool name */
-				sprintf( __( 'Unknown tool: %s', 'bricks-mcp' ), $name ),
+				sprintf( __( 'Unknown tool: %s', 'lc-bricks-mcp' ), $name ),
 				404
 			);
 		}
@@ -268,9 +268,9 @@ final class Router {
 		$capability = $this->get_tool_capability( $name );
 		if ( null !== $capability && ! current_user_can( $capability ) ) {
 			return Response::error(
-				'bricks_mcp_forbidden',
+				'lc_bricks_mcp_forbidden',
 				/* translators: %s: Required capability */
-				sprintf( __( 'You do not have the required capability (%s) to use this tool.', 'bricks-mcp' ), $capability ),
+				sprintf( __( 'You do not have the required capability (%s) to use this tool.', 'lc-bricks-mcp' ), $capability ),
 				403
 			);
 		}
@@ -351,7 +351,7 @@ final class Router {
 		$action = $args['action'] ?? 'info';
 
 		if ( 'diagnose' === $action ) {
-			$runner = new \BricksMCP\Admin\DiagnosticRunner();
+			$runner = new \LCBricksMCP\Admin\DiagnosticRunner();
 			$runner->register_defaults();
 			return $runner->run_all();
 		}
@@ -424,7 +424,7 @@ final class Router {
 	 */
 	private function tool_get_post( array $args ): array|\WP_Error {
 		if ( empty( $args['id'] ) ) {
-			return new \WP_Error( 'missing_id', __( 'Post ID is required. Use get_posts or list_pages to find valid post IDs.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_id', __( 'Post ID is required. Use get_posts or list_pages to find valid post IDs.', 'lc-bricks-mcp' ) );
 		}
 
 		$post = get_post( (int) $args['id'] );
@@ -434,7 +434,7 @@ final class Router {
 				'post_not_found',
 				sprintf(
 					/* translators: %d: Post ID */
-					__( 'Post %d not found. Use get_posts or list_pages to find valid post IDs.', 'bricks-mcp' ),
+					__( 'Post %d not found. Use get_posts or list_pages to find valid post IDs.', 'lc-bricks-mcp' ),
 					(int) $args['id']
 				)
 			);
@@ -562,14 +562,14 @@ final class Router {
 		// Tool: get_builder_guide.
 		$this->register_tool(
 			'get_builder_guide',
-			__( 'Get the Bricks MCP builder guide with patterns, element settings reference, CSS gotchas, animation format, and workflow tips. Call this FIRST before building or modifying pages — it teaches you how to use the other tools efficiently.', 'bricks-mcp' ),
+			__( 'Get the LC Bricks MCP builder guide with patterns, element settings reference, CSS gotchas, animation format, and workflow tips. Call this FIRST before building or modifying pages — it teaches you how to use the other tools efficiently.', 'lc-bricks-mcp' ),
 			array(
 				'type'       => 'object',
 				'properties' => array(
 					'section' => array(
 						'type'        => 'string',
 						'enum'        => array( 'all', 'settings', 'animations', 'interactions', 'dynamic_data', 'forms', 'components', 'popups', 'element_conditions', 'woocommerce', 'seo', 'custom_code', 'fonts', 'import_export', 'workflows', 'gotchas', 'connection_troubleshooting' ),
-						'description' => __( 'Optional: return only a specific section of the guide. Use "woocommerce" for WooCommerce, "seo" for SEO optimization, "custom_code" for custom code, "fonts" for font management, "import_export" for import/export. Defaults to all.', 'bricks-mcp' ),
+						'description' => __( 'Optional: return only a specific section of the guide. Use "woocommerce" for WooCommerce, "seo" for SEO optimization, "custom_code" for custom code, "fonts" for font management, "import_export" for import/export. Defaults to all.', 'lc-bricks-mcp' ),
 					),
 				),
 			),
@@ -579,47 +579,47 @@ final class Router {
 		// Bricks consolidated tool (replaces enable_bricks, disable_bricks, get_bricks_settings, get_breakpoints, get_element_schemas).
 		$this->register_tool(
 			'bricks',
-			__( "Manage Bricks Builder settings and schema.\n\nActions:\n- enable: Enable Bricks editor on a post (requires: post_id)\n- disable: Disable Bricks editor on a post (requires: post_id)\n- get_settings: Get Bricks global settings (optional: category)\n- get_breakpoints: Get responsive breakpoints (no required params)\n- get_element_schemas: Get element type schemas (optional: element, catalog_only)\n- get_dynamic_tags: List available dynamic data tags for embedding in element settings (optional: group)\n- get_query_types: Get query loop object types and their settings schema (no required params)\n- get_form_schema: Get form element field types, action settings keys, and example form patterns (no required params)\n- get_interaction_schema: Get element interaction/animation triggers, actions, animation types, and example patterns (no required params)\n- get_component_schema: Get component property types, slot mechanics, and instantiation patterns (no required params)\n- get_popup_schema: Get popup display settings keys, trigger patterns, and popup creation workflow (no required params)\n- get_filter_schema: Get Bricks query filter element types, required settings, and setup workflow (no required params)\n- get_condition_schema: Get element visibility condition types, groups, compare operators, value types, and examples (no required params)\n- get_global_queries: List all reusable global query definitions (no required params)\n- set_global_query: Create or update a reusable global query (requires: name, settings; optional: query_id for update, category)\n- delete_global_query: Delete a global query by ID (requires: query_id)", 'bricks-mcp' ),
+			__( "Manage Bricks Builder settings and schema.\n\nActions:\n- enable: Enable Bricks editor on a post (requires: post_id)\n- disable: Disable Bricks editor on a post (requires: post_id)\n- get_settings: Get Bricks global settings (optional: category)\n- get_breakpoints: Get responsive breakpoints (no required params)\n- get_element_schemas: Get element type schemas (optional: element, catalog_only)\n- get_dynamic_tags: List available dynamic data tags for embedding in element settings (optional: group)\n- get_query_types: Get query loop object types and their settings schema (no required params)\n- get_form_schema: Get form element field types, action settings keys, and example form patterns (no required params)\n- get_interaction_schema: Get element interaction/animation triggers, actions, animation types, and example patterns (no required params)\n- get_component_schema: Get component property types, slot mechanics, and instantiation patterns (no required params)\n- get_popup_schema: Get popup display settings keys, trigger patterns, and popup creation workflow (no required params)\n- get_filter_schema: Get Bricks query filter element types, required settings, and setup workflow (no required params)\n- get_condition_schema: Get element visibility condition types, groups, compare operators, value types, and examples (no required params)\n- get_global_queries: List all reusable global query definitions (no required params)\n- set_global_query: Create or update a reusable global query (requires: name, settings; optional: query_id for update, category)\n- delete_global_query: Delete a global query by ID (requires: query_id)", 'lc-bricks-mcp' ),
 			array(
 				'type'       => 'object',
 				'properties' => array(
 					'action'       => array(
 						'type'        => 'string',
 						'enum'        => array( 'enable', 'disable', 'get_settings', 'get_breakpoints', 'get_element_schemas', 'get_dynamic_tags', 'get_query_types', 'get_form_schema', 'get_interaction_schema', 'get_component_schema', 'get_popup_schema', 'get_filter_schema', 'get_condition_schema', 'get_global_queries', 'set_global_query', 'delete_global_query' ),
-						'description' => __( 'Action to perform', 'bricks-mcp' ),
+						'description' => __( 'Action to perform', 'lc-bricks-mcp' ),
 					),
 					'post_id'      => array(
 						'type'        => 'integer',
-						'description' => __( 'Post/page ID (enable, disable: required)', 'bricks-mcp' ),
+						'description' => __( 'Post/page ID (enable, disable: required)', 'lc-bricks-mcp' ),
 					),
 					'category'     => array(
 						'type'        => 'string',
 						'enum'        => array( 'general', 'performance', 'builder', 'templates', 'integrations', 'woocommerce' ),
-						'description' => __( 'Filter settings by category (get_settings: optional) or group global query by category (set_global_query: optional)', 'bricks-mcp' ),
+						'description' => __( 'Filter settings by category (get_settings: optional) or group global query by category (set_global_query: optional)', 'lc-bricks-mcp' ),
 					),
 					'element'      => array(
 						'type'        => 'string',
-						'description' => __( "Specific element type name (get_element_schemas: optional, e.g. 'heading')", 'bricks-mcp' ),
+						'description' => __( "Specific element type name (get_element_schemas: optional, e.g. 'heading')", 'lc-bricks-mcp' ),
 					),
 					'catalog_only' => array(
 						'type'        => 'boolean',
-						'description' => __( 'Return only element names, labels, and categories without full schemas (get_element_schemas: optional)', 'bricks-mcp' ),
+						'description' => __( 'Return only element names, labels, and categories without full schemas (get_element_schemas: optional)', 'lc-bricks-mcp' ),
 					),
 					'group'        => array(
 						'type'        => 'string',
-						'description' => __( 'Filter dynamic tags by group name (get_dynamic_tags: optional, e.g. "Post", "Terms", "User")', 'bricks-mcp' ),
+						'description' => __( 'Filter dynamic tags by group name (get_dynamic_tags: optional, e.g. "Post", "Terms", "User")', 'lc-bricks-mcp' ),
 					),
 					'query_id'     => array(
 						'type'        => 'string',
-						'description' => __( 'Global query ID (set_global_query: optional for update; delete_global_query: required)', 'bricks-mcp' ),
+						'description' => __( 'Global query ID (set_global_query: optional for update; delete_global_query: required)', 'lc-bricks-mcp' ),
 					),
 					'name'         => array(
 						'type'        => 'string',
-						'description' => __( 'Global query name (set_global_query: required)', 'bricks-mcp' ),
+						'description' => __( 'Global query name (set_global_query: required)', 'lc-bricks-mcp' ),
 					),
 					'settings'     => array(
 						'type'        => 'object',
-						'description' => __( 'Query settings object — same structure as element query settings (set_global_query: required)', 'bricks-mcp' ),
+						'description' => __( 'Query settings object — same structure as element query settings (set_global_query: required)', 'lc-bricks-mcp' ),
 					),
 				),
 				'required'   => array( 'action' ),
@@ -630,108 +630,108 @@ final class Router {
 		// Page consolidated tool (replaces list_pages, search_pages, get_bricks_content, create_bricks_page, update_bricks_content, update_page, delete_page, duplicate_page, get_page_settings, update_page_settings + SEO).
 		$this->register_tool(
 			'page',
-			__( "Manage pages and Bricks content.\n\nActions:\n- list: List pages/posts (optional: post_type, status, posts_per_page, paged, bricks_only)\n- search: Search Bricks pages (requires: search; optional: post_type, posts_per_page, paged)\n- get: Get page with Bricks element data (requires: post_id; optional: view)\n- create: Create page with Bricks content (requires: title; optional: post_type, status, elements)\n- update_content: Update Bricks elements (requires: post_id, elements)\n- update_meta: Update page title/status (requires: post_id; optional: title, status, slug)\n- delete: Delete page (requires: post_id)\n- duplicate: Duplicate page (requires: post_id)\n- get_settings: Get page settings (requires: post_id)\n- update_settings: Update page settings (requires: post_id, settings)\n- get_seo: Get SEO data from active plugin with audit (requires: post_id)\n- update_seo: Update SEO fields via active plugin (requires: post_id; optional: title, description, robots_noindex, robots_nofollow, canonical, og_title, og_description, og_image, twitter_title, twitter_description, twitter_image, focus_keyword)", 'bricks-mcp' ),
+			__( "Manage pages and Bricks content.\n\nActions:\n- list: List pages/posts (optional: post_type, status, posts_per_page, paged, bricks_only)\n- search: Search Bricks pages (requires: search; optional: post_type, posts_per_page, paged)\n- get: Get page with Bricks element data (requires: post_id; optional: view)\n- create: Create page with Bricks content (requires: title; optional: post_type, status, elements)\n- update_content: Update Bricks elements (requires: post_id, elements)\n- update_meta: Update page title/status (requires: post_id; optional: title, status, slug)\n- delete: Delete page (requires: post_id)\n- duplicate: Duplicate page (requires: post_id)\n- get_settings: Get page settings (requires: post_id)\n- update_settings: Update page settings (requires: post_id, settings)\n- get_seo: Get SEO data from active plugin with audit (requires: post_id)\n- update_seo: Update SEO fields via active plugin (requires: post_id; optional: title, description, robots_noindex, robots_nofollow, canonical, og_title, og_description, og_image, twitter_title, twitter_description, twitter_image, focus_keyword)", 'lc-bricks-mcp' ),
 			array(
 				'type'       => 'object',
 				'properties' => array(
 					'action'              => array(
 						'type'        => 'string',
 						'enum'        => array( 'list', 'search', 'get', 'create', 'update_content', 'update_meta', 'delete', 'duplicate', 'get_settings', 'update_settings', 'get_seo', 'update_seo' ),
-						'description' => __( 'Action to perform', 'bricks-mcp' ),
+						'description' => __( 'Action to perform', 'lc-bricks-mcp' ),
 					),
 					'post_id'             => array(
 						'type'        => 'integer',
-						'description' => __( 'Post/page ID (get, update_content, update_meta, delete, duplicate, get_settings, update_settings, get_seo, update_seo: required)', 'bricks-mcp' ),
+						'description' => __( 'Post/page ID (get, update_content, update_meta, delete, duplicate, get_settings, update_settings, get_seo, update_seo: required)', 'lc-bricks-mcp' ),
 					),
 					'post_type'           => array(
 						'type'        => 'string',
-						'description' => __( 'Post type (list, search, create: optional; default page)', 'bricks-mcp' ),
+						'description' => __( 'Post type (list, search, create: optional; default page)', 'lc-bricks-mcp' ),
 					),
 					'status'              => array(
 						'type'        => 'string',
 						'enum'        => array( 'publish', 'draft', 'pending', 'private', 'trash', 'any' ),
-						'description' => __( 'Post status (list: filter; create/update_meta: new status)', 'bricks-mcp' ),
+						'description' => __( 'Post status (list: filter; create/update_meta: new status)', 'lc-bricks-mcp' ),
 					),
 					'posts_per_page'      => array(
 						'type'        => 'integer',
-						'description' => __( 'Results per page (list, search: max 100)', 'bricks-mcp' ),
+						'description' => __( 'Results per page (list, search: max 100)', 'lc-bricks-mcp' ),
 					),
 					'paged'               => array(
 						'type'        => 'integer',
-						'description' => __( 'Page number for pagination (list, search)', 'bricks-mcp' ),
+						'description' => __( 'Page number for pagination (list, search)', 'lc-bricks-mcp' ),
 					),
 					'bricks_only'         => array(
 						'type'        => 'boolean',
-						'description' => __( 'Filter to only Bricks-enabled pages (list: default true)', 'bricks-mcp' ),
+						'description' => __( 'Filter to only Bricks-enabled pages (list: default true)', 'lc-bricks-mcp' ),
 					),
 					'search'              => array(
 						'type'        => 'string',
-						'description' => __( 'Search query string (search: required)', 'bricks-mcp' ),
+						'description' => __( 'Search query string (search: required)', 'lc-bricks-mcp' ),
 					),
 					'view'                => array(
 						'type'        => 'string',
 						'enum'        => array( 'detail', 'summary' ),
-						'description' => __( 'Detail level (get: detail=full settings, summary=tree outline)', 'bricks-mcp' ),
+						'description' => __( 'Detail level (get: detail=full settings, summary=tree outline)', 'lc-bricks-mcp' ),
 					),
 					'title'               => array(
 						'type'        => 'string',
-						'description' => __( 'Page/post title (create: required; update_meta: optional; update_seo: SEO title)', 'bricks-mcp' ),
+						'description' => __( 'Page/post title (create: required; update_meta: optional; update_seo: SEO title)', 'lc-bricks-mcp' ),
 					),
 					'elements'            => array(
 						'type'        => 'array',
-						'description' => __( 'Element content array (create: optional, update_content: required)', 'bricks-mcp' ),
+						'description' => __( 'Element content array (create: optional, update_content: required)', 'lc-bricks-mcp' ),
 					),
 					'slug'                => array(
 						'type'        => 'string',
-						'description' => __( 'URL slug (update_meta: optional)', 'bricks-mcp' ),
+						'description' => __( 'URL slug (update_meta: optional)', 'lc-bricks-mcp' ),
 					),
 					'settings'            => array(
 						'type'        => 'object',
-						'description' => __( 'Settings key-value pairs (update_settings: required)', 'bricks-mcp' ),
+						'description' => __( 'Settings key-value pairs (update_settings: required)', 'lc-bricks-mcp' ),
 					),
 					'description'         => array(
 						'type'        => 'string',
-						'description' => __( 'SEO meta description (update_seo: optional)', 'bricks-mcp' ),
+						'description' => __( 'SEO meta description (update_seo: optional)', 'lc-bricks-mcp' ),
 					),
 					'robots_noindex'      => array(
 						'type'        => 'boolean',
-						'description' => __( 'Set noindex robots directive (update_seo: optional)', 'bricks-mcp' ),
+						'description' => __( 'Set noindex robots directive (update_seo: optional)', 'lc-bricks-mcp' ),
 					),
 					'robots_nofollow'     => array(
 						'type'        => 'boolean',
-						'description' => __( 'Set nofollow robots directive (update_seo: optional)', 'bricks-mcp' ),
+						'description' => __( 'Set nofollow robots directive (update_seo: optional)', 'lc-bricks-mcp' ),
 					),
 					'canonical'           => array(
 						'type'        => 'string',
-						'description' => __( 'Canonical URL (update_seo: optional)', 'bricks-mcp' ),
+						'description' => __( 'Canonical URL (update_seo: optional)', 'lc-bricks-mcp' ),
 					),
 					'og_title'            => array(
 						'type'        => 'string',
-						'description' => __( 'Open Graph title (update_seo: optional)', 'bricks-mcp' ),
+						'description' => __( 'Open Graph title (update_seo: optional)', 'lc-bricks-mcp' ),
 					),
 					'og_description'      => array(
 						'type'        => 'string',
-						'description' => __( 'Open Graph description (update_seo: optional)', 'bricks-mcp' ),
+						'description' => __( 'Open Graph description (update_seo: optional)', 'lc-bricks-mcp' ),
 					),
 					'og_image'            => array(
 						'type'        => 'string',
-						'description' => __( 'Open Graph image URL (update_seo: optional)', 'bricks-mcp' ),
+						'description' => __( 'Open Graph image URL (update_seo: optional)', 'lc-bricks-mcp' ),
 					),
 					'twitter_title'       => array(
 						'type'        => 'string',
-						'description' => __( 'Twitter card title (update_seo: optional)', 'bricks-mcp' ),
+						'description' => __( 'Twitter card title (update_seo: optional)', 'lc-bricks-mcp' ),
 					),
 					'twitter_description' => array(
 						'type'        => 'string',
-						'description' => __( 'Twitter card description (update_seo: optional)', 'bricks-mcp' ),
+						'description' => __( 'Twitter card description (update_seo: optional)', 'lc-bricks-mcp' ),
 					),
 					'twitter_image'       => array(
 						'type'        => 'string',
-						'description' => __( 'Twitter card image URL (update_seo: optional)', 'bricks-mcp' ),
+						'description' => __( 'Twitter card image URL (update_seo: optional)', 'lc-bricks-mcp' ),
 					),
 					'focus_keyword'       => array(
 						'type'        => 'string',
-						'description' => __( 'Focus keyword for SEO analysis (update_seo: optional; Yoast/Rank Math only)', 'bricks-mcp' ),
+						'description' => __( 'Focus keyword for SEO analysis (update_seo: optional; Yoast/Rank Math only)', 'lc-bricks-mcp' ),
 					),
 				),
 				'required'   => array( 'action' ),
@@ -742,64 +742,64 @@ final class Router {
 		// Element consolidated tool (replaces add_element, update_element, remove_element).
 		$this->register_tool(
 			'element',
-			__( "Manage individual Bricks elements on a page.\n\nActions:\n- add: Add element to page (requires: post_id, name; optional: parent_id, position, settings)\n- update: Update element settings (requires: post_id, element_id, settings)\n- remove: Remove element from page (requires: post_id, element_id)\n- get_conditions: Get element visibility conditions (requires: post_id, element_id)\n- set_conditions: Set element visibility conditions (requires: post_id, element_id, conditions)\n- move: Move/reorder element within page (requires: post_id, element_id; optional: target_parent_id, position)\n- bulk_update: Update settings on multiple elements (requires: post_id, updates)", 'bricks-mcp' ),
+			__( "Manage individual Bricks elements on a page.\n\nActions:\n- add: Add element to page (requires: post_id, name; optional: parent_id, position, settings)\n- update: Update element settings (requires: post_id, element_id, settings)\n- remove: Remove element from page (requires: post_id, element_id)\n- get_conditions: Get element visibility conditions (requires: post_id, element_id)\n- set_conditions: Set element visibility conditions (requires: post_id, element_id, conditions)\n- move: Move/reorder element within page (requires: post_id, element_id; optional: target_parent_id, position)\n- bulk_update: Update settings on multiple elements (requires: post_id, updates)", 'lc-bricks-mcp' ),
 			array(
 				'type'       => 'object',
 				'properties' => array(
 					'action'           => array(
 						'type'        => 'string',
 						'enum'        => array( 'add', 'update', 'remove', 'get_conditions', 'set_conditions', 'move', 'bulk_update' ),
-						'description' => __( 'Action to perform', 'bricks-mcp' ),
+						'description' => __( 'Action to perform', 'lc-bricks-mcp' ),
 					),
 					'post_id'          => array(
 						'type'        => 'integer',
-						'description' => __( 'Post/page ID (all actions: required)', 'bricks-mcp' ),
+						'description' => __( 'Post/page ID (all actions: required)', 'lc-bricks-mcp' ),
 					),
 					'element'          => array(
 						'type'        => 'object',
-						'description' => __( 'Element object with name and optional settings (add: used as source for element data)', 'bricks-mcp' ),
+						'description' => __( 'Element object with name and optional settings (add: used as source for element data)', 'lc-bricks-mcp' ),
 					),
 					'name'             => array(
 						'type'        => 'string',
-						'description' => __( "Bricks element type name (add: required, e.g. 'heading', 'container', 'section')", 'bricks-mcp' ),
+						'description' => __( "Bricks element type name (add: required, e.g. 'heading', 'container', 'section')", 'lc-bricks-mcp' ),
 					),
 					'element_id'       => array(
 						'type'        => 'string',
-						'description' => __( 'Element ID (update, remove, move: required; 6-char alphanumeric)', 'bricks-mcp' ),
+						'description' => __( 'Element ID (update, remove, move: required; 6-char alphanumeric)', 'lc-bricks-mcp' ),
 					),
 					'settings'         => array(
 						'type'        => 'object',
-						'description' => __( 'Element settings (add: optional, update: required)', 'bricks-mcp' ),
+						'description' => __( 'Element settings (add: optional, update: required)', 'lc-bricks-mcp' ),
 					),
 					'position'         => array(
 						'type'        => 'integer',
-						'description' => __( "Position in parent's children array (add, move: 0-indexed, omit to append)", 'bricks-mcp' ),
+						'description' => __( "Position in parent's children array (add, move: 0-indexed, omit to append)", 'lc-bricks-mcp' ),
 					),
 					'parent_id'        => array(
 						'type'        => 'string',
-						'description' => __( "Parent element ID (add: optional, use '0' for root level)", 'bricks-mcp' ),
+						'description' => __( "Parent element ID (add: optional, use '0' for root level)", 'lc-bricks-mcp' ),
 					),
 					'conditions'       => array(
 						'type'        => 'array',
-						'description' => __( 'Condition sets array — array of arrays of condition objects with key/compare/value (set_conditions: required)', 'bricks-mcp' ),
+						'description' => __( 'Condition sets array — array of arrays of condition objects with key/compare/value (set_conditions: required)', 'lc-bricks-mcp' ),
 					),
 					'target_parent_id' => array(
 						'type'        => 'string',
-						'description' => __( "Target parent element ID for move (move: optional; use '0' for root level, omit to reorder within current parent)", 'bricks-mcp' ),
+						'description' => __( "Target parent element ID for move (move: optional; use '0' for root level, omit to reorder within current parent)", 'lc-bricks-mcp' ),
 					),
 					'updates'          => array(
 						'type'        => 'array',
-						'description' => __( 'Array of {element_id, settings} objects (bulk_update: required; max 50 items)', 'bricks-mcp' ),
+						'description' => __( 'Array of {element_id, settings} objects (bulk_update: required; max 50 items)', 'lc-bricks-mcp' ),
 						'items'       => array(
 							'type'       => 'object',
 							'properties' => array(
 								'element_id' => array(
 									'type'        => 'string',
-									'description' => __( 'Element ID to update', 'bricks-mcp' ),
+									'description' => __( 'Element ID to update', 'lc-bricks-mcp' ),
 								),
 								'settings'   => array(
 									'type'        => 'object',
-									'description' => __( 'Settings to merge', 'bricks-mcp' ),
+									'description' => __( 'Settings to merge', 'lc-bricks-mcp' ),
 								),
 							),
 						),
@@ -813,78 +813,78 @@ final class Router {
 		// Template consolidated tool (replaces list_templates, get_template_content, create_template, update_template, delete_template, duplicate_template).
 		$this->register_tool(
 			'template',
-			__( "Manage Bricks templates (headers, footers, sections, popups, etc.).\n\nActions:\n- list: List templates (optional: type, status, tag, bundle)\n- get: Get template with element content (requires: template_id)\n- create: Create template (requires: title, type; optional: elements, status, tags, bundles)\n- update: Update template metadata (requires: template_id; optional: title, status, type, tags, bundles)\n- delete: Delete template (requires: template_id)\n- duplicate: Duplicate template (requires: template_id; optional: title)\n- get_popup_settings: Get popup display settings (requires: template_id; template must be type popup)\n- set_popup_settings: Set popup display settings (requires: template_id, settings; template must be type popup)\n- export: Export template as Bricks-compatible JSON (requires: template_id; optional: include_classes)\n- import: Import template from JSON data (requires: template_data)\n- import_url: Import template from remote URL (requires: url)", 'bricks-mcp' ),
+			__( "Manage Bricks templates (headers, footers, sections, popups, etc.).\n\nActions:\n- list: List templates (optional: type, status, tag, bundle)\n- get: Get template with element content (requires: template_id)\n- create: Create template (requires: title, type; optional: elements, status, tags, bundles)\n- update: Update template metadata (requires: template_id; optional: title, status, type, tags, bundles)\n- delete: Delete template (requires: template_id)\n- duplicate: Duplicate template (requires: template_id; optional: title)\n- get_popup_settings: Get popup display settings (requires: template_id; template must be type popup)\n- set_popup_settings: Set popup display settings (requires: template_id, settings; template must be type popup)\n- export: Export template as Bricks-compatible JSON (requires: template_id; optional: include_classes)\n- import: Import template from JSON data (requires: template_data)\n- import_url: Import template from remote URL (requires: url)", 'lc-bricks-mcp' ),
 			array(
 				'type'       => 'object',
 				'properties' => array(
 					'action'      => array(
 						'type'        => 'string',
 						'enum'        => array( 'list', 'get', 'create', 'update', 'delete', 'duplicate', 'get_popup_settings', 'set_popup_settings', 'export', 'import', 'import_url' ),
-						'description' => __( 'Action to perform', 'bricks-mcp' ),
+						'description' => __( 'Action to perform', 'lc-bricks-mcp' ),
 					),
 					'template_id' => array(
 						'type'        => 'integer',
-						'description' => __( 'Template post ID (get, update, delete, duplicate, export: required)', 'bricks-mcp' ),
+						'description' => __( 'Template post ID (get, update, delete, duplicate, export: required)', 'lc-bricks-mcp' ),
 					),
 					'title'       => array(
 						'type'        => 'string',
-						'description' => __( 'Template title (create: required; update, duplicate: optional)', 'bricks-mcp' ),
+						'description' => __( 'Template title (create: required; update, duplicate: optional)', 'lc-bricks-mcp' ),
 					),
 					'type'        => array(
 						'type'        => 'string',
 						'enum'        => array( 'header', 'footer', 'archive', 'search', 'error', 'content', 'section', 'popup', 'password_protection' ),
-						'description' => __( 'Template type (create: required; list, update: optional)', 'bricks-mcp' ),
+						'description' => __( 'Template type (create: required; list, update: optional)', 'lc-bricks-mcp' ),
 					),
 					'status'      => array(
 						'type'        => 'string',
 						'enum'        => array( 'publish', 'draft', 'pending', 'private', 'trash', 'any' ),
-						'description' => __( 'Post status (list: filter; create/update: new status)', 'bricks-mcp' ),
+						'description' => __( 'Post status (list: filter; create/update: new status)', 'lc-bricks-mcp' ),
 					),
 					'elements'    => array(
 						'type'        => 'array',
-						'description' => __( 'Element content array (create: optional)', 'bricks-mcp' ),
+						'description' => __( 'Element content array (create: optional)', 'lc-bricks-mcp' ),
 					),
 					'tags'        => array(
 						'type'        => 'array',
 						'items'       => array( 'type' => 'string' ),
-						'description' => __( 'Array of template_tag taxonomy slugs (list: filter; create, update: assign)', 'bricks-mcp' ),
+						'description' => __( 'Array of template_tag taxonomy slugs (list: filter; create, update: assign)', 'lc-bricks-mcp' ),
 					),
 					'bundles'     => array(
 						'type'        => 'array',
 						'items'       => array( 'type' => 'string' ),
-						'description' => __( 'Array of template_bundle taxonomy slugs (list: filter; create, update: assign)', 'bricks-mcp' ),
+						'description' => __( 'Array of template_bundle taxonomy slugs (list: filter; create, update: assign)', 'lc-bricks-mcp' ),
 					),
 					'tag'         => array(
 						'type'        => 'string',
-						'description' => __( 'Filter by template_tag taxonomy slug (list: optional)', 'bricks-mcp' ),
+						'description' => __( 'Filter by template_tag taxonomy slug (list: optional)', 'lc-bricks-mcp' ),
 					),
 					'bundle'      => array(
 						'type'        => 'string',
-						'description' => __( 'Filter by template_bundle taxonomy slug (list: optional)', 'bricks-mcp' ),
+						'description' => __( 'Filter by template_bundle taxonomy slug (list: optional)', 'lc-bricks-mcp' ),
 					),
 					'post_type'   => array(
 						'type'        => 'string',
-						'description' => __( 'Post type for the template (create: optional)', 'bricks-mcp' ),
+						'description' => __( 'Post type for the template (create: optional)', 'lc-bricks-mcp' ),
 					),
 					'conditions'  => array(
 						'type'        => 'array',
-						'description' => __( 'Array of Bricks condition objects (create: optional)', 'bricks-mcp' ),
+						'description' => __( 'Array of Bricks condition objects (create: optional)', 'lc-bricks-mcp' ),
 					),
 					'settings'    => array(
 						'type'        => 'object',
-						'description' => __( 'Popup settings key-value pairs (set_popup_settings: required). Null value deletes key. Use bricks:get_popup_schema for valid keys.', 'bricks-mcp' ),
+						'description' => __( 'Popup settings key-value pairs (set_popup_settings: required). Null value deletes key. Use bricks:get_popup_schema for valid keys.', 'lc-bricks-mcp' ),
 					),
 					'include_classes' => array(
 						'type'        => 'boolean',
-						'description' => __( 'Include used global classes in export (export: optional, default false)', 'bricks-mcp' ),
+						'description' => __( 'Include used global classes in export (export: optional, default false)', 'lc-bricks-mcp' ),
 					),
 					'template_data' => array(
 						'type'        => 'object',
-						'description' => __( 'Template JSON data to import (import: required). Must contain title (string) and content (array of Bricks elements). Optional: templateType, pageSettings, templateSettings, globalClasses.', 'bricks-mcp' ),
+						'description' => __( 'Template JSON data to import (import: required). Must contain title (string) and content (array of Bricks elements). Optional: templateType, pageSettings, templateSettings, globalClasses.', 'lc-bricks-mcp' ),
 					),
 					'url'         => array(
 						'type'        => 'string',
-						'description' => __( 'Remote URL to fetch template JSON from (import_url: required)', 'bricks-mcp' ),
+						'description' => __( 'Remote URL to fetch template JSON from (import_url: required)', 'lc-bricks-mcp' ),
 					),
 				),
 				'required'   => array( 'action' ),
@@ -895,30 +895,30 @@ final class Router {
 		// Template condition consolidated tool (replaces get_condition_types, set_template_conditions, resolve_templates).
 		$this->register_tool(
 			'template_condition',
-			__( "Manage Bricks template conditions (which templates apply where).\n\nActions:\n- get_types: List available condition types (no required params)\n- set: Set template conditions (requires: template_id, conditions)\n- resolve: Find which templates apply to a post (optional: post_id, post_type)", 'bricks-mcp' ),
+			__( "Manage Bricks template conditions (which templates apply where).\n\nActions:\n- get_types: List available condition types (no required params)\n- set: Set template conditions (requires: template_id, conditions)\n- resolve: Find which templates apply to a post (optional: post_id, post_type)", 'lc-bricks-mcp' ),
 			array(
 				'type'       => 'object',
 				'properties' => array(
 					'action'      => array(
 						'type'        => 'string',
 						'enum'        => array( 'get_types', 'set', 'resolve' ),
-						'description' => __( 'Action to perform', 'bricks-mcp' ),
+						'description' => __( 'Action to perform', 'lc-bricks-mcp' ),
 					),
 					'template_id' => array(
 						'type'        => 'integer',
-						'description' => __( 'Template post ID (set: required)', 'bricks-mcp' ),
+						'description' => __( 'Template post ID (set: required)', 'lc-bricks-mcp' ),
 					),
 					'conditions'  => array(
 						'type'        => 'array',
-						'description' => __( 'Array of condition objects with "main" key and type-specific fields. Pass empty array to remove all conditions. (set: required)', 'bricks-mcp' ),
+						'description' => __( 'Array of condition objects with "main" key and type-specific fields. Pass empty array to remove all conditions. (set: required)', 'lc-bricks-mcp' ),
 					),
 					'post_id'     => array(
 						'type'        => 'integer',
-						'description' => __( 'Post ID to resolve templates for (resolve: optional)', 'bricks-mcp' ),
+						'description' => __( 'Post ID to resolve templates for (resolve: optional)', 'lc-bricks-mcp' ),
 					),
 					'post_type'   => array(
 						'type'        => 'string',
-						'description' => __( 'Post type context for resolution (resolve: optional)', 'bricks-mcp' ),
+						'description' => __( 'Post type context for resolution (resolve: optional)', 'lc-bricks-mcp' ),
 					),
 				),
 				'required'   => array( 'action' ),
@@ -929,22 +929,22 @@ final class Router {
 		// Template taxonomy consolidated tool (replaces list_template_tags, list_template_bundles, create_template_tag, create_template_bundle, delete_template_tag, delete_template_bundle).
 		$this->register_tool(
 			'template_taxonomy',
-			__( "Manage Bricks template tags and bundles.\n\nActions:\n- list_tags: List all template tags (no required params)\n- list_bundles: List all template bundles (no required params)\n- create_tag: Create template tag (requires: name)\n- create_bundle: Create template bundle (requires: name)\n- delete_tag: Delete template tag (requires: term_id)\n- delete_bundle: Delete template bundle (requires: term_id)", 'bricks-mcp' ),
+			__( "Manage Bricks template tags and bundles.\n\nActions:\n- list_tags: List all template tags (no required params)\n- list_bundles: List all template bundles (no required params)\n- create_tag: Create template tag (requires: name)\n- create_bundle: Create template bundle (requires: name)\n- delete_tag: Delete template tag (requires: term_id)\n- delete_bundle: Delete template bundle (requires: term_id)", 'lc-bricks-mcp' ),
 			array(
 				'type'       => 'object',
 				'properties' => array(
 					'action'  => array(
 						'type'        => 'string',
 						'enum'        => array( 'list_tags', 'list_bundles', 'create_tag', 'create_bundle', 'delete_tag', 'delete_bundle' ),
-						'description' => __( 'Action to perform', 'bricks-mcp' ),
+						'description' => __( 'Action to perform', 'lc-bricks-mcp' ),
 					),
 					'name'    => array(
 						'type'        => 'string',
-						'description' => __( 'Tag or bundle name (create_tag, create_bundle: required)', 'bricks-mcp' ),
+						'description' => __( 'Tag or bundle name (create_tag, create_bundle: required)', 'lc-bricks-mcp' ),
 					),
 					'term_id' => array(
 						'type'        => 'integer',
-						'description' => __( 'Term ID to delete (delete_tag, delete_bundle: required)', 'bricks-mcp' ),
+						'description' => __( 'Term ID to delete (delete_tag, delete_bundle: required)', 'lc-bricks-mcp' ),
 					),
 				),
 				'required'   => array( 'action' ),
@@ -955,71 +955,71 @@ final class Router {
 		// Global class consolidated tool (replaces get_global_classes, create_global_class, update_global_class, delete_global_class, apply_global_class, remove_global_class, batch_create_global_classes, batch_delete_global_classes, import_classes_from_css, list_global_class_categories, create_global_class_category, delete_global_class_category).
 		$this->register_tool(
 			'global_class',
-			__( "Manage Bricks global CSS classes.\n\nActions:\n- list: List global classes (optional: category, search)\n- create: Create class (requires: name; optional: styles, color, category)\n- update: Update class styles (requires: class_name; optional: styles, color, category, replace_styles)\n- delete: Delete/trash class (requires: class_name)\n- apply: Apply class to elements (requires: post_id, element_ids, class_name)\n- remove: Remove class from elements (requires: post_id, element_ids, class_name)\n- batch_create: Create multiple classes (requires: classes)\n- batch_delete: Delete multiple classes (requires: classes)\n- import_css: Import CSS as global classes (requires: css)\n- list_categories: List class categories (no required params)\n- create_category: Create category (requires: category_name)\n- delete_category: Delete category (requires: category_id)\n- export: Export global classes as JSON (optional: category)\n- import_json: Import global classes from JSON data (requires: classes_data)", 'bricks-mcp' ),
+			__( "Manage Bricks global CSS classes.\n\nActions:\n- list: List global classes (optional: category, search)\n- create: Create class (requires: name; optional: styles, color, category)\n- update: Update class styles (requires: class_name; optional: styles, color, category, replace_styles)\n- delete: Delete/trash class (requires: class_name)\n- apply: Apply class to elements (requires: post_id, element_ids, class_name)\n- remove: Remove class from elements (requires: post_id, element_ids, class_name)\n- batch_create: Create multiple classes (requires: classes)\n- batch_delete: Delete multiple classes (requires: classes)\n- import_css: Import CSS as global classes (requires: css)\n- list_categories: List class categories (no required params)\n- create_category: Create category (requires: category_name)\n- delete_category: Delete category (requires: category_id)\n- export: Export global classes as JSON (optional: category)\n- import_json: Import global classes from JSON data (requires: classes_data)", 'lc-bricks-mcp' ),
 			array(
 				'type'       => 'object',
 				'properties' => array(
 					'action'         => array(
 						'type'        => 'string',
 						'enum'        => array( 'list', 'create', 'update', 'delete', 'apply', 'remove', 'batch_create', 'batch_delete', 'import_css', 'list_categories', 'create_category', 'delete_category', 'export', 'import_json' ),
-						'description' => __( 'Action to perform', 'bricks-mcp' ),
+						'description' => __( 'Action to perform', 'lc-bricks-mcp' ),
 					),
 					'class_name'     => array(
 						'type'        => 'string',
-						'description' => __( 'CSS class name (update, delete, apply, remove: required; list filter: optional)', 'bricks-mcp' ),
+						'description' => __( 'CSS class name (update, delete, apply, remove: required; list filter: optional)', 'lc-bricks-mcp' ),
 					),
 					'name'           => array(
 						'type'        => 'string',
-						'description' => __( 'New class name (create: required; update: optional for rename)', 'bricks-mcp' ),
+						'description' => __( 'New class name (create: required; update: optional for rename)', 'lc-bricks-mcp' ),
 					),
 					'styles'         => array(
 						'type'        => 'object',
-						'description' => __( 'Bricks composite key styles: _padding, _background, _margin:hover, etc. (create, update: optional)', 'bricks-mcp' ),
+						'description' => __( 'Bricks composite key styles: _padding, _background, _margin:hover, etc. (create, update: optional)', 'lc-bricks-mcp' ),
 					),
 					'color'          => array(
 						'type'        => 'string',
-						'description' => __( 'Visual indicator color in Bricks editor, hex format like #3498db (create, update: optional)', 'bricks-mcp' ),
+						'description' => __( 'Visual indicator color in Bricks editor, hex format like #3498db (create, update: optional)', 'lc-bricks-mcp' ),
 					),
 					'category'       => array(
 						'type'        => 'string',
-						'description' => __( 'Category ID (create, update: assign; list: filter by category)', 'bricks-mcp' ),
+						'description' => __( 'Category ID (create, update: assign; list: filter by category)', 'lc-bricks-mcp' ),
 					),
 					'replace_styles' => array(
 						'type'        => 'boolean',
-						'description' => __( 'If true, replace entire styles object instead of merging (update: default false)', 'bricks-mcp' ),
+						'description' => __( 'If true, replace entire styles object instead of merging (update: default false)', 'lc-bricks-mcp' ),
 					),
 					'post_id'        => array(
 						'type'        => 'integer',
-						'description' => __( 'Post/page ID containing the elements (apply, remove: required)', 'bricks-mcp' ),
+						'description' => __( 'Post/page ID containing the elements (apply, remove: required)', 'lc-bricks-mcp' ),
 					),
 					'element_ids'    => array(
 						'type'        => 'array',
 						'items'       => array( 'type' => 'string' ),
-						'description' => __( 'Array of element IDs (apply, remove: required)', 'bricks-mcp' ),
+						'description' => __( 'Array of element IDs (apply, remove: required)', 'lc-bricks-mcp' ),
 					),
 					'classes'        => array(
 						'type'        => 'array',
-						'description' => __( 'Array of class objects for batch_create, or array of class name strings for batch_delete', 'bricks-mcp' ),
+						'description' => __( 'Array of class objects for batch_create, or array of class name strings for batch_delete', 'lc-bricks-mcp' ),
 					),
 					'css'            => array(
 						'type'        => 'string',
-						'description' => __( 'Raw CSS string to parse and import as global classes (import_css: required)', 'bricks-mcp' ),
+						'description' => __( 'Raw CSS string to parse and import as global classes (import_css: required)', 'lc-bricks-mcp' ),
 					),
 					'category_name'  => array(
 						'type'        => 'string',
-						'description' => __( 'Category name (create_category: required)', 'bricks-mcp' ),
+						'description' => __( 'Category name (create_category: required)', 'lc-bricks-mcp' ),
 					),
 					'category_id'    => array(
 						'type'        => 'string',
-						'description' => __( 'Category ID to delete (delete_category: required)', 'bricks-mcp' ),
+						'description' => __( 'Category ID to delete (delete_category: required)', 'lc-bricks-mcp' ),
 					),
 					'search'         => array(
 						'type'        => 'string',
-						'description' => __( 'Filter classes by partial name match (list: optional)', 'bricks-mcp' ),
+						'description' => __( 'Filter classes by partial name match (list: optional)', 'lc-bricks-mcp' ),
 					),
 					'classes_data'   => array(
 						'type'        => 'object',
-						'description' => __( 'Global classes JSON data to import (import_json: required). Array of class objects with "name" key, or {classes: [...], categories: [...]}.', 'bricks-mcp' ),
+						'description' => __( 'Global classes JSON data to import (import_json: required). Array of class objects with "name" key, or {classes: [...], categories: [...]}.', 'lc-bricks-mcp' ),
 					),
 				),
 				'required'   => array( 'action' ),
@@ -1030,43 +1030,43 @@ final class Router {
 		// Theme style consolidated tool (replaces list_theme_styles, get_theme_style, create_theme_style, update_theme_style, delete_theme_style).
 		$this->register_tool(
 			'theme_style',
-			__( "Manage Bricks theme styles (site-wide typography, colors, spacing).\n\nActions:\n- list: List all theme styles (no required params)\n- get: Get theme style details (requires: style_id)\n- create: Create theme style (requires: name; optional: styles, conditions)\n- update: Update theme style (requires: style_id; optional: name, styles, conditions, active)\n- delete: Delete theme style (requires: style_id)", 'bricks-mcp' ),
+			__( "Manage Bricks theme styles (site-wide typography, colors, spacing).\n\nActions:\n- list: List all theme styles (no required params)\n- get: Get theme style details (requires: style_id)\n- create: Create theme style (requires: name; optional: styles, conditions)\n- update: Update theme style (requires: style_id; optional: name, styles, conditions, active)\n- delete: Delete theme style (requires: style_id)", 'lc-bricks-mcp' ),
 			array(
 				'type'       => 'object',
 				'properties' => array(
 					'action'          => array(
 						'type'        => 'string',
 						'enum'        => array( 'list', 'get', 'create', 'update', 'delete' ),
-						'description' => __( 'Action to perform', 'bricks-mcp' ),
+						'description' => __( 'Action to perform', 'lc-bricks-mcp' ),
 					),
 					'style_id'        => array(
 						'type'        => 'string',
-						'description' => __( 'Theme style ID (get, update, delete: required)', 'bricks-mcp' ),
+						'description' => __( 'Theme style ID (get, update, delete: required)', 'lc-bricks-mcp' ),
 					),
 					'name'            => array(
 						'type'        => 'string',
-						'description' => __( 'Style label/name (create: required; update: optional)', 'bricks-mcp' ),
+						'description' => __( 'Style label/name (create: required; update: optional)', 'lc-bricks-mcp' ),
 					),
 					'styles'          => array(
 						'type'        => 'object',
-						'description' => __( 'Settings organized by group: typography, links, colors, general, contextualSpacing, css, heading, button, section, etc. (create, update: optional)', 'bricks-mcp' ),
+						'description' => __( 'Settings organized by group: typography, links, colors, general, contextualSpacing, css, heading, button, section, etc. (create, update: optional)', 'lc-bricks-mcp' ),
 					),
 					'conditions'      => array(
 						'type'        => 'array',
 						'items'       => array( 'type' => 'object' ),
-						'description' => __( 'Array of condition objects with "main" key (create, update: optional)', 'bricks-mcp' ),
+						'description' => __( 'Array of condition objects with "main" key (create, update: optional)', 'lc-bricks-mcp' ),
 					),
 					'active'          => array(
 						'type'        => 'boolean',
-						'description' => __( 'Whether the style should be active (update: optional)', 'bricks-mcp' ),
+						'description' => __( 'Whether the style should be active (update: optional)', 'lc-bricks-mcp' ),
 					),
 					'replace_section' => array(
 						'type'        => 'boolean',
-						'description' => __( 'If true, fully replace each provided settings group instead of merging (update: default false)', 'bricks-mcp' ),
+						'description' => __( 'If true, fully replace each provided settings group instead of merging (update: default false)', 'lc-bricks-mcp' ),
 					),
 					'hard_delete'     => array(
 						'type'        => 'boolean',
-						'description' => __( 'If true, permanently delete the style; if false (default), only remove conditions to deactivate (delete: optional)', 'bricks-mcp' ),
+						'description' => __( 'If true, permanently delete the style; if false (default), only remove conditions to deactivate (delete: optional)', 'lc-bricks-mcp' ),
 					),
 				),
 				'required'   => array( 'action' ),
@@ -1077,38 +1077,38 @@ final class Router {
 		// Typography scale consolidated tool (replaces get_typography_scales, create_typography_scale, update_typography_scale, delete_typography_scale).
 		$this->register_tool(
 			'typography_scale',
-			__( "Manage Bricks typography scales.\n\nActions:\n- list: List typography scales (no required params)\n- create: Create typography scale (requires: name, settings)\n- update: Update typography scale (requires: scale_id; optional: name, settings)\n- delete: Delete typography scale (requires: scale_id)", 'bricks-mcp' ),
+			__( "Manage Bricks typography scales.\n\nActions:\n- list: List typography scales (no required params)\n- create: Create typography scale (requires: name, settings)\n- update: Update typography scale (requires: scale_id; optional: name, settings)\n- delete: Delete typography scale (requires: scale_id)", 'lc-bricks-mcp' ),
 			array(
 				'type'       => 'object',
 				'properties' => array(
 					'action'          => array(
 						'type'        => 'string',
 						'enum'        => array( 'list', 'create', 'update', 'delete' ),
-						'description' => __( 'Action to perform', 'bricks-mcp' ),
+						'description' => __( 'Action to perform', 'lc-bricks-mcp' ),
 					),
 					'scale_id'        => array(
 						'type'        => 'string',
-						'description' => __( 'Scale category ID (update, delete: required)', 'bricks-mcp' ),
+						'description' => __( 'Scale category ID (update, delete: required)', 'lc-bricks-mcp' ),
 					),
 					'name'            => array(
 						'type'        => 'string',
-						'description' => __( 'Scale name (create: required; update: optional)', 'bricks-mcp' ),
+						'description' => __( 'Scale name (create: required; update: optional)', 'lc-bricks-mcp' ),
 					),
 					'settings'        => array(
 						'type'        => 'object',
-						'description' => __( 'Typography scale settings including prefix, steps, and utility_classes (create: required; update: optional)', 'bricks-mcp' ),
+						'description' => __( 'Typography scale settings including prefix, steps, and utility_classes (create: required; update: optional)', 'lc-bricks-mcp' ),
 					),
 					'prefix'          => array(
 						'type'        => 'string',
-						'description' => __( 'CSS variable prefix starting with -- (e.g., "--text-"). Used in create if not inside settings.', 'bricks-mcp' ),
+						'description' => __( 'CSS variable prefix starting with -- (e.g., "--text-"). Used in create if not inside settings.', 'lc-bricks-mcp' ),
 					),
 					'steps'           => array(
 						'type'        => 'array',
-						'description' => __( 'Array of scale steps, each with name and value (create: required if not inside settings)', 'bricks-mcp' ),
+						'description' => __( 'Array of scale steps, each with name and value (create: required if not inside settings)', 'lc-bricks-mcp' ),
 					),
 					'utility_classes' => array(
 						'type'        => 'array',
-						'description' => __( 'Utility class definitions (create, update: optional)', 'bricks-mcp' ),
+						'description' => __( 'Utility class definitions (create, update: optional)', 'lc-bricks-mcp' ),
 					),
 				),
 				'required'   => array( 'action' ),
@@ -1119,38 +1119,38 @@ final class Router {
 		// Color palette consolidated tool (replaces list_color_palettes, create_color_palette, update_color_palette, delete_color_palette, add_color_to_palette, update_color_in_palette, delete_color_from_palette).
 		$this->register_tool(
 			'color_palette',
-			__( "Manage Bricks color palettes and colors.\n\nActions:\n- list: List all color palettes (no required params)\n- create: Create palette (requires: name; optional: colors)\n- update: Update palette (requires: palette_id; optional: name)\n- delete: Delete palette (requires: palette_id)\n- add_color: Add color to palette (requires: palette_id, color {light, name; optional: raw, parent, utility_classes}). 'hex' accepted as alias for 'light'\n- update_color: Update color in palette (requires: palette_id, color_id; optional fields in color: light, name, raw, parent_color_id, utility_classes). 'hex' accepted as alias for 'light'\n- delete_color: Remove color from palette (requires: palette_id, color_id)", 'bricks-mcp' ),
+			__( "Manage Bricks color palettes and colors.\n\nActions:\n- list: List all color palettes (no required params)\n- create: Create palette (requires: name; optional: colors)\n- update: Update palette (requires: palette_id; optional: name)\n- delete: Delete palette (requires: palette_id)\n- add_color: Add color to palette (requires: palette_id, color {light, name; optional: raw, parent, utility_classes}). 'hex' accepted as alias for 'light'\n- update_color: Update color in palette (requires: palette_id, color_id; optional fields in color: light, name, raw, parent_color_id, utility_classes). 'hex' accepted as alias for 'light'\n- delete_color: Remove color from palette (requires: palette_id, color_id)", 'lc-bricks-mcp' ),
 			array(
 				'type'       => 'object',
 				'properties' => array(
 					'action'     => array(
 						'type'        => 'string',
 						'enum'        => array( 'list', 'create', 'update', 'delete', 'add_color', 'update_color', 'delete_color' ),
-						'description' => __( 'Action to perform', 'bricks-mcp' ),
+						'description' => __( 'Action to perform', 'lc-bricks-mcp' ),
 					),
 					'palette_id' => array(
 						'type'        => 'string',
-						'description' => __( 'Palette ID (update, delete, add_color, update_color, delete_color: required)', 'bricks-mcp' ),
+						'description' => __( 'Palette ID (update, delete, add_color, update_color, delete_color: required)', 'lc-bricks-mcp' ),
 					),
 					'name'       => array(
 						'type'        => 'string',
-						'description' => __( 'Palette name (create: required; update: optional)', 'bricks-mcp' ),
+						'description' => __( 'Palette name (create: required; update: optional)', 'lc-bricks-mcp' ),
 					),
 					'colors'     => array(
 						'type'        => 'array',
-						'description' => __( 'Initial colors for palette (create: optional)', 'bricks-mcp' ),
+						'description' => __( 'Initial colors for palette (create: optional)', 'lc-bricks-mcp' ),
 					),
 					'color_id'   => array(
 						'type'        => 'string',
-						'description' => __( 'Color ID (update_color, delete_color: required)', 'bricks-mcp' ),
+						'description' => __( 'Color ID (update_color, delete_color: required)', 'lc-bricks-mcp' ),
 					),
 					'color'      => array(
 						'type'        => 'object',
-						'description' => __( 'Color object with light (hex value), name, raw (CSS variable) fields (add_color: required; update_color: required). "hex" accepted as alias for "light"', 'bricks-mcp' ),
+						'description' => __( 'Color object with light (hex value), name, raw (CSS variable) fields (add_color: required; update_color: required). "hex" accepted as alias for "light"', 'lc-bricks-mcp' ),
 					),
 					'position'   => array(
 						'type'        => 'integer',
-						'description' => __( 'Position in palette (add_color: optional)', 'bricks-mcp' ),
+						'description' => __( 'Position in palette (add_color: optional)', 'lc-bricks-mcp' ),
 					),
 				),
 				'required'   => array( 'action' ),
@@ -1161,55 +1161,55 @@ final class Router {
 		// Global variable consolidated tool (replaces list_global_variables, create_variable_category, update_variable_category, delete_variable_category, create_global_variable, update_global_variable, delete_global_variable, batch_create_global_variables).
 		$this->register_tool(
 			'global_variable',
-			__( "Manage Bricks global CSS variables.\n\nActions:\n- list: List all global variables (no required params)\n- create_category: Create variable category (requires: category_name)\n- update_category: Rename variable category (requires: category_id, category_name)\n- delete_category: Delete variable category (requires: category_id)\n- create: Create variable (requires: name, value; optional: category)\n- update: Update variable (requires: variable_id; optional: name, value, category)\n- delete: Delete variable (requires: variable_id)\n- batch_create: Create multiple variables (requires: variables)\n- batch_delete: Delete multiple variables (requires: variable_ids; max 50)\n- search: Search variables by name/value (optional: query, value_query, category_id)", 'bricks-mcp' ),
+			__( "Manage Bricks global CSS variables.\n\nActions:\n- list: List all global variables (no required params)\n- create_category: Create variable category (requires: category_name)\n- update_category: Rename variable category (requires: category_id, category_name)\n- delete_category: Delete variable category (requires: category_id)\n- create: Create variable (requires: name, value; optional: category)\n- update: Update variable (requires: variable_id; optional: name, value, category)\n- delete: Delete variable (requires: variable_id)\n- batch_create: Create multiple variables (requires: variables)\n- batch_delete: Delete multiple variables (requires: variable_ids; max 50)\n- search: Search variables by name/value (optional: query, value_query, category_id)", 'lc-bricks-mcp' ),
 			array(
 				'type'       => 'object',
 				'properties' => array(
 					'action'        => array(
 						'type'        => 'string',
 						'enum'        => array( 'list', 'create_category', 'update_category', 'delete_category', 'create', 'update', 'delete', 'batch_create', 'batch_delete', 'search' ),
-						'description' => __( 'Action to perform', 'bricks-mcp' ),
+						'description' => __( 'Action to perform', 'lc-bricks-mcp' ),
 					),
 					'category_id'   => array(
 						'type'        => 'string',
-						'description' => __( 'Category ID (update_category, delete_category: required; create: optional; search: optional filter)', 'bricks-mcp' ),
+						'description' => __( 'Category ID (update_category, delete_category: required; create: optional; search: optional filter)', 'lc-bricks-mcp' ),
 					),
 					'category_name' => array(
 						'type'        => 'string',
-						'description' => __( 'Category name (create_category: required; update_category: required)', 'bricks-mcp' ),
+						'description' => __( 'Category name (create_category: required; update_category: required)', 'lc-bricks-mcp' ),
 					),
 					'variable_id'   => array(
 						'type'        => 'string',
-						'description' => __( 'Variable ID (update, delete: required)', 'bricks-mcp' ),
+						'description' => __( 'Variable ID (update, delete: required)', 'lc-bricks-mcp' ),
 					),
 					'name'          => array(
 						'type'        => 'string',
-						'description' => __( 'Variable name (create: required; update: optional)', 'bricks-mcp' ),
+						'description' => __( 'Variable name (create: required; update: optional)', 'lc-bricks-mcp' ),
 					),
 					'value'         => array(
 						'type'        => 'string',
-						'description' => __( 'CSS value (create: required; update: optional)', 'bricks-mcp' ),
+						'description' => __( 'CSS value (create: required; update: optional)', 'lc-bricks-mcp' ),
 					),
 					'category'      => array(
 						'type'        => 'string',
-						'description' => __( 'Category ID for variable assignment (create: optional)', 'bricks-mcp' ),
+						'description' => __( 'Category ID for variable assignment (create: optional)', 'lc-bricks-mcp' ),
 					),
 					'variables'     => array(
 						'type'        => 'array',
-						'description' => __( 'Array of {name, value} variable objects (batch_create: required)', 'bricks-mcp' ),
+						'description' => __( 'Array of {name, value} variable objects (batch_create: required)', 'lc-bricks-mcp' ),
 					),
 					'variable_ids'  => array(
 						'type'        => 'array',
-						'description' => __( 'Array of variable ID strings (batch_delete: required; max 50)', 'bricks-mcp' ),
+						'description' => __( 'Array of variable ID strings (batch_delete: required; max 50)', 'lc-bricks-mcp' ),
 						'items'       => array( 'type' => 'string' ),
 					),
 					'query'         => array(
 						'type'        => 'string',
-						'description' => __( 'Name substring to search for (search: optional, case-insensitive)', 'bricks-mcp' ),
+						'description' => __( 'Name substring to search for (search: optional, case-insensitive)', 'lc-bricks-mcp' ),
 					),
 					'value_query'   => array(
 						'type'        => 'string',
-						'description' => __( 'Value substring to search for (search: optional, case-insensitive)', 'bricks-mcp' ),
+						'description' => __( 'Value substring to search for (search: optional, case-insensitive)', 'lc-bricks-mcp' ),
 					),
 				),
 				'required'   => array( 'action' ),
@@ -1220,59 +1220,59 @@ final class Router {
 		// Media consolidated tool (replaces search_unsplash, sideload_image, get_media_library, set_featured_image, remove_featured_image, get_image_element_settings).
 		$this->register_tool(
 			'media',
-			__( "Manage images and media library.\n\nActions:\n- search_unsplash: Search Unsplash photos (requires: query; optional: per_page)\n- sideload: Download image from URL to media library (requires: url; optional: filename, alt_text)\n- list: Browse media library (optional: per_page, page, mime_type)\n- set_featured: Set featured image on post (requires: post_id, attachment_id)\n- remove_featured: Remove featured image from post (requires: post_id)\n- get_image_settings: Get Bricks image element settings format (optional: target)", 'bricks-mcp' ),
+			__( "Manage images and media library.\n\nActions:\n- search_unsplash: Search Unsplash photos (requires: query; optional: per_page)\n- sideload: Download image from URL to media library (requires: url; optional: filename, alt_text)\n- list: Browse media library (optional: per_page, page, mime_type)\n- set_featured: Set featured image on post (requires: post_id, attachment_id)\n- remove_featured: Remove featured image from post (requires: post_id)\n- get_image_settings: Get Bricks image element settings format (optional: target)", 'lc-bricks-mcp' ),
 			array(
 				'type'       => 'object',
 				'properties' => array(
 					'action'        => array(
 						'type'        => 'string',
 						'enum'        => array( 'search_unsplash', 'sideload', 'list', 'set_featured', 'remove_featured', 'get_image_settings' ),
-						'description' => __( 'Action to perform', 'bricks-mcp' ),
+						'description' => __( 'Action to perform', 'lc-bricks-mcp' ),
 					),
 					'query'         => array(
 						'type'        => 'string',
-						'description' => __( 'Search query for Unsplash photos (search_unsplash: required)', 'bricks-mcp' ),
+						'description' => __( 'Search query for Unsplash photos (search_unsplash: required)', 'lc-bricks-mcp' ),
 					),
 					'url'           => array(
 						'type'        => 'string',
-						'description' => __( 'Image URL to download (sideload: required)', 'bricks-mcp' ),
+						'description' => __( 'Image URL to download (sideload: required)', 'lc-bricks-mcp' ),
 					),
 					'filename'      => array(
 						'type'        => 'string',
-						'description' => __( 'Filename for sideloaded image (sideload: optional)', 'bricks-mcp' ),
+						'description' => __( 'Filename for sideloaded image (sideload: optional)', 'lc-bricks-mcp' ),
 					),
 					'alt_text'      => array(
 						'type'        => 'string',
-						'description' => __( 'Alt text for sideloaded image (sideload: optional)', 'bricks-mcp' ),
+						'description' => __( 'Alt text for sideloaded image (sideload: optional)', 'lc-bricks-mcp' ),
 					),
 					'post_id'       => array(
 						'type'        => 'integer',
-						'description' => __( 'Post/page ID (set_featured, remove_featured: required)', 'bricks-mcp' ),
+						'description' => __( 'Post/page ID (set_featured, remove_featured: required)', 'lc-bricks-mcp' ),
 					),
 					'attachment_id' => array(
 						'type'        => 'integer',
-						'description' => __( 'Attachment ID from media library (set_featured: required; get_image_settings: optional)', 'bricks-mcp' ),
+						'description' => __( 'Attachment ID from media library (set_featured: required; get_image_settings: optional)', 'lc-bricks-mcp' ),
 					),
 					'image_size'    => array(
 						'type'        => 'string',
-						'description' => __( 'WordPress image size (get_image_settings: optional, e.g. full, large, medium)', 'bricks-mcp' ),
+						'description' => __( 'WordPress image size (get_image_settings: optional, e.g. full, large, medium)', 'lc-bricks-mcp' ),
 					),
 					'per_page'      => array(
 						'type'        => 'integer',
-						'description' => __( 'Results per page (search_unsplash, list: optional)', 'bricks-mcp' ),
+						'description' => __( 'Results per page (search_unsplash, list: optional)', 'lc-bricks-mcp' ),
 					),
 					'page'          => array(
 						'type'        => 'integer',
-						'description' => __( 'Page number for pagination (list: optional)', 'bricks-mcp' ),
+						'description' => __( 'Page number for pagination (list: optional)', 'lc-bricks-mcp' ),
 					),
 					'mime_type'     => array(
 						'type'        => 'string',
-						'description' => __( "MIME type filter (list: optional, e.g. 'image', 'image/jpeg')", 'bricks-mcp' ),
+						'description' => __( "MIME type filter (list: optional, e.g. 'image', 'image/jpeg')", 'lc-bricks-mcp' ),
 					),
 					'target'        => array(
 						'type'        => 'string',
 						'enum'        => array( 'image', 'background', 'gallery' ),
-						'description' => __( 'Image usage target (get_image_settings: required)', 'bricks-mcp' ),
+						'description' => __( 'Image usage target (get_image_settings: required)', 'lc-bricks-mcp' ),
 					),
 				),
 				'required'   => array( 'action' ),
@@ -1283,30 +1283,30 @@ final class Router {
 		// Menu consolidated tool (replaces create_menu, update_menu, delete_menu, get_menu, list_menus, set_menu_items, assign_menu, unassign_menu, list_menu_locations).
 		$this->register_tool(
 			'menu',
-			__( "Manage WordPress navigation menus.\n\nActions:\n- list: List all menus (no required params)\n- get: Get menu with item tree (requires: menu_id)\n- create: Create menu (requires: name)\n- update: Rename menu (requires: menu_id, name)\n- delete: Delete menu permanently (requires: menu_id)\n- set_items: Replace all menu items (requires: menu_id, items)\n- assign: Assign menu to theme location (requires: menu_id, location)\n- unassign: Remove menu from location (requires: location)\n- list_locations: List available theme locations (no required params)", 'bricks-mcp' ),
+			__( "Manage WordPress navigation menus.\n\nActions:\n- list: List all menus (no required params)\n- get: Get menu with item tree (requires: menu_id)\n- create: Create menu (requires: name)\n- update: Rename menu (requires: menu_id, name)\n- delete: Delete menu permanently (requires: menu_id)\n- set_items: Replace all menu items (requires: menu_id, items)\n- assign: Assign menu to theme location (requires: menu_id, location)\n- unassign: Remove menu from location (requires: location)\n- list_locations: List available theme locations (no required params)", 'lc-bricks-mcp' ),
 			array(
 				'type'       => 'object',
 				'properties' => array(
 					'action'   => array(
 						'type'        => 'string',
 						'enum'        => array( 'list', 'get', 'create', 'update', 'delete', 'set_items', 'assign', 'unassign', 'list_locations' ),
-						'description' => __( 'Action to perform', 'bricks-mcp' ),
+						'description' => __( 'Action to perform', 'lc-bricks-mcp' ),
 					),
 					'menu_id'  => array(
 						'type'        => 'integer',
-						'description' => __( 'Menu ID (get, update, delete, set_items, assign: required)', 'bricks-mcp' ),
+						'description' => __( 'Menu ID (get, update, delete, set_items, assign: required)', 'lc-bricks-mcp' ),
 					),
 					'name'     => array(
 						'type'        => 'string',
-						'description' => __( 'Menu name (create: required; update: required)', 'bricks-mcp' ),
+						'description' => __( 'Menu name (create: required; update: required)', 'lc-bricks-mcp' ),
 					),
 					'items'    => array(
 						'type'        => 'array',
-						'description' => __( 'Array of menu item objects as nested tree (set_items: required)', 'bricks-mcp' ),
+						'description' => __( 'Array of menu item objects as nested tree (set_items: required)', 'lc-bricks-mcp' ),
 					),
 					'location' => array(
 						'type'        => 'string',
-						'description' => __( 'Theme menu location slug (assign: required; unassign: required)', 'bricks-mcp' ),
+						'description' => __( 'Theme menu location slug (assign: required; unassign: required)', 'lc-bricks-mcp' ),
 					),
 				),
 				'required'   => array( 'action' ),
@@ -1317,62 +1317,62 @@ final class Router {
 		// Component consolidated tool (component definition CRUD + instance operations).
 		$this->register_tool(
 			'component',
-			__( "Manage Bricks Components (reusable element trees with properties and slots).\n\nActions:\n- list: List all component definitions (optional: category) [read]\n- get: Get full component definition (requires: component_id) [read]\n- create: Create component from element tree (requires: label, elements; optional: category, description, properties)\n- update: Update component definition (requires: component_id; optional: label, category, description, elements, properties)\n- delete: Delete component definition (requires: component_id)\n- instantiate: Place component instance on a page (requires: component_id, post_id; optional: parent_id, position, properties)\n- update_properties: Update instance property values (requires: post_id, instance_id, properties)\n- fill_slot: Fill a slot on a component instance with element content (requires: post_id, instance_id, slot_id, slot_elements)", 'bricks-mcp' ),
+			__( "Manage Bricks Components (reusable element trees with properties and slots).\n\nActions:\n- list: List all component definitions (optional: category) [read]\n- get: Get full component definition (requires: component_id) [read]\n- create: Create component from element tree (requires: label, elements; optional: category, description, properties)\n- update: Update component definition (requires: component_id; optional: label, category, description, elements, properties)\n- delete: Delete component definition (requires: component_id)\n- instantiate: Place component instance on a page (requires: component_id, post_id; optional: parent_id, position, properties)\n- update_properties: Update instance property values (requires: post_id, instance_id, properties)\n- fill_slot: Fill a slot on a component instance with element content (requires: post_id, instance_id, slot_id, slot_elements)", 'lc-bricks-mcp' ),
 			array(
 				'type'       => 'object',
 				'properties' => array(
 					'action'        => array(
 						'type'        => 'string',
 						'enum'        => array( 'list', 'get', 'create', 'update', 'delete', 'instantiate', 'update_properties', 'fill_slot' ),
-						'description' => __( 'Action to perform', 'bricks-mcp' ),
+						'description' => __( 'Action to perform', 'lc-bricks-mcp' ),
 					),
 					'component_id'  => array(
 						'type'        => 'string',
-						'description' => __( 'Component ID — 6-char alphanumeric (get, update, delete, instantiate: required)', 'bricks-mcp' ),
+						'description' => __( 'Component ID — 6-char alphanumeric (get, update, delete, instantiate: required)', 'lc-bricks-mcp' ),
 					),
 					'label'         => array(
 						'type'        => 'string',
-						'description' => __( 'Component display name (create: required; update: optional)', 'bricks-mcp' ),
+						'description' => __( 'Component display name (create: required; update: optional)', 'lc-bricks-mcp' ),
 					),
 					'category'      => array(
 						'type'        => 'string',
-						'description' => __( 'Category name for grouping (create/update: optional; list: filter)', 'bricks-mcp' ),
+						'description' => __( 'Category name for grouping (create/update: optional; list: filter)', 'lc-bricks-mcp' ),
 					),
 					'description'   => array(
 						'type'        => 'string',
-						'description' => __( 'Component description (create/update: optional)', 'bricks-mcp' ),
+						'description' => __( 'Component description (create/update: optional)', 'lc-bricks-mcp' ),
 					),
 					'elements'      => array(
 						'type'        => 'array',
-						'description' => __( 'Flat element array — same structure as page content (create: required; update: optional). Root element ID will be auto-set to match component ID.', 'bricks-mcp' ),
+						'description' => __( 'Flat element array — same structure as page content (create: required; update: optional). Root element ID will be auto-set to match component ID.', 'lc-bricks-mcp' ),
 					),
 					'properties'    => array(
 						'type'        => 'array',
-						'description' => __( 'Property definitions array (create/update: optional) or property values object (instantiate/update_properties: set instance values). Each definition: {id, name, type, default, description, connections}', 'bricks-mcp' ),
+						'description' => __( 'Property definitions array (create/update: optional) or property values object (instantiate/update_properties: set instance values). Each definition: {id, name, type, default, description, connections}', 'lc-bricks-mcp' ),
 					),
 					'post_id'       => array(
 						'type'        => 'integer',
-						'description' => __( 'Post/page ID (instantiate, update_properties, fill_slot: required)', 'bricks-mcp' ),
+						'description' => __( 'Post/page ID (instantiate, update_properties, fill_slot: required)', 'lc-bricks-mcp' ),
 					),
 					'parent_id'     => array(
 						'type'        => 'string',
-						'description' => __( "Parent element ID for instance placement (instantiate: optional, default '0' for root)", 'bricks-mcp' ),
+						'description' => __( "Parent element ID for instance placement (instantiate: optional, default '0' for root)", 'lc-bricks-mcp' ),
 					),
 					'position'      => array(
 						'type'        => 'integer',
-						'description' => __( "Position in parent's children array (instantiate: 0-indexed, omit to append)", 'bricks-mcp' ),
+						'description' => __( "Position in parent's children array (instantiate: 0-indexed, omit to append)", 'lc-bricks-mcp' ),
 					),
 					'instance_id'   => array(
 						'type'        => 'string',
-						'description' => __( 'Instance element ID — 6-char alphanumeric (update_properties, fill_slot: required)', 'bricks-mcp' ),
+						'description' => __( 'Instance element ID — 6-char alphanumeric (update_properties, fill_slot: required)', 'lc-bricks-mcp' ),
 					),
 					'slot_id'       => array(
 						'type'        => 'string',
-						'description' => __( 'Slot element ID from the component definition (fill_slot: required)', 'bricks-mcp' ),
+						'description' => __( 'Slot element ID from the component definition (fill_slot: required)', 'lc-bricks-mcp' ),
 					),
 					'slot_elements' => array(
 						'type'        => 'array',
-						'description' => __( 'Flat element array to fill into the slot (fill_slot: required)', 'bricks-mcp' ),
+						'description' => __( 'Flat element array to fill into the slot (fill_slot: required)', 'lc-bricks-mcp' ),
 					),
 				),
 				'required'   => array( 'action' ),
@@ -1383,40 +1383,40 @@ final class Router {
 		// WooCommerce consolidated tool (status, elements, dynamic tags, template scaffolding).
 		$this->register_tool(
 			'woocommerce',
-			__( "WooCommerce builder tools. Requires WooCommerce plugin active.\n\nActions:\n- status: Get WooCommerce status (version, page IDs, Bricks WooCommerce settings, available template types)\n- get_elements: List WooCommerce-specific Bricks elements (optional: category — product, cart, checkout, account, archive, utility)\n- get_dynamic_tags: Get WooCommerce dynamic data tags reference (optional: category — product_price, product_display, product_info, cart, order, post_compatible)\n- scaffold_template: Create a pre-populated WooCommerce template with standard elements (requires: template_type; optional: title, status)\n- scaffold_store: Create all essential WooCommerce templates at once (optional: types, skip_existing)", 'bricks-mcp' ),
+			__( "WooCommerce builder tools. Requires WooCommerce plugin active.\n\nActions:\n- status: Get WooCommerce status (version, page IDs, Bricks WooCommerce settings, available template types)\n- get_elements: List WooCommerce-specific Bricks elements (optional: category — product, cart, checkout, account, archive, utility)\n- get_dynamic_tags: Get WooCommerce dynamic data tags reference (optional: category — product_price, product_display, product_info, cart, order, post_compatible)\n- scaffold_template: Create a pre-populated WooCommerce template with standard elements (requires: template_type; optional: title, status)\n- scaffold_store: Create all essential WooCommerce templates at once (optional: types, skip_existing)", 'lc-bricks-mcp' ),
 			array(
 				'type'       => 'object',
 				'properties' => array(
 					'action'        => array(
 						'type'        => 'string',
 						'enum'        => array( 'status', 'get_elements', 'get_dynamic_tags', 'scaffold_template', 'scaffold_store' ),
-						'description' => __( 'Action to perform', 'bricks-mcp' ),
+						'description' => __( 'Action to perform', 'lc-bricks-mcp' ),
 					),
 					'category'      => array(
 						'type'        => 'string',
-						'description' => __( 'Filter category (get_elements: product, cart, checkout, account, archive, utility; get_dynamic_tags: product_price, product_display, product_info, cart, order, post_compatible)', 'bricks-mcp' ),
+						'description' => __( 'Filter category (get_elements: product, cart, checkout, account, archive, utility; get_dynamic_tags: product_price, product_display, product_info, cart, order, post_compatible)', 'lc-bricks-mcp' ),
 					),
 					'template_type' => array(
 						'type'        => 'string',
 						'enum'        => array( 'wc_product', 'wc_archive', 'wc_cart', 'wc_cart_empty', 'wc_checkout', 'wc_account_form', 'wc_account_page', 'wc_thankyou' ),
-						'description' => __( 'WooCommerce template type (scaffold_template: required)', 'bricks-mcp' ),
+						'description' => __( 'WooCommerce template type (scaffold_template: required)', 'lc-bricks-mcp' ),
 					),
 					'title'         => array(
 						'type'        => 'string',
-						'description' => __( 'Custom template title (scaffold_template: optional, defaults to human-readable name)', 'bricks-mcp' ),
+						'description' => __( 'Custom template title (scaffold_template: optional, defaults to human-readable name)', 'lc-bricks-mcp' ),
 					),
 					'status'        => array(
 						'type'        => 'string',
 						'enum'        => array( 'publish', 'draft' ),
-						'description' => __( 'Template post status (scaffold_template: optional, default publish)', 'bricks-mcp' ),
+						'description' => __( 'Template post status (scaffold_template: optional, default publish)', 'lc-bricks-mcp' ),
 					),
 					'types'         => array(
 						'type'        => 'array',
-						'description' => __( 'Specific template types to scaffold (scaffold_store: optional, defaults to all 8 types)', 'bricks-mcp' ),
+						'description' => __( 'Specific template types to scaffold (scaffold_store: optional, defaults to all 8 types)', 'lc-bricks-mcp' ),
 					),
 					'skip_existing' => array(
 						'type'        => 'boolean',
-						'description' => __( 'Skip types that already have a template (scaffold_store: optional, default true)', 'bricks-mcp' ),
+						'description' => __( 'Skip types that already have a template (scaffold_store: optional, default true)', 'lc-bricks-mcp' ),
 					),
 				),
 				'required'   => array( 'action' ),
@@ -1427,27 +1427,27 @@ final class Router {
 		// Font management consolidated tool.
 		$this->register_tool(
 			'font',
-			__( "Manage Bricks font settings.\n\nActions:\n- get_status: Get font configuration overview (Google Fonts, Adobe Fonts, webfont loading)\n- get_adobe_fonts: List cached Adobe Fonts from your project\n- update_settings: Update font settings (optional: disable_google_fonts, webfont_loading, custom_fonts_preload)", 'bricks-mcp' ),
+			__( "Manage Bricks font settings.\n\nActions:\n- get_status: Get font configuration overview (Google Fonts, Adobe Fonts, webfont loading)\n- get_adobe_fonts: List cached Adobe Fonts from your project\n- update_settings: Update font settings (optional: disable_google_fonts, webfont_loading, custom_fonts_preload)", 'lc-bricks-mcp' ),
 			array(
 				'type'       => 'object',
 				'properties' => array(
 					'action'               => array(
 						'type'        => 'string',
 						'enum'        => array( 'get_status', 'get_adobe_fonts', 'update_settings' ),
-						'description' => __( 'Action to perform', 'bricks-mcp' ),
+						'description' => __( 'Action to perform', 'lc-bricks-mcp' ),
 					),
 					'disable_google_fonts' => array(
 						'type'        => 'boolean',
-						'description' => __( 'Disable Google Fonts loading (update_settings: optional)', 'bricks-mcp' ),
+						'description' => __( 'Disable Google Fonts loading (update_settings: optional)', 'lc-bricks-mcp' ),
 					),
 					'webfont_loading'      => array(
 						'type'        => 'string',
 						'enum'        => array( 'swap', 'block', 'fallback', 'optional', 'auto', '' ),
-						'description' => __( 'Font display strategy (update_settings: optional)', 'bricks-mcp' ),
+						'description' => __( 'Font display strategy (update_settings: optional)', 'lc-bricks-mcp' ),
 					),
 					'custom_fonts_preload' => array(
 						'type'        => 'boolean',
-						'description' => __( 'Preload custom fonts for performance (update_settings: optional)', 'bricks-mcp' ),
+						'description' => __( 'Preload custom fonts for performance (update_settings: optional)', 'lc-bricks-mcp' ),
 					),
 				),
 				'required'   => array( 'action' ),
@@ -1458,34 +1458,34 @@ final class Router {
 		// Custom code consolidated tool.
 		$this->register_tool(
 			'code',
-			__( "Manage page-level custom CSS and JavaScript.\n\nActions:\n- get_page_css: Get page custom CSS and scripts (requires: post_id)\n- set_page_css: Set page custom CSS (requires: post_id, css)\n- get_page_scripts: Get page custom scripts only (requires: post_id)\n- set_page_scripts: Set page custom scripts (requires: post_id; optional: header, body_header, body_footer) [dangerous_actions required]", 'bricks-mcp' ),
+			__( "Manage page-level custom CSS and JavaScript.\n\nActions:\n- get_page_css: Get page custom CSS and scripts (requires: post_id)\n- set_page_css: Set page custom CSS (requires: post_id, css)\n- get_page_scripts: Get page custom scripts only (requires: post_id)\n- set_page_scripts: Set page custom scripts (requires: post_id; optional: header, body_header, body_footer) [dangerous_actions required]", 'lc-bricks-mcp' ),
 			array(
 				'type'       => 'object',
 				'properties' => array(
 					'action'      => array(
 						'type'        => 'string',
 						'enum'        => array( 'get_page_css', 'set_page_css', 'get_page_scripts', 'set_page_scripts' ),
-						'description' => __( 'Action to perform', 'bricks-mcp' ),
+						'description' => __( 'Action to perform', 'lc-bricks-mcp' ),
 					),
 					'post_id'     => array(
 						'type'        => 'integer',
-						'description' => __( 'Post/page ID (all actions: required)', 'bricks-mcp' ),
+						'description' => __( 'Post/page ID (all actions: required)', 'lc-bricks-mcp' ),
 					),
 					'css'         => array(
 						'type'        => 'string',
-						'description' => __( 'Custom CSS code (set_page_css: required). Empty string removes CSS.', 'bricks-mcp' ),
+						'description' => __( 'Custom CSS code (set_page_css: required). Empty string removes CSS.', 'lc-bricks-mcp' ),
 					),
 					'header'      => array(
 						'type'        => 'string',
-						'description' => __( 'Script for document head (set_page_scripts: optional)', 'bricks-mcp' ),
+						'description' => __( 'Script for document head (set_page_scripts: optional)', 'lc-bricks-mcp' ),
 					),
 					'body_header' => array(
 						'type'        => 'string',
-						'description' => __( 'Script after opening body tag (set_page_scripts: optional)', 'bricks-mcp' ),
+						'description' => __( 'Script after opening body tag (set_page_scripts: optional)', 'lc-bricks-mcp' ),
 					),
 					'body_footer' => array(
 						'type'        => 'string',
-						'description' => __( 'Script before closing body tag (set_page_scripts: optional)', 'bricks-mcp' ),
+						'description' => __( 'Script before closing body tag (set_page_scripts: optional)', 'lc-bricks-mcp' ),
 					),
 				),
 				'required'   => array( 'action' ),
@@ -1505,7 +1505,7 @@ final class Router {
 		if ( ! $this->bricks_service->is_bricks_active() ) {
 			return new \WP_Error(
 				'bricks_required',
-				__( 'Bricks Builder must be installed and active to use this tool. Install and activate Bricks Builder, then retry.', 'bricks-mcp' )
+				__( 'Bricks Builder must be installed and active to use this tool. Install and activate Bricks Builder, then retry.', 'lc-bricks-mcp' )
 			);
 		}
 		return null;
@@ -1530,10 +1530,10 @@ final class Router {
 		$required_cap = $action_caps[ $action ] ?? null;
 		if ( null !== $required_cap && ! current_user_can( $required_cap ) ) {
 			return new \WP_Error(
-				'bricks_mcp_forbidden',
+				'lc_bricks_mcp_forbidden',
 				sprintf(
 					/* translators: %s: Required capability */
-					__( 'You do not have the required capability (%s) to perform this action.', 'bricks-mcp' ),
+					__( 'You do not have the required capability (%s) to perform this action.', 'lc-bricks-mcp' ),
 					$required_cap
 				)
 			);
@@ -1548,7 +1548,7 @@ final class Router {
 				'invalid_action',
 				sprintf(
 					/* translators: %s: Action name */
-					__( 'Invalid action "%s". Valid actions: get_posts, get_post, get_users, get_plugins', 'bricks-mcp' ),
+					__( 'Invalid action "%s". Valid actions: get_posts, get_post, get_users, get_plugins', 'lc-bricks-mcp' ),
 					$action
 				)
 			),
@@ -1591,7 +1591,7 @@ final class Router {
 				'invalid_action',
 				sprintf(
 					/* translators: %s: Action name */
-					__( 'Invalid action "%s". Valid actions: enable, disable, get_settings, get_breakpoints, get_element_schemas, get_dynamic_tags, get_query_types, get_form_schema, get_interaction_schema, get_component_schema, get_popup_schema, get_filter_schema, get_condition_schema, get_global_queries, set_global_query, delete_global_query', 'bricks-mcp' ),
+					__( 'Invalid action "%s". Valid actions: enable, disable, get_settings, get_breakpoints, get_element_schemas, get_dynamic_tags, get_query_types, get_form_schema, get_interaction_schema, get_component_schema, get_popup_schema, get_filter_schema, get_condition_schema, get_global_queries, set_global_query, delete_global_query', 'lc-bricks-mcp' ),
 					$action
 				)
 			),
@@ -2421,10 +2421,10 @@ final class Router {
 		$category = sanitize_text_field( $args['category'] ?? '' );
 
 		if ( empty( $name ) ) {
-			return new \WP_Error( 'missing_name', __( 'name is required for set_global_query.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_name', __( 'name is required for set_global_query.', 'lc-bricks-mcp' ) );
 		}
 		if ( ! is_array( $settings ) || empty( $settings ) ) {
-			return new \WP_Error( 'missing_settings', __( 'settings (object with query configuration) is required for set_global_query.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_settings', __( 'settings (object with query configuration) is required for set_global_query.', 'lc-bricks-mcp' ) );
 		}
 
 		// Security: strip queryEditor/useQueryEditor from settings.
@@ -2485,7 +2485,7 @@ final class Router {
 
 		$query_id = isset( $args['query_id'] ) ? sanitize_text_field( (string) $args['query_id'] ) : '';
 		if ( empty( $query_id ) ) {
-			return new \WP_Error( 'missing_query_id', __( 'query_id is required for delete_global_query.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_query_id', __( 'query_id is required for delete_global_query.', 'lc-bricks-mcp' ) );
 		}
 
 		$queries = get_option( 'bricks_global_queries', array() );
@@ -2506,7 +2506,7 @@ final class Router {
 				'not_found',
 				sprintf(
 					/* translators: %s: Query ID */
-					__( 'Global query "%s" not found. Use bricks:get_global_queries to list available queries.', 'bricks-mcp' ),
+					__( 'Global query "%s" not found. Use bricks:get_global_queries to list available queries.', 'lc-bricks-mcp' ),
 					$query_id
 				)
 			);
@@ -2992,7 +2992,7 @@ final class Router {
 		if ( empty( $args['post_id'] ) ) {
 			return new \WP_Error(
 				'missing_post_id',
-				__( 'post_id is required. Provide the ID of the post to enable Bricks on.', 'bricks-mcp' )
+				__( 'post_id is required. Provide the ID of the post to enable Bricks on.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -3004,7 +3004,7 @@ final class Router {
 				'post_not_found',
 				sprintf(
 					/* translators: %d: Post ID */
-					__( 'Post %d not found. Use list_pages to find valid post IDs.', 'bricks-mcp' ),
+					__( 'Post %d not found. Use list_pages to find valid post IDs.', 'lc-bricks-mcp' ),
 					$post_id
 				)
 			);
@@ -3039,7 +3039,7 @@ final class Router {
 		if ( empty( $args['post_id'] ) ) {
 			return new \WP_Error(
 				'missing_post_id',
-				__( 'post_id is required. Provide the ID of the post to disable Bricks on.', 'bricks-mcp' )
+				__( 'post_id is required. Provide the ID of the post to disable Bricks on.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -3051,7 +3051,7 @@ final class Router {
 				'post_not_found',
 				sprintf(
 					/* translators: %d: Post ID */
-					__( 'Post %d not found. Use list_pages to find valid post IDs.', 'bricks-mcp' ),
+					__( 'Post %d not found. Use list_pages to find valid post IDs.', 'lc-bricks-mcp' ),
 					$post_id
 				)
 			);
@@ -3065,7 +3065,7 @@ final class Router {
 			'title'                => $post->post_title,
 			'bricks_enabled'       => false,
 			'was_already_disabled' => $was_already_disabled,
-			'note'                 => __( 'Bricks content preserved in database. Re-enable with bricks tool (action: enable).', 'bricks-mcp' ),
+			'note'                 => __( 'Bricks content preserved in database. Re-enable with bricks tool (action: enable).', 'lc-bricks-mcp' ),
 		);
 	}
 
@@ -3116,7 +3116,7 @@ final class Router {
 				'invalid_action',
 				sprintf(
 					/* translators: %s: Action name */
-					__( 'Invalid action "%s". Valid actions: list, search, get, create, update_content, update_meta, delete, duplicate, get_settings, update_settings, get_seo, update_seo', 'bricks-mcp' ),
+					__( 'Invalid action "%s". Valid actions: list, search, get, create, update_content, update_meta, delete, duplicate, get_settings, update_settings, get_seo, update_seo', 'lc-bricks-mcp' ),
 					$action
 				)
 			),
@@ -3149,7 +3149,7 @@ final class Router {
 				'invalid_action',
 				sprintf(
 					/* translators: %s: Action name */
-					__( 'Invalid action "%s". Valid actions: add, update, remove, get_conditions, set_conditions, move, bulk_update', 'bricks-mcp' ),
+					__( 'Invalid action "%s". Valid actions: add, update, remove, get_conditions, set_conditions, move, bulk_update', 'lc-bricks-mcp' ),
 					$action
 				)
 			),
@@ -3196,7 +3196,7 @@ final class Router {
 		}
 
 		if ( empty( $args['post_id'] ) ) {
-			return new \WP_Error( 'missing_post_id', __( 'post_id is required. Use list_pages to find valid post IDs.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_post_id', __( 'post_id is required. Use list_pages to find valid post IDs.', 'lc-bricks-mcp' ) );
 		}
 
 		$post_id = (int) $args['post_id'];
@@ -3206,7 +3206,7 @@ final class Router {
 			return new \WP_Error(
 				'post_not_found',
 				/* translators: %d: Post ID */
-				sprintf( __( 'Post %d not found. Use list_pages to find valid post IDs.', 'bricks-mcp' ), $post_id )
+				sprintf( __( 'Post %d not found. Use list_pages to find valid post IDs.', 'lc-bricks-mcp' ), $post_id )
 			);
 		}
 
@@ -3215,7 +3215,7 @@ final class Router {
 				'not_bricks_page',
 				sprintf(
 					/* translators: %d: Post ID */
-					__( 'Post %d is not using the Bricks editor. Use the enable_bricks tool to enable Bricks on this post first.', 'bricks-mcp' ),
+					__( 'Post %d is not using the Bricks editor. Use the enable_bricks tool to enable Bricks on this post first.', 'lc-bricks-mcp' ),
 					$post_id
 				)
 			);
@@ -3301,7 +3301,7 @@ final class Router {
 		}
 
 		if ( empty( $args['query'] ) ) {
-			return new \WP_Error( 'missing_query', __( 'query parameter is required.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_query', __( 'query parameter is required.', 'lc-bricks-mcp' ) );
 		}
 
 		$search_query = sanitize_text_field( $args['query'] );
@@ -3354,7 +3354,7 @@ final class Router {
 		if ( empty( $args['title'] ) ) {
 			return new \WP_Error(
 				'missing_title',
-				__( 'title is required. Provide a non-empty page title.', 'bricks-mcp' )
+				__( 'title is required. Provide a non-empty page title.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -3390,11 +3390,11 @@ final class Router {
 		}
 
 		if ( empty( $args['post_id'] ) ) {
-			return new \WP_Error( 'missing_post_id', __( 'post_id is required. Use list_pages to find valid post IDs.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_post_id', __( 'post_id is required. Use list_pages to find valid post IDs.', 'lc-bricks-mcp' ) );
 		}
 
 		if ( ! isset( $args['elements'] ) || ! is_array( $args['elements'] ) ) {
-			return new \WP_Error( 'missing_elements', __( 'elements array is required. Provide an array of Bricks elements.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_elements', __( 'elements array is required. Provide an array of Bricks elements.', 'lc-bricks-mcp' ) );
 		}
 
 		$post_id = (int) $args['post_id'];
@@ -3404,7 +3404,7 @@ final class Router {
 			return new \WP_Error(
 				'post_not_found',
 				/* translators: %d: Post ID */
-				sprintf( __( 'Post %d not found. Use list_pages to find valid post IDs.', 'bricks-mcp' ), $post_id )
+				sprintf( __( 'Post %d not found. Use list_pages to find valid post IDs.', 'lc-bricks-mcp' ), $post_id )
 			);
 		}
 
@@ -3438,7 +3438,7 @@ final class Router {
 		}
 
 		if ( empty( $args['post_id'] ) ) {
-			return new \WP_Error( 'missing_post_id', __( 'post_id is required. Use list_pages to find valid post IDs.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_post_id', __( 'post_id is required. Use list_pages to find valid post IDs.', 'lc-bricks-mcp' ) );
 		}
 
 		$post_id = (int) $args['post_id'];
@@ -3464,7 +3464,7 @@ final class Router {
 		}
 
 		if ( empty( $args['post_id'] ) ) {
-			return new \WP_Error( 'missing_post_id', __( 'post_id is required. Use list_pages to find valid post IDs.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_post_id', __( 'post_id is required. Use list_pages to find valid post IDs.', 'lc-bricks-mcp' ) );
 		}
 
 		$post_id = (int) $args['post_id'];
@@ -3477,7 +3477,7 @@ final class Router {
 		return array(
 			'post_id' => $post_id,
 			'status'  => 'trash',
-			'message' => __( 'Post moved to trash. It can be recovered from the WordPress trash.', 'bricks-mcp' ),
+			'message' => __( 'Post moved to trash. It can be recovered from the WordPress trash.', 'lc-bricks-mcp' ),
 		);
 	}
 
@@ -3494,7 +3494,7 @@ final class Router {
 		}
 
 		if ( empty( $args['post_id'] ) ) {
-			return new \WP_Error( 'missing_post_id', __( 'post_id is required. Use list_pages to find valid post IDs.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_post_id', __( 'post_id is required. Use list_pages to find valid post IDs.', 'lc-bricks-mcp' ) );
 		}
 
 		$post_id     = (int) $args['post_id'];
@@ -3529,11 +3529,11 @@ final class Router {
 		}
 
 		if ( empty( $args['post_id'] ) ) {
-			return new \WP_Error( 'missing_post_id', __( 'post_id is required. Use list_pages to find valid post IDs.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_post_id', __( 'post_id is required. Use list_pages to find valid post IDs.', 'lc-bricks-mcp' ) );
 		}
 
 		if ( empty( $args['name'] ) ) {
-			return new \WP_Error( 'missing_name', __( 'name is required. Provide the Bricks element type (e.g. heading, container, section).', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_name', __( 'name is required. Provide the Bricks element type (e.g. heading, container, section).', 'lc-bricks-mcp' ) );
 		}
 
 		$post_id   = (int) $args['post_id'];
@@ -3560,15 +3560,15 @@ final class Router {
 		}
 
 		if ( empty( $args['post_id'] ) ) {
-			return new \WP_Error( 'missing_post_id', __( 'post_id is required. Use list_pages to find valid post IDs.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_post_id', __( 'post_id is required. Use list_pages to find valid post IDs.', 'lc-bricks-mcp' ) );
 		}
 
 		if ( empty( $args['element_id'] ) ) {
-			return new \WP_Error( 'missing_element_id', __( 'element_id is required. Use get_bricks_content to retrieve element IDs.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_element_id', __( 'element_id is required. Use get_bricks_content to retrieve element IDs.', 'lc-bricks-mcp' ) );
 		}
 
 		if ( ! isset( $args['settings'] ) || ! is_array( $args['settings'] ) ) {
-			return new \WP_Error( 'missing_settings', __( 'settings object is required. Provide the settings keys and values to update.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_settings', __( 'settings object is required. Provide the settings keys and values to update.', 'lc-bricks-mcp' ) );
 		}
 
 		$post_id    = (int) $args['post_id'];
@@ -3591,11 +3591,11 @@ final class Router {
 		}
 
 		if ( empty( $args['post_id'] ) ) {
-			return new \WP_Error( 'missing_post_id', __( 'post_id is required. Use list_pages to find valid post IDs.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_post_id', __( 'post_id is required. Use list_pages to find valid post IDs.', 'lc-bricks-mcp' ) );
 		}
 
 		if ( empty( $args['element_id'] ) ) {
-			return new \WP_Error( 'missing_element_id', __( 'element_id is required. Use get_bricks_content to retrieve element IDs.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_element_id', __( 'element_id is required. Use get_bricks_content to retrieve element IDs.', 'lc-bricks-mcp' ) );
 		}
 
 		$post_id    = (int) $args['post_id'];
@@ -3617,10 +3617,10 @@ final class Router {
 		$position         = isset( $args['position'] ) ? (int) $args['position'] : null;
 
 		if ( 0 === $post_id ) {
-			return new \WP_Error( 'missing_post_id', __( 'post_id is required.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_post_id', __( 'post_id is required.', 'lc-bricks-mcp' ) );
 		}
 		if ( '' === $element_id ) {
-			return new \WP_Error( 'missing_element_id', __( 'element_id is required.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_element_id', __( 'element_id is required.', 'lc-bricks-mcp' ) );
 		}
 
 		return $this->bricks_service->move_element( $post_id, $element_id, $target_parent_id, $position );
@@ -3637,10 +3637,10 @@ final class Router {
 		$updates = $args['updates'] ?? [];
 
 		if ( 0 === $post_id ) {
-			return new \WP_Error( 'missing_post_id', __( 'post_id is required.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_post_id', __( 'post_id is required.', 'lc-bricks-mcp' ) );
 		}
 		if ( empty( $updates ) || ! is_array( $updates ) ) {
-			return new \WP_Error( 'missing_updates', __( 'updates array is required with at least one {element_id, settings} object.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_updates', __( 'updates array is required with at least one {element_id, settings} object.', 'lc-bricks-mcp' ) );
 		}
 
 		return $this->bricks_service->bulk_update_elements( $post_id, $updates );
@@ -3656,11 +3656,11 @@ final class Router {
 	 */
 	private function tool_get_conditions( array $args ): array|\WP_Error {
 		if ( empty( $args['post_id'] ) ) {
-			return new \WP_Error( 'missing_post_id', __( 'post_id is required.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_post_id', __( 'post_id is required.', 'lc-bricks-mcp' ) );
 		}
 
 		if ( empty( $args['element_id'] ) ) {
-			return new \WP_Error( 'missing_element_id', __( 'element_id is required.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_element_id', __( 'element_id is required.', 'lc-bricks-mcp' ) );
 		}
 
 		$post_id    = (int) $args['post_id'];
@@ -3672,7 +3672,7 @@ final class Router {
 				'post_not_found',
 				sprintf(
 					/* translators: %d: Post ID */
-					__( 'Post %d not found. Use list_pages to find valid post IDs.', 'bricks-mcp' ),
+					__( 'Post %d not found. Use list_pages to find valid post IDs.', 'lc-bricks-mcp' ),
 					$post_id
 				)
 			);
@@ -3693,7 +3693,7 @@ final class Router {
 				'element_not_found',
 				sprintf(
 					/* translators: 1: Element ID, 2: Post ID */
-					__( 'Element "%1$s" not found on post %2$d.', 'bricks-mcp' ),
+					__( 'Element "%1$s" not found on post %2$d.', 'lc-bricks-mcp' ),
 					$element_id,
 					$post_id
 				)
@@ -3710,8 +3710,8 @@ final class Router {
 			'condition_sets' => count( $conditions ),
 			'conditions'     => $conditions,
 			'note'           => empty( $conditions )
-				? __( 'No conditions set on this element. Use element:set_conditions to add visibility conditions. Call bricks:get_condition_schema for available condition types.', 'bricks-mcp' )
-				: __( 'Outer array = OR logic (any set renders element). Inner arrays = AND logic (all conditions in a set must pass). Use element:set_conditions to replace.', 'bricks-mcp' ),
+				? __( 'No conditions set on this element. Use element:set_conditions to add visibility conditions. Call bricks:get_condition_schema for available condition types.', 'lc-bricks-mcp' )
+				: __( 'Outer array = OR logic (any set renders element). Inner arrays = AND logic (all conditions in a set must pass). Use element:set_conditions to replace.', 'lc-bricks-mcp' ),
 		);
 	}
 
@@ -3727,19 +3727,19 @@ final class Router {
 	 */
 	private function tool_set_conditions( array $args ): array|\WP_Error {
 		if ( empty( $args['post_id'] ) ) {
-			return new \WP_Error( 'missing_post_id', __( 'post_id is required.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_post_id', __( 'post_id is required.', 'lc-bricks-mcp' ) );
 		}
 
 		if ( empty( $args['element_id'] ) ) {
-			return new \WP_Error( 'missing_element_id', __( 'element_id is required.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_element_id', __( 'element_id is required.', 'lc-bricks-mcp' ) );
 		}
 
 		if ( ! isset( $args['conditions'] ) ) {
-			return new \WP_Error( 'missing_conditions', __( 'conditions is required. Pass an array of condition sets, or an empty array [] to clear all conditions.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_conditions', __( 'conditions is required. Pass an array of condition sets, or an empty array [] to clear all conditions.', 'lc-bricks-mcp' ) );
 		}
 
 		if ( ! is_array( $args['conditions'] ) ) {
-			return new \WP_Error( 'invalid_conditions', __( 'conditions must be an array. Pass an array of condition sets (array of arrays of condition objects), or an empty array [] to clear.', 'bricks-mcp' ) );
+			return new \WP_Error( 'invalid_conditions', __( 'conditions must be an array. Pass an array of condition sets (array of arrays of condition objects), or an empty array [] to clear.', 'lc-bricks-mcp' ) );
 		}
 
 		$post_id    = (int) $args['post_id'];
@@ -3752,7 +3752,7 @@ final class Router {
 				'post_not_found',
 				sprintf(
 					/* translators: %d: Post ID */
-					__( 'Post %d not found. Use list_pages to find valid post IDs.', 'bricks-mcp' ),
+					__( 'Post %d not found. Use list_pages to find valid post IDs.', 'lc-bricks-mcp' ),
 					$post_id
 				)
 			);
@@ -3773,7 +3773,7 @@ final class Router {
 				'element_not_found',
 				sprintf(
 					/* translators: 1: Element ID, 2: Post ID */
-					__( 'Element "%1$s" not found on post %2$d.', 'bricks-mcp' ),
+					__( 'Element "%1$s" not found on post %2$d.', 'lc-bricks-mcp' ),
 					$element_id,
 					$post_id
 				)
@@ -3803,7 +3803,7 @@ final class Router {
 					'invalid_condition_structure',
 					sprintf(
 						/* translators: %d: Set index */
-						__( 'Condition set at index %d must be an array of condition objects. Expected format: [[{key, compare, value}, ...], ...]. Each outer element is a condition set (OR logic), each inner element is a condition (AND logic within set).', 'bricks-mcp' ),
+						__( 'Condition set at index %d must be an array of condition objects. Expected format: [[{key, compare, value}, ...], ...]. Each outer element is a condition set (OR logic), each inner element is a condition (AND logic within set).', 'lc-bricks-mcp' ),
 						$set_index
 					)
 				);
@@ -3815,7 +3815,7 @@ final class Router {
 						'invalid_condition_object',
 						sprintf(
 							/* translators: 1: Condition index, 2: Set index */
-							__( 'Condition at index %1$d in set %2$d must be an object with at least a "key" field. Example: {"key": "user_logged_in", "compare": "==", "value": "1"}', 'bricks-mcp' ),
+							__( 'Condition at index %1$d in set %2$d must be an object with at least a "key" field. Example: {"key": "user_logged_in", "compare": "==", "value": "1"}', 'lc-bricks-mcp' ),
 							$cond_index,
 							$set_index
 						)
@@ -3829,7 +3829,7 @@ final class Router {
 						'missing_condition_key',
 						sprintf(
 							/* translators: 1: Condition index, 2: Set index */
-							__( 'Condition at index %1$d in set %2$d is missing required "key" field.', 'bricks-mcp' ),
+							__( 'Condition at index %1$d in set %2$d is missing required "key" field.', 'lc-bricks-mcp' ),
 							$cond_index,
 							$set_index
 						)
@@ -3840,7 +3840,7 @@ final class Router {
 				if ( ! in_array( $key, $known_keys, true ) ) {
 					$warnings[] = sprintf(
 						/* translators: 1: Key name, 2: Set index, 3: Condition index */
-						__( 'Unknown condition key "%1$s" at set %2$d, condition %3$d. This may be from a third-party plugin — saving anyway.', 'bricks-mcp' ),
+						__( 'Unknown condition key "%1$s" at set %2$d, condition %3$d. This may be from a third-party plugin — saving anyway.', 'lc-bricks-mcp' ),
 						$key,
 						$set_index,
 						$cond_index
@@ -3858,7 +3858,7 @@ final class Router {
 							'invalid_user_role',
 							sprintf(
 								/* translators: 1: Invalid role names, 2: Valid role names */
-								__( 'Unknown user role(s): %1$s. Valid roles: %2$s.', 'bricks-mcp' ),
+								__( 'Unknown user role(s): %1$s. Valid roles: %2$s.', 'lc-bricks-mcp' ),
 								implode( ', ', $invalid ),
 								implode( ', ', $valid_roles )
 							)
@@ -3870,7 +3870,7 @@ final class Router {
 				if ( 'dynamic_data' === $key && empty( $condition['dynamic_data'] ) ) {
 					$warnings[] = sprintf(
 						/* translators: 1: Set index, 2: Condition index */
-						__( 'Condition at set %1$d, condition %2$d has key "dynamic_data" but no "dynamic_data" field for the tag. The "dynamic_data" field should contain the tag to evaluate (e.g. "{acf_my_field}"), and "value" should contain the comparison target.', 'bricks-mcp' ),
+						__( 'Condition at set %1$d, condition %2$d has key "dynamic_data" but no "dynamic_data" field for the tag. The "dynamic_data" field should contain the tag to evaluate (e.g. "{acf_my_field}"), and "value" should contain the comparison target.', 'lc-bricks-mcp' ),
 						$set_index,
 						$cond_index
 					);
@@ -3880,7 +3880,7 @@ final class Router {
 				if ( isset( $condition['compare'] ) && ! in_array( $condition['compare'], $valid_compare, true ) ) {
 					$warnings[] = sprintf(
 						/* translators: 1: Operator, 2: Set index, 3: Condition index */
-						__( 'Unknown compare operator "%1$s" at set %2$d, condition %3$d. Known operators: ==, !=, >=, <=, >, <, contains, contains_not, empty, empty_not.', 'bricks-mcp' ),
+						__( 'Unknown compare operator "%1$s" at set %2$d, condition %3$d. Known operators: ==, !=, >=, <=, >, <, contains, contains_not, empty, empty_not.', 'lc-bricks-mcp' ),
 						$condition['compare'],
 						$set_index,
 						$cond_index
@@ -3947,7 +3947,7 @@ final class Router {
 				'invalid_action',
 				sprintf(
 					/* translators: %s: Action name */
-					__( 'Invalid action "%s". Valid actions: list, get, create, update, delete, duplicate, get_popup_settings, set_popup_settings, export, import, import_url', 'bricks-mcp' ),
+					__( 'Invalid action "%s". Valid actions: list, get, create, update, delete, duplicate, get_popup_settings, set_popup_settings, export, import, import_url', 'lc-bricks-mcp' ),
 					$action
 				)
 			),
@@ -3966,7 +3966,7 @@ final class Router {
 		if ( null === $template_id ) {
 			return new \WP_Error(
 				'missing_template_id',
-				__( 'template_id is required for get_popup_settings.', 'bricks-mcp' )
+				__( 'template_id is required for get_popup_settings.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -3986,14 +3986,14 @@ final class Router {
 		if ( null === $template_id ) {
 			return new \WP_Error(
 				'missing_template_id',
-				__( 'template_id is required for set_popup_settings.', 'bricks-mcp' )
+				__( 'template_id is required for set_popup_settings.', 'lc-bricks-mcp' )
 			);
 		}
 
 		if ( null === $settings || ! is_array( $settings ) ) {
 			return new \WP_Error(
 				'missing_settings',
-				__( 'settings (object) is required for set_popup_settings. Use bricks:get_popup_schema to see valid keys.', 'bricks-mcp' )
+				__( 'settings (object) is required for set_popup_settings. Use bricks:get_popup_schema to see valid keys.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -4012,7 +4012,7 @@ final class Router {
 		if ( null === $template_id ) {
 			return new \WP_Error(
 				'missing_template_id',
-				__( 'template_id is required for export.', 'bricks-mcp' )
+				__( 'template_id is required for export.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -4033,7 +4033,7 @@ final class Router {
 		if ( null === $template_data || ! is_array( $template_data ) ) {
 			return new \WP_Error(
 				'missing_template_data',
-				__( 'template_data (object with title and content) is required for import.', 'bricks-mcp' )
+				__( 'template_data (object with title and content) is required for import.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -4052,7 +4052,7 @@ final class Router {
 		if ( empty( $url ) || ! is_string( $url ) ) {
 			return new \WP_Error(
 				'missing_url',
-				__( 'url is required for import_url.', 'bricks-mcp' )
+				__( 'url is required for import_url.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -4082,7 +4082,7 @@ final class Router {
 				'invalid_action',
 				sprintf(
 					/* translators: %s: Action name */
-					__( 'Invalid action "%s". Valid actions: get_types, set, resolve', 'bricks-mcp' ),
+					__( 'Invalid action "%s". Valid actions: get_types, set, resolve', 'lc-bricks-mcp' ),
 					$action
 				)
 			),
@@ -4115,7 +4115,7 @@ final class Router {
 				'invalid_action',
 				sprintf(
 					/* translators: %s: Action name */
-					__( 'Invalid action "%s". Valid actions: list_tags, list_bundles, create_tag, create_bundle, delete_tag, delete_bundle', 'bricks-mcp' ),
+					__( 'Invalid action "%s". Valid actions: list_tags, list_bundles, create_tag, create_bundle, delete_tag, delete_bundle', 'lc-bricks-mcp' ),
 					$action
 				)
 			),
@@ -4166,7 +4166,7 @@ final class Router {
 				'invalid_action',
 				sprintf(
 					/* translators: %s: Action name */
-					__( 'Invalid action "%s". Valid actions: list, create, update, delete, apply, remove, batch_create, batch_delete, import_css, list_categories, create_category, delete_category, export, import_json', 'bricks-mcp' ),
+					__( 'Invalid action "%s". Valid actions: list, create, update, delete, apply, remove, batch_create, batch_delete, import_css, list_categories, create_category, delete_category, export, import_json', 'lc-bricks-mcp' ),
 					$action
 				)
 			),
@@ -4207,7 +4207,7 @@ final class Router {
 				'invalid_action',
 				sprintf(
 					/* translators: %s: Action name */
-					__( 'Invalid action "%s". Valid actions: list, get, create, update, delete', 'bricks-mcp' ),
+					__( 'Invalid action "%s". Valid actions: list, get, create, update, delete', 'lc-bricks-mcp' ),
 					$action
 				)
 			),
@@ -4243,7 +4243,7 @@ final class Router {
 				'invalid_action',
 				sprintf(
 					/* translators: %s: Action name */
-					__( 'Invalid action "%s". Valid actions: list, create, update, delete', 'bricks-mcp' ),
+					__( 'Invalid action "%s". Valid actions: list, create, update, delete', 'lc-bricks-mcp' ),
 					$action
 				)
 			),
@@ -4286,7 +4286,7 @@ final class Router {
 				'invalid_action',
 				sprintf(
 					/* translators: %s: Action name */
-					__( 'Invalid action "%s". Valid actions: list, create, update, delete, add_color, update_color, delete_color', 'bricks-mcp' ),
+					__( 'Invalid action "%s". Valid actions: list, create, update, delete, add_color, update_color, delete_color', 'lc-bricks-mcp' ),
 					$action
 				)
 			),
@@ -4332,7 +4332,7 @@ final class Router {
 				'invalid_action',
 				sprintf(
 					/* translators: %s: Action name */
-					__( 'Invalid action "%s". Valid actions: list, create_category, update_category, delete_category, create, update, delete, batch_create, batch_delete, search', 'bricks-mcp' ),
+					__( 'Invalid action "%s". Valid actions: list, create_category, update_category, delete_category, create, update, delete, batch_create, batch_delete, search', 'lc-bricks-mcp' ),
 					$action
 				)
 			),
@@ -4370,7 +4370,7 @@ final class Router {
 				'invalid_action',
 				sprintf(
 					/* translators: %s: Action name */
-					__( 'Invalid action "%s". Valid actions: search_unsplash, sideload, list, set_featured, remove_featured, get_image_settings', 'bricks-mcp' ),
+					__( 'Invalid action "%s". Valid actions: search_unsplash, sideload, list, set_featured, remove_featured, get_image_settings', 'lc-bricks-mcp' ),
 					$action
 				)
 			),
@@ -4401,7 +4401,7 @@ final class Router {
 				'invalid_action',
 				sprintf(
 					/* translators: %s: Action name */
-					__( 'Invalid action "%s". Valid actions: list, get, create, update, delete, set_items, assign, unassign, list_locations', 'bricks-mcp' ),
+					__( 'Invalid action "%s". Valid actions: list, get, create, update, delete, set_items, assign, unassign, list_locations', 'lc-bricks-mcp' ),
 					$action
 				)
 			),
@@ -4527,14 +4527,14 @@ final class Router {
 		if ( empty( $args['title'] ) ) {
 			return new \WP_Error(
 				'missing_title',
-				__( 'title is required. Provide a non-empty template title.', 'bricks-mcp' )
+				__( 'title is required. Provide a non-empty template title.', 'lc-bricks-mcp' )
 			);
 		}
 
 		if ( empty( $args['type'] ) ) {
 			return new \WP_Error(
 				'missing_type',
-				__( 'type is required. Provide a template type (e.g., header, footer, content, section, popup).', 'bricks-mcp' )
+				__( 'type is required. Provide a template type (e.g., header, footer, content, section, popup).', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -4580,7 +4580,7 @@ final class Router {
 		if ( empty( $args['template_id'] ) ) {
 			return new \WP_Error(
 				'missing_template_id',
-				__( 'template_id is required. Use list_templates to find valid template IDs.', 'bricks-mcp' )
+				__( 'template_id is required. Use list_templates to find valid template IDs.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -4631,7 +4631,7 @@ final class Router {
 		if ( empty( $args['template_id'] ) ) {
 			return new \WP_Error(
 				'missing_template_id',
-				__( 'template_id is required. Use list_templates to find valid template IDs.', 'bricks-mcp' )
+				__( 'template_id is required. Use list_templates to find valid template IDs.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -4643,7 +4643,7 @@ final class Router {
 				'template_not_found',
 				sprintf(
 					/* translators: %d: Template ID */
-					__( 'Bricks template %d not found. Verify the template_id is a valid bricks_template post.', 'bricks-mcp' ),
+					__( 'Bricks template %d not found. Verify the template_id is a valid bricks_template post.', 'lc-bricks-mcp' ),
 					$template_id
 				)
 			);
@@ -4655,7 +4655,7 @@ final class Router {
 			return new \WP_Error(
 				'trash_failed',
 				/* translators: %d: Template ID */
-				sprintf( __( 'Failed to trash template %d. Check WordPress error logs for details.', 'bricks-mcp' ), $template_id )
+				sprintf( __( 'Failed to trash template %d. Check WordPress error logs for details.', 'lc-bricks-mcp' ), $template_id )
 			);
 		}
 
@@ -4663,7 +4663,7 @@ final class Router {
 			'template_id' => $template_id,
 			'title'       => $post->post_title,
 			'status'      => 'trash',
-			'message'     => __( 'Template moved to trash. It can be recovered from the WordPress trash.', 'bricks-mcp' ),
+			'message'     => __( 'Template moved to trash. It can be recovered from the WordPress trash.', 'lc-bricks-mcp' ),
 		);
 	}
 
@@ -4684,7 +4684,7 @@ final class Router {
 		if ( empty( $args['template_id'] ) ) {
 			return new \WP_Error(
 				'missing_template_id',
-				__( 'template_id is required. Use list_templates to find valid template IDs.', 'bricks-mcp' )
+				__( 'template_id is required. Use list_templates to find valid template IDs.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -4708,7 +4708,7 @@ final class Router {
 			array(
 				'status'    => $post ? $post->post_status : 'draft',
 				'permalink' => get_permalink( $new_template_id ),
-				'warning'   => __( 'Template conditions were not copied. Use set_template_conditions on the new template to configure where it should apply.', 'bricks-mcp' ),
+				'warning'   => __( 'Template conditions were not copied. Use set_template_conditions on the new template to configure where it should apply.', 'lc-bricks-mcp' ),
 			)
 		);
 	}
@@ -4728,7 +4728,7 @@ final class Router {
 		}
 
 		if ( empty( $args['template_id'] ) ) {
-			return new \WP_Error( 'missing_template_id', __( 'template_id is required. Provide a valid Bricks template post ID.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_template_id', __( 'template_id is required. Provide a valid Bricks template post ID.', 'lc-bricks-mcp' ) );
 		}
 
 		return $this->bricks_service->get_template_content_data( (int) $args['template_id'] );
@@ -4775,15 +4775,15 @@ final class Router {
 		}
 
 		if ( empty( $args['post_id'] ) ) {
-			return new \WP_Error( 'missing_post_id', __( 'post_id is required. Use list_pages to find valid post IDs.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_post_id', __( 'post_id is required. Use list_pages to find valid post IDs.', 'lc-bricks-mcp' ) );
 		}
 
 		if ( empty( $args['class_name'] ) ) {
-			return new \WP_Error( 'missing_class_name', __( 'class_name is required. Provide the name of a global CSS class.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_class_name', __( 'class_name is required. Provide the name of a global CSS class.', 'lc-bricks-mcp' ) );
 		}
 
 		if ( empty( $args['element_ids'] ) || ! is_array( $args['element_ids'] ) ) {
-			return new \WP_Error( 'missing_element_ids', __( 'element_ids is required. Provide a non-empty array of element IDs.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_element_ids', __( 'element_ids is required. Provide a non-empty array of element IDs.', 'lc-bricks-mcp' ) );
 		}
 
 		$post_id     = (int) $args['post_id'];
@@ -4798,7 +4798,7 @@ final class Router {
 				'class_not_found',
 				sprintf(
 					/* translators: %s: Class name */
-					__( "Global class '%s' not found. Use get_global_classes to see available classes.", 'bricks-mcp' ),
+					__( "Global class '%s' not found. Use get_global_classes to see available classes.", 'lc-bricks-mcp' ),
 					$class_name
 				)
 			);
@@ -4860,14 +4860,14 @@ final class Router {
 		if ( empty( $args['template_id'] ) ) {
 			return new \WP_Error(
 				'missing_template_id',
-				__( 'template_id is required. Use list_templates to find valid template IDs.', 'bricks-mcp' )
+				__( 'template_id is required. Use list_templates to find valid template IDs.', 'lc-bricks-mcp' )
 			);
 		}
 
 		if ( ! isset( $args['conditions'] ) || ! is_array( $args['conditions'] ) ) {
 			return new \WP_Error(
 				'missing_conditions',
-				__( 'conditions is required. Pass an array of condition objects (use get_condition_types to discover valid formats). Pass empty array [] to remove all conditions.', 'bricks-mcp' )
+				__( 'conditions is required. Pass an array of condition objects (use get_condition_types to discover valid formats). Pass empty array [] to remove all conditions.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -4889,10 +4889,10 @@ final class Router {
 			'conditions'  => $formatted,
 			'count'       => count( $conditions ),
 			'message'     => 0 === count( $conditions )
-				? __( 'All conditions removed. Template is now inactive.', 'bricks-mcp' )
+				? __( 'All conditions removed. Template is now inactive.', 'lc-bricks-mcp' )
 				: sprintf(
 					/* translators: %d: Number of conditions set */
-					__( '%d condition(s) set successfully.', 'bricks-mcp' ),
+					__( '%d condition(s) set successfully.', 'lc-bricks-mcp' ),
 					count( $conditions )
 				),
 		);
@@ -4916,7 +4916,7 @@ final class Router {
 		if ( empty( $args['post_id'] ) ) {
 			return new \WP_Error(
 				'missing_post_id',
-				__( 'post_id is required. Provide the ID of the post to resolve templates for.', 'bricks-mcp' )
+				__( 'post_id is required. Provide the ID of the post to resolve templates for.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -4988,7 +4988,7 @@ final class Router {
 		if ( empty( $args['name'] ) ) {
 			return new \WP_Error(
 				'missing_name',
-				__( 'name is required. Provide a non-empty tag name.', 'bricks-mcp' )
+				__( 'name is required. Provide a non-empty tag name.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -4998,7 +4998,7 @@ final class Router {
 			return $result;
 		}
 
-		return array_merge( $result, array( 'message' => __( 'Tag created. Assign it to templates via update_template\'s tags parameter.', 'bricks-mcp' ) ) );
+		return array_merge( $result, array( 'message' => __( 'Tag created. Assign it to templates via update_template\'s tags parameter.', 'lc-bricks-mcp' ) ) );
 	}
 
 	/**
@@ -5016,7 +5016,7 @@ final class Router {
 		if ( empty( $args['name'] ) ) {
 			return new \WP_Error(
 				'missing_name',
-				__( 'name is required. Provide a non-empty bundle name.', 'bricks-mcp' )
+				__( 'name is required. Provide a non-empty bundle name.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -5026,7 +5026,7 @@ final class Router {
 			return $result;
 		}
 
-		return array_merge( $result, array( 'message' => __( "Bundle created. Assign it to templates via update_template's bundles parameter.", 'bricks-mcp' ) ) );
+		return array_merge( $result, array( 'message' => __( "Bundle created. Assign it to templates via update_template's bundles parameter.", 'lc-bricks-mcp' ) ) );
 	}
 
 	/**
@@ -5044,7 +5044,7 @@ final class Router {
 		if ( empty( $args['term_id'] ) ) {
 			return new \WP_Error(
 				'missing_term_id',
-				__( 'term_id is required. Use list_template_tags to find valid term IDs.', 'bricks-mcp' )
+				__( 'term_id is required. Use list_template_tags to find valid term IDs.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -5057,7 +5057,7 @@ final class Router {
 
 		return array(
 			'term_id' => $term_id,
-			'message' => __( 'Tag deleted and removed from all templates that had it assigned.', 'bricks-mcp' ),
+			'message' => __( 'Tag deleted and removed from all templates that had it assigned.', 'lc-bricks-mcp' ),
 		);
 	}
 
@@ -5076,7 +5076,7 @@ final class Router {
 		if ( empty( $args['term_id'] ) ) {
 			return new \WP_Error(
 				'missing_term_id',
-				__( 'term_id is required. Use list_template_bundles to find valid term IDs.', 'bricks-mcp' )
+				__( 'term_id is required. Use list_template_bundles to find valid term IDs.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -5089,7 +5089,7 @@ final class Router {
 
 		return array(
 			'term_id' => $term_id,
-			'message' => __( 'Bundle deleted and removed from all templates that had it assigned.', 'bricks-mcp' ),
+			'message' => __( 'Bundle deleted and removed from all templates that had it assigned.', 'lc-bricks-mcp' ),
 		);
 	}
 
@@ -5109,15 +5109,15 @@ final class Router {
 		}
 
 		if ( empty( $args['post_id'] ) ) {
-			return new \WP_Error( 'missing_post_id', __( 'post_id is required. Use list_pages to find valid post IDs.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_post_id', __( 'post_id is required. Use list_pages to find valid post IDs.', 'lc-bricks-mcp' ) );
 		}
 
 		if ( empty( $args['class_name'] ) ) {
-			return new \WP_Error( 'missing_class_name', __( 'class_name is required. Provide the name of a global CSS class.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_class_name', __( 'class_name is required. Provide the name of a global CSS class.', 'lc-bricks-mcp' ) );
 		}
 
 		if ( empty( $args['element_ids'] ) || ! is_array( $args['element_ids'] ) ) {
-			return new \WP_Error( 'missing_element_ids', __( 'element_ids is required. Provide a non-empty array of element IDs.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_element_ids', __( 'element_ids is required. Provide a non-empty array of element IDs.', 'lc-bricks-mcp' ) );
 		}
 
 		$post_id     = (int) $args['post_id'];
@@ -5132,7 +5132,7 @@ final class Router {
 				'class_not_found',
 				sprintf(
 					/* translators: %s: Class name */
-					__( "Global class '%s' not found. Use get_global_classes to see available classes.", 'bricks-mcp' ),
+					__( "Global class '%s' not found. Use get_global_classes to see available classes.", 'lc-bricks-mcp' ),
 					$class_name
 				)
 			);
@@ -5168,7 +5168,7 @@ final class Router {
 		if ( empty( $args['name'] ) ) {
 			return new \WP_Error(
 				'missing_name',
-				__( 'name is required. Provide a non-empty class name (e.g., btn-primary).', 'bricks-mcp' )
+				__( 'name is required. Provide a non-empty class name (e.g., btn-primary).', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -5192,7 +5192,7 @@ final class Router {
 		if ( empty( $args['class_name'] ) ) {
 			return new \WP_Error(
 				'missing_class_name',
-				__( 'class_name is required. Use get_global_classes to find class names.', 'bricks-mcp' )
+				__( 'class_name is required. Use get_global_classes to find class names.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -5203,7 +5203,7 @@ final class Router {
 				'class_not_found',
 				sprintf(
 					/* translators: %s: Class name */
-					__( "Class '%s' not found. Use get_global_classes to list available classes.", 'bricks-mcp' ),
+					__( "Class '%s' not found. Use get_global_classes to list available classes.", 'lc-bricks-mcp' ),
 					$args['class_name']
 				)
 			);
@@ -5230,7 +5230,7 @@ final class Router {
 		if ( empty( $args['class_name'] ) ) {
 			return new \WP_Error(
 				'missing_class_name',
-				__( 'class_name is required. Use get_global_classes to find class names.', 'bricks-mcp' )
+				__( 'class_name is required. Use get_global_classes to find class names.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -5241,7 +5241,7 @@ final class Router {
 				'class_not_found',
 				sprintf(
 					/* translators: %s: Class name */
-					__( "Class '%s' not found. Use get_global_classes to list available classes.", 'bricks-mcp' ),
+					__( "Class '%s' not found. Use get_global_classes to list available classes.", 'lc-bricks-mcp' ),
 					$args['class_name']
 				)
 			);
@@ -5258,7 +5258,7 @@ final class Router {
 			'deleted'    => $class['name'],
 			'references' => $refs['references'],
 			'truncated'  => $refs['truncated'],
-			'note'       => __( 'Class moved to trash. References above still use this class ID — consider using remove_global_class to clean them up.', 'bricks-mcp' ),
+			'note'       => __( 'Class moved to trash. References above still use this class ID — consider using remove_global_class to clean them up.', 'lc-bricks-mcp' ),
 		);
 	}
 
@@ -5280,7 +5280,7 @@ final class Router {
 		if ( empty( $args['classes'] ) || ! is_array( $args['classes'] ) ) {
 			return new \WP_Error(
 				'missing_classes',
-				__( 'classes is required and must be a non-empty array of class definitions. Each object needs at least a name property.', 'bricks-mcp' )
+				__( 'classes is required and must be a non-empty array of class definitions. Each object needs at least a name property.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -5305,7 +5305,7 @@ final class Router {
 		if ( empty( $args['class_names'] ) || ! is_array( $args['class_names'] ) ) {
 			return new \WP_Error(
 				'missing_class_names',
-				__( 'class_names is required and must be a non-empty array of class name strings. Use get_global_classes to find names.', 'bricks-mcp' )
+				__( 'class_names is required and must be a non-empty array of class name strings. Use get_global_classes to find names.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -5318,7 +5318,7 @@ final class Router {
 			if ( null === $class ) {
 				$resolution_errors[ $name ] = sprintf(
 					/* translators: %s: Class name */
-					__( "Class '%s' not found.", 'bricks-mcp' ),
+					__( "Class '%s' not found.", 'lc-bricks-mcp' ),
 					$name
 				);
 			} else {
@@ -5331,7 +5331,7 @@ final class Router {
 		// Merge resolution errors with trash errors.
 		$result['errors'] = array_merge( $resolution_errors, $result['errors'] );
 
-		$result['note'] = __( 'Classes moved to trash. Check references above — consider using remove_global_class to clean them up.', 'bricks-mcp' );
+		$result['note'] = __( 'Classes moved to trash. Check references above — consider using remove_global_class to clean them up.', 'lc-bricks-mcp' );
 
 		return $result;
 	}
@@ -5371,7 +5371,7 @@ final class Router {
 		if ( empty( $args['name'] ) ) {
 			return new \WP_Error(
 				'missing_name',
-				__( 'name is required. Provide a category name (e.g., Buttons, Typography, Layout).', 'bricks-mcp' )
+				__( 'name is required. Provide a category name (e.g., Buttons, Typography, Layout).', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -5395,7 +5395,7 @@ final class Router {
 		if ( empty( $args['category_id'] ) ) {
 			return new \WP_Error(
 				'missing_category_id',
-				__( 'category_id is required. Use list_global_class_categories to find category IDs.', 'bricks-mcp' )
+				__( 'category_id is required. Use list_global_class_categories to find category IDs.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -5407,7 +5407,7 @@ final class Router {
 
 		return array(
 			'deleted' => true,
-			'note'    => __( 'Classes in this category have been moved to uncategorized.', 'bricks-mcp' ),
+			'note'    => __( 'Classes in this category have been moved to uncategorized.', 'lc-bricks-mcp' ),
 		);
 	}
 
@@ -5429,7 +5429,7 @@ final class Router {
 		if ( empty( $args['css'] ) || ! is_string( $args['css'] ) ) {
 			return new \WP_Error(
 				'missing_css',
-				__( 'css is required and must be a non-empty CSS string containing class selectors.', 'bricks-mcp' )
+				__( 'css is required and must be a non-empty CSS string containing class selectors.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -5460,7 +5460,7 @@ final class Router {
 		if ( null === $classes_data || ! is_array( $classes_data ) ) {
 			return new \WP_Error(
 				'missing_classes_data',
-				__( 'classes_data is required for import_json. Provide an object with "classes" array or a raw array of class objects.', 'bricks-mcp' )
+				__( 'classes_data is required for import_json. Provide an object with "classes" array or a raw array of class objects.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -5490,7 +5490,7 @@ final class Router {
 				'invalid_action',
 				sprintf(
 					/* translators: %s: Action name */
-					__( 'Invalid action "%s". Valid actions: get_status, get_adobe_fonts, update_settings', 'bricks-mcp' ),
+					__( 'Invalid action "%s". Valid actions: get_status, get_adobe_fonts, update_settings', 'lc-bricks-mcp' ),
 					$action
 				)
 			),
@@ -5541,7 +5541,7 @@ final class Router {
 		if ( empty( $fields ) ) {
 			return new \WP_Error(
 				'no_fields',
-				__( 'No font settings provided. Use disable_google_fonts (boolean), webfont_loading (string), or custom_fonts_preload (boolean).', 'bricks-mcp' )
+				__( 'No font settings provided. Use disable_google_fonts (boolean), webfont_loading (string), or custom_fonts_preload (boolean).', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -5567,7 +5567,7 @@ final class Router {
 			if ( ! $this->bricks_service->is_dangerous_actions_enabled() ) {
 				return new \WP_Error(
 					'dangerous_actions_disabled',
-					__( 'Custom scripts require the Dangerous Actions toggle to be enabled in Settings > Bricks MCP.', 'bricks-mcp' )
+					__( 'Custom scripts require the Dangerous Actions toggle to be enabled in Settings > LC Bricks MCP.', 'lc-bricks-mcp' )
 				);
 			}
 		}
@@ -5581,7 +5581,7 @@ final class Router {
 				'invalid_action',
 				sprintf(
 					/* translators: %s: Action name */
-					__( 'Invalid action "%s". Valid actions: get_page_css, set_page_css, get_page_scripts, set_page_scripts', 'bricks-mcp' ),
+					__( 'Invalid action "%s". Valid actions: get_page_css, set_page_css, get_page_scripts, set_page_scripts', 'lc-bricks-mcp' ),
 					$action
 				)
 			),
@@ -5600,7 +5600,7 @@ final class Router {
 		if ( null === $post_id ) {
 			return new \WP_Error(
 				'missing_post_id',
-				__( 'post_id is required for get_page_css.', 'bricks-mcp' )
+				__( 'post_id is required for get_page_css.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -5619,14 +5619,14 @@ final class Router {
 		if ( null === $post_id ) {
 			return new \WP_Error(
 				'missing_post_id',
-				__( 'post_id is required for set_page_css.', 'bricks-mcp' )
+				__( 'post_id is required for set_page_css.', 'lc-bricks-mcp' )
 			);
 		}
 
 		if ( ! array_key_exists( 'css', $args ) ) {
 			return new \WP_Error(
 				'missing_css',
-				__( 'css is required for set_page_css. Send empty string to remove custom CSS.', 'bricks-mcp' )
+				__( 'css is required for set_page_css. Send empty string to remove custom CSS.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -5645,7 +5645,7 @@ final class Router {
 		if ( null === $post_id ) {
 			return new \WP_Error(
 				'missing_post_id',
-				__( 'post_id is required for get_page_scripts.', 'bricks-mcp' )
+				__( 'post_id is required for get_page_scripts.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -5676,7 +5676,7 @@ final class Router {
 		if ( null === $post_id ) {
 			return new \WP_Error(
 				'missing_post_id',
-				__( 'post_id is required for set_page_scripts.', 'bricks-mcp' )
+				__( 'post_id is required for set_page_scripts.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -5697,7 +5697,7 @@ final class Router {
 		if ( empty( $scripts ) ) {
 			return new \WP_Error(
 				'no_scripts',
-				__( 'At least one script parameter is required: header, body_header, or body_footer.', 'bricks-mcp' )
+				__( 'At least one script parameter is required: header, body_header, or body_footer.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -5711,7 +5711,7 @@ final class Router {
 	 * @return array{guide: string}|array{section: string, content: string} Guide content.
 	 */
 	public function tool_get_builder_guide( array $args ): array {
-		$guide_path = BRICKS_MCP_PLUGIN_DIR . 'docs/BUILDER_GUIDE.md';
+		$guide_path = LC_BRICKS_MCP_PLUGIN_DIR . 'docs/BUILDER_GUIDE.md';
 
 		if ( ! file_exists( $guide_path ) ) {
 			return array( 'guide' => 'Builder guide not found. Use get_element_schemas to discover available elements.' );
@@ -5856,7 +5856,7 @@ final class Router {
 		if ( empty( $args['style_id'] ) ) {
 			return new \WP_Error(
 				'missing_style_id',
-				__( 'style_id is required. Use list_theme_styles to discover available style IDs.', 'bricks-mcp' )
+				__( 'style_id is required. Use list_theme_styles to discover available style IDs.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -5878,7 +5878,7 @@ final class Router {
 		if ( empty( $args['label'] ) ) {
 			return new \WP_Error(
 				'missing_label',
-				__( 'label is required. Provide a human-readable name for the theme style.', 'bricks-mcp' )
+				__( 'label is required. Provide a human-readable name for the theme style.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -5904,7 +5904,7 @@ final class Router {
 		if ( empty( $args['style_id'] ) ) {
 			return new \WP_Error(
 				'missing_style_id',
-				__( 'style_id is required. Use list_theme_styles to discover available style IDs.', 'bricks-mcp' )
+				__( 'style_id is required. Use list_theme_styles to discover available style IDs.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -5922,7 +5922,7 @@ final class Router {
 
 		// Add warning if modifying the site-wide active style.
 		if ( ! empty( $result['is_sitewide_active'] ) ) {
-			$result['warning'] = __( 'This style applies to the entire website. Changes are live immediately.', 'bricks-mcp' );
+			$result['warning'] = __( 'This style applies to the entire website. Changes are live immediately.', 'lc-bricks-mcp' );
 		}
 
 		return $result;
@@ -5943,7 +5943,7 @@ final class Router {
 		if ( empty( $args['style_id'] ) ) {
 			return new \WP_Error(
 				'missing_style_id',
-				__( 'style_id is required. Use list_theme_styles to discover available style IDs.', 'bricks-mcp' )
+				__( 'style_id is required. Use list_theme_styles to discover available style IDs.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -5970,7 +5970,7 @@ final class Router {
 		return array(
 			'scales' => $result,
 			'count'  => count( $result ),
-			'note'   => __( 'Use var(--prefix-step) syntax in typography settings. Scales generate both CSS variables and utility classes.', 'bricks-mcp' ),
+			'note'   => __( 'Use var(--prefix-step) syntax in typography settings. Scales generate both CSS variables and utility classes.', 'lc-bricks-mcp' ),
 		);
 	}
 
@@ -5989,21 +5989,21 @@ final class Router {
 		if ( empty( $args['name'] ) ) {
 			return new \WP_Error(
 				'missing_name',
-				__( 'name is required. Provide a scale name (e.g., "Typography Scale").', 'bricks-mcp' )
+				__( 'name is required. Provide a scale name (e.g., "Typography Scale").', 'lc-bricks-mcp' )
 			);
 		}
 
 		if ( empty( $args['prefix'] ) ) {
 			return new \WP_Error(
 				'missing_prefix',
-				__( 'prefix is required. Provide a CSS variable prefix starting with -- (e.g., "--text-").', 'bricks-mcp' )
+				__( 'prefix is required. Provide a CSS variable prefix starting with -- (e.g., "--text-").', 'lc-bricks-mcp' )
 			);
 		}
 
 		if ( empty( $args['steps'] ) || ! is_array( $args['steps'] ) ) {
 			return new \WP_Error(
 				'missing_steps',
-				__( 'steps is required. Provide an array of {name, value} objects (e.g., [{"name": "sm", "value": "0.875rem"}]).', 'bricks-mcp' )
+				__( 'steps is required. Provide an array of {name, value} objects (e.g., [{"name": "sm", "value": "0.875rem"}]).', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -6019,7 +6019,7 @@ final class Router {
 		}
 
 		if ( empty( $result['css_regenerated'] ) ) {
-			$result['note'] = __( 'CSS file not regenerated — Bricks version may not support style manager. Variables are saved but may not appear in frontend CSS until Bricks regenerates styles.', 'bricks-mcp' );
+			$result['note'] = __( 'CSS file not regenerated — Bricks version may not support style manager. Variables are saved but may not appear in frontend CSS until Bricks regenerates styles.', 'lc-bricks-mcp' );
 		}
 
 		return $result;
@@ -6040,7 +6040,7 @@ final class Router {
 		if ( empty( $args['category_id'] ) ) {
 			return new \WP_Error(
 				'missing_category_id',
-				__( 'category_id is required. Use get_typography_scales to discover available scale IDs.', 'bricks-mcp' )
+				__( 'category_id is required. Use get_typography_scales to discover available scale IDs.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -6057,7 +6057,7 @@ final class Router {
 		}
 
 		if ( empty( $result['css_regenerated'] ) ) {
-			$result['note'] = __( 'CSS file not regenerated — Bricks version may not support style manager. Variables are saved but may not appear in frontend CSS until Bricks regenerates styles.', 'bricks-mcp' );
+			$result['note'] = __( 'CSS file not regenerated — Bricks version may not support style manager. Variables are saved but may not appear in frontend CSS until Bricks regenerates styles.', 'lc-bricks-mcp' );
 		}
 
 		return $result;
@@ -6078,7 +6078,7 @@ final class Router {
 		if ( empty( $args['category_id'] ) ) {
 			return new \WP_Error(
 				'missing_category_id',
-				__( 'category_id is required. Use get_typography_scales to discover available scale IDs.', 'bricks-mcp' )
+				__( 'category_id is required. Use get_typography_scales to discover available scale IDs.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -6089,7 +6089,7 @@ final class Router {
 		}
 
 		if ( empty( $result['css_regenerated'] ) ) {
-			$result['note'] = __( 'CSS file not regenerated — Bricks version may not support style manager. Variables are saved but removed scale will still appear in frontend CSS until Bricks regenerates styles.', 'bricks-mcp' );
+			$result['note'] = __( 'CSS file not regenerated — Bricks version may not support style manager. Variables are saved but removed scale will still appear in frontend CSS until Bricks regenerates styles.', 'lc-bricks-mcp' );
 		}
 
 		return $result;
@@ -6130,7 +6130,7 @@ final class Router {
 		if ( empty( $args['name'] ) ) {
 			return new \WP_Error(
 				'missing_name',
-				__( 'name is required. Provide a palette name.', 'bricks-mcp' )
+				__( 'name is required. Provide a palette name.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -6144,7 +6144,7 @@ final class Router {
 		}
 
 		if ( empty( $result['css_regenerated'] ) ) {
-			$result['note'] = __( 'CSS file not regenerated — Bricks version may not support style manager.', 'bricks-mcp' );
+			$result['note'] = __( 'CSS file not regenerated — Bricks version may not support style manager.', 'lc-bricks-mcp' );
 		}
 
 		return $result;
@@ -6165,14 +6165,14 @@ final class Router {
 		if ( empty( $args['palette_id'] ) ) {
 			return new \WP_Error(
 				'missing_palette_id',
-				__( 'palette_id is required. Use list_color_palettes to discover available palette IDs.', 'bricks-mcp' )
+				__( 'palette_id is required. Use list_color_palettes to discover available palette IDs.', 'lc-bricks-mcp' )
 			);
 		}
 
 		if ( empty( $args['name'] ) ) {
 			return new \WP_Error(
 				'missing_name',
-				__( 'name is required.', 'bricks-mcp' )
+				__( 'name is required.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -6194,7 +6194,7 @@ final class Router {
 		if ( empty( $args['palette_id'] ) ) {
 			return new \WP_Error(
 				'missing_palette_id',
-				__( 'palette_id is required. Use list_color_palettes to discover available palette IDs.', 'bricks-mcp' )
+				__( 'palette_id is required. Use list_color_palettes to discover available palette IDs.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -6216,14 +6216,14 @@ final class Router {
 		if ( empty( $args['palette_id'] ) ) {
 			return new \WP_Error(
 				'missing_palette_id',
-				__( 'palette_id is required. Use list_color_palettes to discover available palette IDs.', 'bricks-mcp' )
+				__( 'palette_id is required. Use list_color_palettes to discover available palette IDs.', 'lc-bricks-mcp' )
 			);
 		}
 
 		if ( empty( $args['name'] ) ) {
 			return new \WP_Error(
 				'missing_name',
-				__( 'name is required. Provide a color name (e.g., "Primary Blue").', 'bricks-mcp' )
+				__( 'name is required. Provide a color name (e.g., "Primary Blue").', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -6232,7 +6232,7 @@ final class Router {
 		if ( empty( $light_value ) ) {
 			return new \WP_Error(
 				'missing_light',
-				__( 'light (or hex) is required. Provide a hex color value (e.g., "#3498db").', 'bricks-mcp' )
+				__( 'light (or hex) is required. Provide a hex color value (e.g., "#3498db").', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -6250,7 +6250,7 @@ final class Router {
 		}
 
 		if ( empty( $result['css_regenerated'] ) ) {
-			$result['note'] = __( 'CSS file not regenerated — Bricks version may not support style manager.', 'bricks-mcp' );
+			$result['note'] = __( 'CSS file not regenerated — Bricks version may not support style manager.', 'lc-bricks-mcp' );
 		}
 
 		return $result;
@@ -6271,14 +6271,14 @@ final class Router {
 		if ( empty( $args['palette_id'] ) ) {
 			return new \WP_Error(
 				'missing_palette_id',
-				__( 'palette_id is required. Use list_color_palettes to discover available palette IDs.', 'bricks-mcp' )
+				__( 'palette_id is required. Use list_color_palettes to discover available palette IDs.', 'lc-bricks-mcp' )
 			);
 		}
 
 		if ( empty( $args['color_id'] ) ) {
 			return new \WP_Error(
 				'missing_color_id',
-				__( 'color_id is required. Use list_color_palettes to discover available color IDs.', 'bricks-mcp' )
+				__( 'color_id is required. Use list_color_palettes to discover available color IDs.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -6309,7 +6309,7 @@ final class Router {
 		if ( empty( $fields ) ) {
 			return new \WP_Error(
 				'no_fields',
-				__( 'At least one field to update is required (name, light (or hex), raw, parent_color_id, or utility_classes).', 'bricks-mcp' )
+				__( 'At least one field to update is required (name, light (or hex), raw, parent_color_id, or utility_classes).', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -6335,14 +6335,14 @@ final class Router {
 		if ( empty( $args['palette_id'] ) ) {
 			return new \WP_Error(
 				'missing_palette_id',
-				__( 'palette_id is required. Use list_color_palettes to discover available palette IDs.', 'bricks-mcp' )
+				__( 'palette_id is required. Use list_color_palettes to discover available palette IDs.', 'lc-bricks-mcp' )
 			);
 		}
 
 		if ( empty( $args['color_id'] ) ) {
 			return new \WP_Error(
 				'missing_color_id',
-				__( 'color_id is required. Use list_color_palettes to discover available color IDs.', 'bricks-mcp' )
+				__( 'color_id is required. Use list_color_palettes to discover available color IDs.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -6382,7 +6382,7 @@ final class Router {
 		if ( empty( $args['name'] ) ) {
 			return new \WP_Error(
 				'missing_name',
-				__( 'name is required. Provide a category name (e.g., "Spacing").', 'bricks-mcp' )
+				__( 'name is required. Provide a category name (e.g., "Spacing").', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -6404,14 +6404,14 @@ final class Router {
 		if ( empty( $args['category_id'] ) ) {
 			return new \WP_Error(
 				'missing_category_id',
-				__( 'category_id is required. Use list_global_variables to discover available category IDs.', 'bricks-mcp' )
+				__( 'category_id is required. Use list_global_variables to discover available category IDs.', 'lc-bricks-mcp' )
 			);
 		}
 
 		if ( empty( $args['name'] ) ) {
 			return new \WP_Error(
 				'missing_name',
-				__( 'name is required.', 'bricks-mcp' )
+				__( 'name is required.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -6433,7 +6433,7 @@ final class Router {
 		if ( empty( $args['category_id'] ) ) {
 			return new \WP_Error(
 				'missing_category_id',
-				__( 'category_id is required. Use list_global_variables to discover available category IDs.', 'bricks-mcp' )
+				__( 'category_id is required. Use list_global_variables to discover available category IDs.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -6455,14 +6455,14 @@ final class Router {
 		if ( empty( $args['name'] ) ) {
 			return new \WP_Error(
 				'missing_name',
-				__( 'name is required. Provide a CSS property name (e.g., "spacing-md").', 'bricks-mcp' )
+				__( 'name is required. Provide a CSS property name (e.g., "spacing-md").', 'lc-bricks-mcp' )
 			);
 		}
 
 		if ( ! isset( $args['value'] ) || '' === $args['value'] ) {
 			return new \WP_Error(
 				'missing_value',
-				__( 'value is required. Provide a CSS value (e.g., "1rem").', 'bricks-mcp' )
+				__( 'value is required. Provide a CSS value (e.g., "1rem").', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -6488,7 +6488,7 @@ final class Router {
 		if ( empty( $args['variable_id'] ) ) {
 			return new \WP_Error(
 				'missing_variable_id',
-				__( 'variable_id is required. Use list_global_variables to discover available variable IDs.', 'bricks-mcp' )
+				__( 'variable_id is required. Use list_global_variables to discover available variable IDs.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -6509,7 +6509,7 @@ final class Router {
 		if ( empty( $fields ) ) {
 			return new \WP_Error(
 				'no_fields',
-				__( 'At least one field to update is required (name, value, or category_id).', 'bricks-mcp' )
+				__( 'At least one field to update is required (name, value, or category_id).', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -6531,7 +6531,7 @@ final class Router {
 		if ( empty( $args['variable_id'] ) ) {
 			return new \WP_Error(
 				'missing_variable_id',
-				__( 'variable_id is required. Use list_global_variables to discover available variable IDs.', 'bricks-mcp' )
+				__( 'variable_id is required. Use list_global_variables to discover available variable IDs.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -6553,7 +6553,7 @@ final class Router {
 		if ( empty( $args['variables'] ) || ! is_array( $args['variables'] ) ) {
 			return new \WP_Error(
 				'missing_variables',
-				__( 'variables is required. Provide an array of {name, value} objects.', 'bricks-mcp' )
+				__( 'variables is required. Provide an array of {name, value} objects.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -6573,7 +6573,7 @@ final class Router {
 		$variable_ids = $args['variable_ids'] ?? [];
 
 		if ( empty( $variable_ids ) || ! is_array( $variable_ids ) ) {
-			return new \WP_Error( 'missing_variable_ids', __( 'variable_ids array is required with at least one variable ID string.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_variable_ids', __( 'variable_ids array is required with at least one variable ID string.', 'lc-bricks-mcp' ) );
 		}
 
 		return $this->bricks_service->batch_delete_global_variables( $variable_ids );
@@ -6625,7 +6625,7 @@ final class Router {
 		if ( empty( $args['post_id'] ) ) {
 			return new \WP_Error(
 				'missing_post_id',
-				__( 'post_id is required. Use list_pages to find valid post IDs.', 'bricks-mcp' )
+				__( 'post_id is required. Use list_pages to find valid post IDs.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -6647,21 +6647,21 @@ final class Router {
 		if ( empty( $args['post_id'] ) ) {
 			return new \WP_Error(
 				'missing_post_id',
-				__( 'post_id is required. Use list_pages to find valid post IDs.', 'bricks-mcp' )
+				__( 'post_id is required. Use list_pages to find valid post IDs.', 'lc-bricks-mcp' )
 			);
 		}
 
 		if ( ! isset( $args['settings'] ) || ! is_array( $args['settings'] ) ) {
 			return new \WP_Error(
 				'missing_settings',
-				__( 'settings object is required. Provide key-value pairs of page settings to update.', 'bricks-mcp' )
+				__( 'settings object is required. Provide key-value pairs of page settings to update.', 'lc-bricks-mcp' )
 			);
 		}
 
 		if ( empty( $args['settings'] ) ) {
 			return new \WP_Error(
 				'empty_settings',
-				__( 'settings object must contain at least one key-value pair.', 'bricks-mcp' )
+				__( 'settings object must contain at least one key-value pair.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -6681,7 +6681,7 @@ final class Router {
 		if ( empty( $args['post_id'] ) ) {
 			return new \WP_Error(
 				'missing_post_id',
-				__( 'post_id is required. Use page tool (action: list) to find valid post IDs.', 'bricks-mcp' )
+				__( 'post_id is required. Use page tool (action: list) to find valid post IDs.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -6700,7 +6700,7 @@ final class Router {
 		if ( empty( $args['post_id'] ) ) {
 			return new \WP_Error(
 				'missing_post_id',
-				__( 'post_id is required. Use page tool (action: list) to find valid post IDs.', 'bricks-mcp' )
+				__( 'post_id is required. Use page tool (action: list) to find valid post IDs.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -6722,7 +6722,7 @@ final class Router {
 		if ( empty( $seo_fields ) ) {
 			return new \WP_Error(
 				'missing_seo_fields',
-				__( 'At least one SEO field must be provided. Accepted: title, description, robots_noindex, robots_nofollow, canonical, og_title, og_description, og_image, twitter_title, twitter_description, twitter_image, focus_keyword.', 'bricks-mcp' )
+				__( 'At least one SEO field must be provided. Accepted: title, description, robots_noindex, robots_nofollow, canonical, og_title, og_description, og_image, twitter_title, twitter_description, twitter_image, focus_keyword.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -6744,7 +6744,7 @@ final class Router {
 		if ( empty( $args['query'] ) || ! is_string( $args['query'] ) ) {
 			return new \WP_Error(
 				'missing_query',
-				__( 'query parameter is required and must be a non-empty string.', 'bricks-mcp' )
+				__( 'query parameter is required and must be a non-empty string.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -6766,7 +6766,7 @@ final class Router {
 		if ( empty( $args['url'] ) || ! is_string( $args['url'] ) ) {
 			return new \WP_Error(
 				'missing_url',
-				__( 'url parameter is required and must be a non-empty string.', 'bricks-mcp' )
+				__( 'url parameter is required and must be a non-empty string.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -6814,14 +6814,14 @@ final class Router {
 		if ( empty( $args['post_id'] ) || ! is_numeric( $args['post_id'] ) ) {
 			return new \WP_Error(
 				'missing_post_id',
-				__( 'post_id parameter is required and must be an integer.', 'bricks-mcp' )
+				__( 'post_id parameter is required and must be an integer.', 'lc-bricks-mcp' )
 			);
 		}
 
 		if ( empty( $args['attachment_id'] ) || ! is_numeric( $args['attachment_id'] ) ) {
 			return new \WP_Error(
 				'missing_attachment_id',
-				__( 'attachment_id parameter is required and must be an integer.', 'bricks-mcp' )
+				__( 'attachment_id parameter is required and must be an integer.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -6834,7 +6834,7 @@ final class Router {
 			return new \WP_Error(
 				'post_not_found',
 				/* translators: %d: post ID */
-				sprintf( __( 'Post %d not found. Use list_pages to find valid post IDs.', 'bricks-mcp' ), $post_id )
+				sprintf( __( 'Post %d not found. Use list_pages to find valid post IDs.', 'lc-bricks-mcp' ), $post_id )
 			);
 		}
 
@@ -6843,7 +6843,7 @@ final class Router {
 			return new \WP_Error(
 				'thumbnails_not_supported',
 				/* translators: %s: post type name */
-				sprintf( __( 'Post type "%s" does not support featured images (thumbnails).', 'bricks-mcp' ), $post->post_type )
+				sprintf( __( 'Post type "%s" does not support featured images (thumbnails).', 'lc-bricks-mcp' ), $post->post_type )
 			);
 		}
 
@@ -6853,7 +6853,7 @@ final class Router {
 			return new \WP_Error(
 				'attachment_not_found',
 				/* translators: %d: attachment ID */
-				sprintf( __( 'Attachment %d not found in media library. Use sideload_image to upload an image first, or get_media_library to find existing images.', 'bricks-mcp' ), $attachment_id )
+				sprintf( __( 'Attachment %d not found in media library. Use sideload_image to upload an image first, or get_media_library to find existing images.', 'lc-bricks-mcp' ), $attachment_id )
 			);
 		}
 
@@ -6864,7 +6864,7 @@ final class Router {
 		if ( ! $result ) {
 			return new \WP_Error(
 				'set_thumbnail_failed',
-				__( 'Failed to set the featured image. The post or attachment may be invalid.', 'bricks-mcp' )
+				__( 'Failed to set the featured image. The post or attachment may be invalid.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -6879,7 +6879,7 @@ final class Router {
 			$response['replaced_attachment_id'] = (int) $old_thumbnail_id;
 			$response['warning']                = sprintf(
 				/* translators: %d: old attachment ID */
-				__( 'Previous featured image (attachment ID %d) was replaced.', 'bricks-mcp' ),
+				__( 'Previous featured image (attachment ID %d) was replaced.', 'lc-bricks-mcp' ),
 				(int) $old_thumbnail_id
 			);
 		}
@@ -6902,7 +6902,7 @@ final class Router {
 		if ( empty( $args['post_id'] ) || ! is_numeric( $args['post_id'] ) ) {
 			return new \WP_Error(
 				'missing_post_id',
-				__( 'post_id parameter is required and must be an integer.', 'bricks-mcp' )
+				__( 'post_id parameter is required and must be an integer.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -6914,7 +6914,7 @@ final class Router {
 			return new \WP_Error(
 				'post_not_found',
 				/* translators: %d: post ID */
-				sprintf( __( 'Post %d not found. Use list_pages to find valid post IDs.', 'bricks-mcp' ), $post_id )
+				sprintf( __( 'Post %d not found. Use list_pages to find valid post IDs.', 'lc-bricks-mcp' ), $post_id )
 			);
 		}
 
@@ -6924,7 +6924,7 @@ final class Router {
 			return array(
 				'post_id' => $post_id,
 				'removed' => false,
-				'message' => __( 'Post has no featured image.', 'bricks-mcp' ),
+				'message' => __( 'Post has no featured image.', 'lc-bricks-mcp' ),
 			);
 		}
 
@@ -6952,14 +6952,14 @@ final class Router {
 		if ( empty( $args['attachment_id'] ) || ! is_numeric( $args['attachment_id'] ) ) {
 			return new \WP_Error(
 				'missing_attachment_id',
-				__( 'attachment_id parameter is required and must be an integer.', 'bricks-mcp' )
+				__( 'attachment_id parameter is required and must be an integer.', 'lc-bricks-mcp' )
 			);
 		}
 
 		if ( empty( $args['target'] ) || ! is_string( $args['target'] ) ) {
 			return new \WP_Error(
 				'missing_target',
-				__( 'target parameter is required. Use "image", "background", or "gallery".', 'bricks-mcp' )
+				__( 'target parameter is required. Use "image", "background", or "gallery".', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -6973,7 +6973,7 @@ final class Router {
 			return new \WP_Error(
 				'attachment_not_found',
 				/* translators: %d: attachment ID */
-				sprintf( __( 'Attachment %d not found in media library. Use sideload_image to upload an image first, or get_media_library to find existing images.', 'bricks-mcp' ), $attachment_id )
+				sprintf( __( 'Attachment %d not found in media library. Use sideload_image to upload an image first, or get_media_library to find existing images.', 'lc-bricks-mcp' ), $attachment_id )
 			);
 		}
 
@@ -6983,7 +6983,7 @@ final class Router {
 			return new \WP_Error(
 				'invalid_target',
 				/* translators: %s: provided target value */
-				sprintf( __( 'Invalid target "%s". Use "image", "background", or "gallery".', 'bricks-mcp' ), $target )
+				sprintf( __( 'Invalid target "%s". Use "image", "background", or "gallery".', 'lc-bricks-mcp' ), $target )
 			);
 		}
 
@@ -7000,25 +7000,25 @@ final class Router {
 		switch ( $target ) {
 			case 'image':
 				$response['target']       = 'image';
-				$response['usage']        = __( 'Set as settings.image on an Image element', 'bricks-mcp' );
+				$response['usage']        = __( 'Set as settings.image on an Image element', 'lc-bricks-mcp' );
 				$response['settings_key'] = 'image';
 				$response['value']        = $image_obj;
 				break;
 
 			case 'background':
 				$response['target']       = 'background';
-				$response['usage']        = __( 'Set as settings._background.image on a section or container', 'bricks-mcp' );
+				$response['usage']        = __( 'Set as settings._background.image on a section or container', 'lc-bricks-mcp' );
 				$response['settings_key'] = '_background';
 				$response['value']        = array( 'image' => $image_obj );
-				$response['note']         = __( "You can add 'position': 'center center', 'size': 'cover', 'repeat': 'no-repeat' alongside the image key inside _background.", 'bricks-mcp' );
+				$response['note']         = __( "You can add 'position': 'center center', 'size': 'cover', 'repeat': 'no-repeat' alongside the image key inside _background.", 'lc-bricks-mcp' );
 				break;
 
 			case 'gallery':
 				$response['target']       = 'gallery';
-				$response['usage']        = __( 'Add to settings.images array on a Gallery element', 'bricks-mcp' );
+				$response['usage']        = __( 'Add to settings.images array on a Gallery element', 'lc-bricks-mcp' );
 				$response['settings_key'] = 'images';
 				$response['value']        = $image_obj;
-				$response['note']         = __( 'This is one item. For a gallery, collect multiple items into an array and set as settings.images.', 'bricks-mcp' );
+				$response['note']         = __( 'This is one item. For a gallery, collect multiple items into an array and set as settings.images.', 'lc-bricks-mcp' );
 				break;
 		}
 
@@ -7040,7 +7040,7 @@ final class Router {
 		if ( empty( $args['name'] ) || ! is_string( $args['name'] ) ) {
 			return new \WP_Error(
 				'missing_name',
-				__( 'name parameter is required and must be a non-empty string.', 'bricks-mcp' )
+				__( 'name parameter is required and must be a non-empty string.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -7062,14 +7062,14 @@ final class Router {
 		if ( empty( $args['menu_id'] ) || ! is_numeric( $args['menu_id'] ) || (int) $args['menu_id'] <= 0 ) {
 			return new \WP_Error(
 				'missing_menu_id',
-				__( 'menu_id parameter is required and must be a positive integer. Use list_menus to find valid menu IDs.', 'bricks-mcp' )
+				__( 'menu_id parameter is required and must be a positive integer. Use list_menus to find valid menu IDs.', 'lc-bricks-mcp' )
 			);
 		}
 
 		if ( empty( $args['name'] ) || ! is_string( $args['name'] ) ) {
 			return new \WP_Error(
 				'missing_name',
-				__( 'name parameter is required and must be a non-empty string.', 'bricks-mcp' )
+				__( 'name parameter is required and must be a non-empty string.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -7091,7 +7091,7 @@ final class Router {
 		if ( empty( $args['menu_id'] ) || ! is_numeric( $args['menu_id'] ) || (int) $args['menu_id'] <= 0 ) {
 			return new \WP_Error(
 				'missing_menu_id',
-				__( 'menu_id parameter is required and must be a positive integer. Use list_menus to find valid menu IDs.', 'bricks-mcp' )
+				__( 'menu_id parameter is required and must be a positive integer. Use list_menus to find valid menu IDs.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -7113,7 +7113,7 @@ final class Router {
 		if ( empty( $args['menu_id'] ) || ! is_numeric( $args['menu_id'] ) || (int) $args['menu_id'] <= 0 ) {
 			return new \WP_Error(
 				'missing_menu_id',
-				__( 'menu_id parameter is required and must be a positive integer. Use list_menus to find valid menu IDs.', 'bricks-mcp' )
+				__( 'menu_id parameter is required and must be a positive integer. Use list_menus to find valid menu IDs.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -7154,14 +7154,14 @@ final class Router {
 		if ( empty( $args['menu_id'] ) || ! is_numeric( $args['menu_id'] ) || (int) $args['menu_id'] <= 0 ) {
 			return new \WP_Error(
 				'missing_menu_id',
-				__( 'menu_id parameter is required and must be a positive integer. Use list_menus to find valid menu IDs.', 'bricks-mcp' )
+				__( 'menu_id parameter is required and must be a positive integer. Use list_menus to find valid menu IDs.', 'lc-bricks-mcp' )
 			);
 		}
 
 		if ( ! isset( $args['items'] ) || ! is_array( $args['items'] ) ) {
 			return new \WP_Error(
 				'missing_items',
-				__( 'items parameter is required and must be an array.', 'bricks-mcp' )
+				__( 'items parameter is required and must be an array.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -7183,14 +7183,14 @@ final class Router {
 		if ( empty( $args['menu_id'] ) || ! is_numeric( $args['menu_id'] ) || (int) $args['menu_id'] <= 0 ) {
 			return new \WP_Error(
 				'missing_menu_id',
-				__( 'menu_id parameter is required and must be a positive integer. Use list_menus to find valid menu IDs.', 'bricks-mcp' )
+				__( 'menu_id parameter is required and must be a positive integer. Use list_menus to find valid menu IDs.', 'lc-bricks-mcp' )
 			);
 		}
 
 		if ( empty( $args['location'] ) || ! is_string( $args['location'] ) ) {
 			return new \WP_Error(
 				'missing_location',
-				__( 'location parameter is required and must be a non-empty string. Use list_menu_locations to see available slugs.', 'bricks-mcp' )
+				__( 'location parameter is required and must be a non-empty string. Use list_menu_locations to see available slugs.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -7212,7 +7212,7 @@ final class Router {
 		if ( empty( $args['location'] ) || ! is_string( $args['location'] ) ) {
 			return new \WP_Error(
 				'missing_location',
-				__( 'location parameter is required and must be a non-empty string. Use list_menu_locations to see current assignments.', 'bricks-mcp' )
+				__( 'location parameter is required and must be a non-empty string. Use list_menu_locations to see current assignments.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -7262,7 +7262,7 @@ final class Router {
 				'invalid_action',
 				sprintf(
 					/* translators: %s: Action name */
-					__( 'Invalid action "%s". Valid actions: list, get, create, update, delete, instantiate, update_properties, fill_slot', 'bricks-mcp' ),
+					__( 'Invalid action "%s". Valid actions: list, get, create, update, delete, instantiate, update_properties, fill_slot', 'lc-bricks-mcp' ),
 					$action
 				)
 			),
@@ -7314,7 +7314,7 @@ final class Router {
 	 */
 	private function tool_get_component( array $args ): array|\WP_Error {
 		if ( empty( $args['component_id'] ) ) {
-			return new \WP_Error( 'missing_component_id', __( 'component_id is required. Use component:list to find component IDs.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_component_id', __( 'component_id is required. Use component:list to find component IDs.', 'lc-bricks-mcp' ) );
 		}
 
 		$component_id = sanitize_text_field( $args['component_id'] );
@@ -7326,7 +7326,7 @@ final class Router {
 				'component_not_found',
 				sprintf(
 					/* translators: %s: Component ID */
-					__( 'Component "%s" not found. Use component:list to see available components.', 'bricks-mcp' ),
+					__( 'Component "%s" not found. Use component:list to see available components.', 'lc-bricks-mcp' ),
 					$component_id
 				)
 			);
@@ -7355,11 +7355,11 @@ final class Router {
 	 */
 	private function tool_create_component( array $args ): array|\WP_Error {
 		if ( empty( $args['label'] ) ) {
-			return new \WP_Error( 'missing_label', __( 'label is required. Provide a display name for the component.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_label', __( 'label is required. Provide a display name for the component.', 'lc-bricks-mcp' ) );
 		}
 
 		if ( empty( $args['elements'] ) || ! is_array( $args['elements'] ) ) {
-			return new \WP_Error( 'missing_elements', __( 'elements is required. Provide a non-empty flat element array (same structure as page content).', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_elements', __( 'elements is required. Provide a non-empty flat element array (same structure as page content).', 'lc-bricks-mcp' ) );
 		}
 
 		$label      = sanitize_text_field( $args['label'] );
@@ -7420,7 +7420,7 @@ final class Router {
 	 */
 	private function tool_update_component( array $args ): array|\WP_Error {
 		if ( empty( $args['component_id'] ) ) {
-			return new \WP_Error( 'missing_component_id', __( 'component_id is required. Use component:list to find component IDs.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_component_id', __( 'component_id is required. Use component:list to find component IDs.', 'lc-bricks-mcp' ) );
 		}
 
 		$component_id = sanitize_text_field( $args['component_id'] );
@@ -7432,7 +7432,7 @@ final class Router {
 				'component_not_found',
 				sprintf(
 					/* translators: %s: Component ID */
-					__( 'Component "%s" not found. Use component:list to see available components.', 'bricks-mcp' ),
+					__( 'Component "%s" not found. Use component:list to see available components.', 'lc-bricks-mcp' ),
 					$component_id
 				)
 			);
@@ -7480,7 +7480,7 @@ final class Router {
 	 */
 	private function tool_delete_component( array $args ): array|\WP_Error {
 		if ( empty( $args['component_id'] ) ) {
-			return new \WP_Error( 'missing_component_id', __( 'component_id is required. Use component:list to find component IDs.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_component_id', __( 'component_id is required. Use component:list to find component IDs.', 'lc-bricks-mcp' ) );
 		}
 
 		$component_id = sanitize_text_field( $args['component_id'] );
@@ -7492,7 +7492,7 @@ final class Router {
 				'component_not_found',
 				sprintf(
 					/* translators: %s: Component ID */
-					__( 'Component "%s" not found. Use component:list to see available components.', 'bricks-mcp' ),
+					__( 'Component "%s" not found. Use component:list to see available components.', 'lc-bricks-mcp' ),
 					$component_id
 				)
 			);
@@ -7506,7 +7506,7 @@ final class Router {
 			'deleted'      => true,
 			'component_id' => $component_id,
 			'label'        => $label,
-			'note'         => __( 'Existing instances will render empty. Remove instances manually from pages.', 'bricks-mcp' ),
+			'note'         => __( 'Existing instances will render empty. Remove instances manually from pages.', 'lc-bricks-mcp' ),
 		);
 	}
 
@@ -7520,11 +7520,11 @@ final class Router {
 	 */
 	private function tool_instantiate_component( array $args ): array|\WP_Error {
 		if ( empty( $args['component_id'] ) ) {
-			return new \WP_Error( 'missing_component_id', __( 'component_id is required. Use component:list to find component IDs.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_component_id', __( 'component_id is required. Use component:list to find component IDs.', 'lc-bricks-mcp' ) );
 		}
 
 		if ( empty( $args['post_id'] ) ) {
-			return new \WP_Error( 'missing_post_id', __( 'post_id is required. Use page:list to find valid post IDs.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_post_id', __( 'post_id is required. Use page:list to find valid post IDs.', 'lc-bricks-mcp' ) );
 		}
 
 		$component_id = sanitize_text_field( $args['component_id'] );
@@ -7541,7 +7541,7 @@ final class Router {
 				'component_not_found',
 				sprintf(
 					/* translators: %s: Component ID */
-					__( 'Component "%s" not found. Use component:list to see available components.', 'bricks-mcp' ),
+					__( 'Component "%s" not found. Use component:list to see available components.', 'lc-bricks-mcp' ),
 					$component_id
 				)
 			);
@@ -7595,7 +7595,7 @@ final class Router {
 					'parent_not_found',
 					sprintf(
 						/* translators: %s: Parent element ID */
-						__( 'Parent element "%s" not found on post %d. Use page:get to inspect elements.', 'bricks-mcp' ),
+						__( 'Parent element "%s" not found on post %d. Use page:get to inspect elements.', 'lc-bricks-mcp' ),
 						$parent_id,
 						$post_id
 					)
@@ -7628,15 +7628,15 @@ final class Router {
 	 */
 	private function tool_update_instance_properties( array $args ): array|\WP_Error {
 		if ( empty( $args['post_id'] ) ) {
-			return new \WP_Error( 'missing_post_id', __( 'post_id is required. Use page:list to find valid post IDs.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_post_id', __( 'post_id is required. Use page:list to find valid post IDs.', 'lc-bricks-mcp' ) );
 		}
 
 		if ( empty( $args['instance_id'] ) ) {
-			return new \WP_Error( 'missing_instance_id', __( 'instance_id is required. Use page:get to find component instance element IDs.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_instance_id', __( 'instance_id is required. Use page:get to find component instance element IDs.', 'lc-bricks-mcp' ) );
 		}
 
 		if ( ! isset( $args['properties'] ) || ! is_array( $args['properties'] ) ) {
-			return new \WP_Error( 'missing_properties', __( 'properties object is required. Provide property ID to value mappings.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_properties', __( 'properties object is required. Provide property ID to value mappings.', 'lc-bricks-mcp' ) );
 		}
 
 		$post_id     = (int) $args['post_id'];
@@ -7651,7 +7651,7 @@ final class Router {
 						'not_component_instance',
 						sprintf(
 							/* translators: %s: Element ID */
-							__( 'Element "%s" is not a component instance (missing cid key).', 'bricks-mcp' ),
+							__( 'Element "%s" is not a component instance (missing cid key).', 'lc-bricks-mcp' ),
 							$instance_id
 						)
 					);
@@ -7668,7 +7668,7 @@ final class Router {
 				'instance_not_found',
 				sprintf(
 					/* translators: %s: Instance ID */
-					__( 'Instance element "%s" not found on post %d. Use page:get to inspect elements.', 'bricks-mcp' ),
+					__( 'Instance element "%s" not found on post %d. Use page:get to inspect elements.', 'lc-bricks-mcp' ),
 					$instance_id,
 					$post_id
 				)
@@ -7709,19 +7709,19 @@ final class Router {
 	 */
 	private function tool_fill_slot( array $args ): array|\WP_Error {
 		if ( empty( $args['post_id'] ) ) {
-			return new \WP_Error( 'missing_post_id', __( 'post_id is required. Use page:list to find valid post IDs.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_post_id', __( 'post_id is required. Use page:list to find valid post IDs.', 'lc-bricks-mcp' ) );
 		}
 
 		if ( empty( $args['instance_id'] ) ) {
-			return new \WP_Error( 'missing_instance_id', __( 'instance_id is required. Use page:get to find component instance element IDs.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_instance_id', __( 'instance_id is required. Use page:get to find component instance element IDs.', 'lc-bricks-mcp' ) );
 		}
 
 		if ( empty( $args['slot_id'] ) ) {
-			return new \WP_Error( 'missing_slot_id', __( 'slot_id is required. Use component:get to find slot element IDs in the component definition.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_slot_id', __( 'slot_id is required. Use component:get to find slot element IDs in the component definition.', 'lc-bricks-mcp' ) );
 		}
 
 		if ( empty( $args['slot_elements'] ) || ! is_array( $args['slot_elements'] ) ) {
-			return new \WP_Error( 'missing_slot_elements', __( 'slot_elements is required. Provide a non-empty flat element array for the slot content.', 'bricks-mcp' ) );
+			return new \WP_Error( 'missing_slot_elements', __( 'slot_elements is required. Provide a non-empty flat element array for the slot content.', 'lc-bricks-mcp' ) );
 		}
 
 		$post_id       = (int) $args['post_id'];
@@ -7740,7 +7740,7 @@ final class Router {
 						'not_component_instance',
 						sprintf(
 							/* translators: %s: Element ID */
-							__( 'Element "%s" is not a component instance (missing cid key).', 'bricks-mcp' ),
+							__( 'Element "%s" is not a component instance (missing cid key).', 'lc-bricks-mcp' ),
 							$instance_id
 						)
 					);
@@ -7755,7 +7755,7 @@ final class Router {
 				'instance_not_found',
 				sprintf(
 					/* translators: %s: Instance ID */
-					__( 'Instance element "%s" not found on post %d. Use page:get to inspect elements.', 'bricks-mcp' ),
+					__( 'Instance element "%s" not found on post %d. Use page:get to inspect elements.', 'lc-bricks-mcp' ),
 					$instance_id,
 					$post_id
 				)
@@ -7772,7 +7772,7 @@ final class Router {
 				'component_not_found',
 				sprintf(
 					/* translators: %s: Component ID */
-					__( 'Component definition "%s" not found. The component may have been deleted.', 'bricks-mcp' ),
+					__( 'Component definition "%s" not found. The component may have been deleted.', 'lc-bricks-mcp' ),
 					$component_id
 				)
 			);
@@ -7792,7 +7792,7 @@ final class Router {
 				'slot_not_found',
 				sprintf(
 					/* translators: %1$s: Slot ID, %2$s: Component ID */
-					__( 'Slot element "%1$s" not found in component "%2$s". Use component:get to find slot IDs.', 'bricks-mcp' ),
+					__( 'Slot element "%1$s" not found in component "%2$s". Use component:get to find slot IDs.', 'lc-bricks-mcp' ),
 					$slot_id,
 					$component_id
 				)
@@ -8133,7 +8133,7 @@ final class Router {
 		if ( ! class_exists( 'WooCommerce' ) ) {
 			return new \WP_Error(
 				'woocommerce_not_active',
-				__( 'WooCommerce is not installed or not active. Install and activate WooCommerce before using WooCommerce builder tools.', 'bricks-mcp' )
+				__( 'WooCommerce is not installed or not active. Install and activate WooCommerce before using WooCommerce builder tools.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -8150,7 +8150,7 @@ final class Router {
 				'invalid_action',
 				sprintf(
 					/* translators: %s: Action name */
-					__( 'Invalid action "%s". Valid actions: status, get_elements, get_dynamic_tags, scaffold_template, scaffold_store', 'bricks-mcp' ),
+					__( 'Invalid action "%s". Valid actions: status, get_elements, get_dynamic_tags, scaffold_template, scaffold_store', 'lc-bricks-mcp' ),
 					$action
 				)
 			),
@@ -9129,7 +9129,7 @@ final class Router {
 			return new \WP_Error(
 				'missing_template_type',
 				sprintf(
-					__( 'template_type is required. Valid types: %s', 'bricks-mcp' ),
+					__( 'template_type is required. Valid types: %s', 'lc-bricks-mcp' ),
 					implode( ', ', $valid_types )
 				)
 			);
@@ -9139,7 +9139,7 @@ final class Router {
 			return new \WP_Error(
 				'invalid_template_type',
 				sprintf(
-					__( 'Invalid template_type "%s". Valid types: %s', 'bricks-mcp' ),
+					__( 'Invalid template_type "%s". Valid types: %s', 'lc-bricks-mcp' ),
 					$template_type,
 					implode( ', ', $valid_types )
 				)
@@ -9200,7 +9200,7 @@ final class Router {
 			return new \WP_Error(
 				'scaffold_save_failed',
 				sprintf(
-					__( 'Template created but element save failed: %s. Template has been rolled back.', 'bricks-mcp' ),
+					__( 'Template created but element save failed: %s. Template has been rolled back.', 'lc-bricks-mcp' ),
 					$save_result->get_error_message()
 				)
 			);
@@ -9262,7 +9262,7 @@ final class Router {
 				return new \WP_Error(
 					'invalid_template_type',
 					sprintf(
-						__( 'Invalid template type "%s" in types array. Valid types: %s', 'bricks-mcp' ),
+						__( 'Invalid template type "%s" in types array. Valid types: %s', 'lc-bricks-mcp' ),
 						$type,
 						implode( ', ', $all_types )
 					)
@@ -9328,7 +9328,7 @@ final class Router {
 		if ( count( $created ) === 0 && count( $skipped ) === 0 ) {
 			return new \WP_Error(
 				'scaffold_store_failed',
-				__( 'All template scaffolds failed. Check WooCommerce and Bricks are properly configured.', 'bricks-mcp' )
+				__( 'All template scaffolds failed. Check WooCommerce and Bricks are properly configured.', 'lc-bricks-mcp' )
 			);
 		}
 

@@ -2,13 +2,13 @@
 /**
  * Media service for Unsplash search, image sideloading, and media library operations.
  *
- * @package BricksMCP
+ * @package LCBricksMCP
  * @license GPL-2.0-or-later
  */
 
 declare(strict_types=1);
 
-namespace BricksMCP\MCP\Services;
+namespace LCBricksMCP\MCP\Services;
 
 // Prevent direct access.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -35,7 +35,7 @@ class MediaService {
 	 *
 	 * @var string
 	 */
-	private const UTM_PARAMS = 'utm_source=bricks_mcp&utm_medium=referral';
+	private const UTM_PARAMS = 'utm_source=lc_bricks_mcp&utm_medium=referral';
 
 	/**
 	 * Search Unsplash photos using the Bricks-stored API key.
@@ -48,7 +48,7 @@ class MediaService {
 		if ( empty( $api_key ) ) {
 			return new \WP_Error(
 				'unsplash_no_key',
-				__( 'Unsplash API key not configured. Add your key in Bricks > Settings > API Keys > Unsplash.', 'bricks-mcp' )
+				__( 'Unsplash API key not configured. Add your key in Bricks > Settings > API Keys > Unsplash.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -78,7 +78,7 @@ class MediaService {
 			return new \WP_Error(
 				'unsplash_api_error',
 				/* translators: %d: HTTP status code from Unsplash API */
-				sprintf( __( 'Unsplash API returned HTTP %d. Check your API key in Bricks settings and try again.', 'bricks-mcp' ), $code )
+				sprintf( __( 'Unsplash API returned HTTP %d. Check your API key in Bricks settings and try again.', 'lc-bricks-mcp' ), $code )
 			);
 		}
 
@@ -86,7 +86,7 @@ class MediaService {
 		if ( ! is_array( $body ) || ! isset( $body['results'] ) ) {
 			return new \WP_Error(
 				'unsplash_parse_error',
-				__( 'Failed to parse Unsplash API response.', 'bricks-mcp' )
+				__( 'Failed to parse Unsplash API response.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -264,7 +264,7 @@ class MediaService {
 			return new \WP_Error(
 				'attachment_not_found',
 				/* translators: %d: attachment ID */
-				sprintf( __( 'Attachment %d not found.', 'bricks-mcp' ), $attachment_id )
+				sprintf( __( 'Attachment %d not found.', 'lc-bricks-mcp' ), $attachment_id )
 			);
 		}
 

@@ -2,15 +2,15 @@
 /**
  * PHP timeout diagnostic check.
  *
- * @package BricksMCP
+ * @package LCBricksMCP
  * @license GPL-2.0-or-later
  */
 
 declare(strict_types=1);
 
-namespace BricksMCP\Admin\Checks;
+namespace LCBricksMCP\Admin\Checks;
 
-use BricksMCP\Admin\DiagnosticCheck;
+use LCBricksMCP\Admin\DiagnosticCheck;
 
 // Prevent direct access.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -39,7 +39,7 @@ class PhpTimeoutCheck implements DiagnosticCheck {
 	 * @return string
 	 */
 	public function label(): string {
-		return __( 'PHP Execution Time', 'bricks-mcp' );
+		return __( 'PHP Execution Time', 'lc-bricks-mcp' );
 	}
 
 	/**
@@ -88,7 +88,7 @@ class PhpTimeoutCheck implements DiagnosticCheck {
 				'id'        => $this->id(),
 				'label'     => $this->label(),
 				'status'    => 'pass',
-				'message'   => __( 'PHP execution time is set to unlimited (0).', 'bricks-mcp' ),
+				'message'   => __( 'PHP execution time is set to unlimited (0).', 'lc-bricks-mcp' ),
 				'fix_steps' => array(),
 				'category'  => $this->category(),
 			);
@@ -101,7 +101,7 @@ class PhpTimeoutCheck implements DiagnosticCheck {
 				'status'    => 'pass',
 				'message'   => sprintf(
 					// translators: %d is the number of seconds.
-					__( 'PHP execution time is %d seconds.', 'bricks-mcp' ),
+					__( 'PHP execution time is %d seconds.', 'lc-bricks-mcp' ),
 					$seconds
 				),
 				'fix_steps' => array(),
@@ -115,12 +115,12 @@ class PhpTimeoutCheck implements DiagnosticCheck {
 			'status'    => 'warn',
 			'message'   => sprintf(
 				// translators: %d is the number of seconds.
-				__( 'PHP execution time is %d seconds (minimum 60 recommended). Long MCP tool calls or SSE streams may be terminated early.', 'bricks-mcp' ),
+				__( 'PHP execution time is %d seconds (minimum 60 recommended). Long MCP tool calls or SSE streams may be terminated early.', 'lc-bricks-mcp' ),
 				$seconds
 			),
 			'fix_steps' => array(
-				__( "Option A \u2013 wp-config.php (applies at runtime): add the line below before \"That's all, stop editing!\": ini_set( 'max_execution_time', 300 );", 'bricks-mcp' ),
-				__( 'Option B \u2013 php.ini (applies globally): set max_execution_time = 300 and restart PHP.', 'bricks-mcp' ),
+				__( "Option A \u2013 wp-config.php (applies at runtime): add the line below before \"That's all, stop editing!\": ini_set( 'max_execution_time', 300 );", 'lc-bricks-mcp' ),
+				__( 'Option B \u2013 php.ini (applies globally): set max_execution_time = 300 and restart PHP.', 'lc-bricks-mcp' ),
 			),
 			'category'  => $this->category(),
 		);

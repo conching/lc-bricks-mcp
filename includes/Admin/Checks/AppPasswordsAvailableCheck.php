@@ -2,15 +2,15 @@
 /**
  * Application Passwords availability check.
  *
- * @package BricksMCP
+ * @package LCBricksMCP
  * @license GPL-2.0-or-later
  */
 
 declare(strict_types=1);
 
-namespace BricksMCP\Admin\Checks;
+namespace LCBricksMCP\Admin\Checks;
 
-use BricksMCP\Admin\DiagnosticCheck;
+use LCBricksMCP\Admin\DiagnosticCheck;
 
 // Prevent direct access.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -39,7 +39,7 @@ class AppPasswordsAvailableCheck implements DiagnosticCheck {
 	 * @return string
 	 */
 	public function label(): string {
-		return __( 'Application Passwords Available', 'bricks-mcp' );
+		return __( 'Application Passwords Available', 'lc-bricks-mcp' );
 	}
 
 	/**
@@ -71,11 +71,11 @@ class AppPasswordsAvailableCheck implements DiagnosticCheck {
 				'id'        => $this->id(),
 				'label'     => $this->label(),
 				'status'    => 'fail',
-				'message'   => __( 'Application Passwords are disabled on this site. A plugin or filter is blocking them.', 'bricks-mcp' ),
+				'message'   => __( 'Application Passwords are disabled on this site. A plugin or filter is blocking them.', 'lc-bricks-mcp' ),
 				'fix_steps' => array(
-					__( 'Check for "Disable Application Passwords" plugin and deactivate it.', 'bricks-mcp' ),
-					__( 'Check iThemes/Solid Security hardening settings for Application Password restrictions.', 'bricks-mcp' ),
-					__( 'Check mu-plugins for: add_filter( "wp_is_application_passwords_available", "__return_false" );', 'bricks-mcp' ),
+					__( 'Check for "Disable Application Passwords" plugin and deactivate it.', 'lc-bricks-mcp' ),
+					__( 'Check iThemes/Solid Security hardening settings for Application Password restrictions.', 'lc-bricks-mcp' ),
+					__( 'Check mu-plugins for: add_filter( "wp_is_application_passwords_available", "__return_false" );', 'lc-bricks-mcp' ),
 				),
 				'category'  => $this->category(),
 			);
@@ -85,7 +85,7 @@ class AppPasswordsAvailableCheck implements DiagnosticCheck {
 			'id'        => $this->id(),
 			'label'     => $this->label(),
 			'status'    => 'pass',
-			'message'   => __( 'Application Passwords are enabled.', 'bricks-mcp' ),
+			'message'   => __( 'Application Passwords are enabled.', 'lc-bricks-mcp' ),
 			'fix_steps' => array(),
 			'category'  => $this->category(),
 		);

@@ -1,4 +1,4 @@
-# Bricks MCP Builder Guide
+# LC Bricks MCP Builder Guide
 
 Patterns and reference for AI models building Bricks Builder pages via MCP tools.
 
@@ -1414,7 +1414,7 @@ Use `code:set_page_scripts` to add JavaScript to specific page locations:
 - `body_header` -- after opening `<body>` tag (for analytics, tag managers)
 - `body_footer` -- before closing `</body>` tag (for deferred scripts, tracking)
 
-**SECURITY: Requires Dangerous Actions toggle** enabled in Bricks MCP settings. Scripts execute on every page load -- test carefully.
+**SECURITY: Requires Dangerous Actions toggle** enabled in LC Bricks MCP settings. Scripts execute on every page load -- test carefully.
 
 Use `code:get_page_scripts` with `post_id` to read existing scripts for a page.
 
@@ -1429,7 +1429,7 @@ Elements support `_customCss` in their settings for element-scoped CSS. Use `#br
 ### Important Notes
 
 - Custom CSS requires Bricks-specific selectors (`#brxe-{id}`) -- standard CSS class selectors may not have sufficient specificity
-- Script writing requires the Dangerous Actions toggle in Bricks MCP settings (security measure)
+- Script writing requires the Dangerous Actions toggle in LC Bricks MCP settings (security measure)
 - Prefer Bricks native styling (`_padding`, `_margin`, `_typography`, etc.) over custom CSS when possible
 - For site-wide styles, use theme styles (`theme_style` tool) or global classes (`global_class:create`) instead of page CSS
 - For global custom CSS, use `page:update_settings` with the `customCss` key on the relevant page
@@ -1619,9 +1619,9 @@ Some plugins disable Application Passwords:
 
 ### 3. REST API Blocked
 Security plugins commonly block the REST API for unauthenticated users:
-- **Perfmatters**: Add `bricks-mcp` to Settings > REST API > Allowed Routes
+- **Perfmatters**: Add `lc-bricks-mcp` to Settings > REST API > Allowed Routes
 - **All In One WP Security**: Disable Firewall > PHP Firewall Rules > REST API
-- **Disable WP REST API** plugin: Deactivate or whitelist `bricks-mcp`
+- **Disable WP REST API** plugin: Deactivate or whitelist `lc-bricks-mcp`
 - **WP Cerber**: Check Hardening > Disable REST API
 
 Note: Blocking REST API for *unauthenticated* users usually doesn't affect MCP because clients authenticate via Application Passwords. But if Application Passwords are also broken, both issues compound.
@@ -1634,7 +1634,7 @@ The REST API requires pretty permalinks. Go to Settings > Permalinks and select 
 - **Kinsta**: REST API works by default. If blocked, check Kinsta security settings.
 - **Flywheel**: May strip Authorization headers. Same .htaccess fix as WP Engine.
 - **Pantheon**: May disable Application Passwords by default. Add `add_filter( 'wp_is_application_passwords_available', '__return_true' );` to wp-config.php.
-- **Cloudflare**: WAF rules may block /wp-json/ traffic. Add a WAF exception for the bricks-mcp/v1/ path.
+- **Cloudflare**: WAF rules may block /wp-json/ traffic. Add a WAF exception for the lc-bricks-mcp/v1/ path.
 - **Server-level rate limiting**: If diagnostics pass but external AI tools get 429 errors, check Cloudflare/CDN rate limits on /wp-json/.
 
 ### 6. Run Full Diagnostics
@@ -1642,4 +1642,4 @@ Use the built-in diagnostic tool from your AI client:
 ```
 get_site_info(action: 'diagnose')
 ```
-Or click "Run Diagnostics" on the Bricks MCP settings page in WordPress admin.
+Or click "Run Diagnostics" on the LC Bricks MCP settings page in WordPress admin.

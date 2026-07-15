@@ -2,13 +2,13 @@
 /**
  * Plugin activation handler.
  *
- * @package BricksMCP
+ * @package LCBricksMCP
  * @license GPL-2.0-or-later
  */
 
 declare(strict_types=1);
 
-namespace BricksMCP;
+namespace LCBricksMCP;
 
 // Prevent direct access.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -31,12 +31,12 @@ final class Activator {
 	 */
 	public static function activate(): void {
 		// Store activation timestamp.
-		if ( ! get_option( 'bricks_mcp_activated_at' ) ) {
-			update_option( 'bricks_mcp_activated_at', time() );
+		if ( ! get_option( 'lc_bricks_mcp_activated_at' ) ) {
+			update_option( 'lc_bricks_mcp_activated_at', time() );
 		}
 
 		// Store plugin version.
-		update_option( 'bricks_mcp_version', BRICKS_MCP_VERSION );
+		update_option( 'lc_bricks_mcp_version', LC_BRICKS_MCP_VERSION );
 
 		// Set default options if they don't exist.
 		self::set_default_options();
@@ -65,16 +65,16 @@ final class Activator {
 		if ( ! $rest_enabled ) {
 			$results[] = [
 				'id'      => 'rest_enabled',
-				'label'   => __( 'REST API', 'bricks-mcp' ),
+				'label'   => __( 'REST API', 'lc-bricks-mcp' ),
 				'status'  => 'fail',
-				'message' => __( 'The REST API is disabled. Bricks MCP requires the WordPress REST API.', 'bricks-mcp' ),
+				'message' => __( 'The REST API is disabled. LC Bricks MCP requires the WordPress REST API.', 'lc-bricks-mcp' ),
 			];
 		} else {
 			$results[] = [
 				'id'      => 'rest_enabled',
-				'label'   => __( 'REST API', 'bricks-mcp' ),
+				'label'   => __( 'REST API', 'lc-bricks-mcp' ),
 				'status'  => 'pass',
-				'message' => __( 'REST API is enabled.', 'bricks-mcp' ),
+				'message' => __( 'REST API is enabled.', 'lc-bricks-mcp' ),
 			];
 		}
 
@@ -83,11 +83,11 @@ final class Activator {
 			$app_pw_available = wp_is_application_passwords_available();
 			$results[]        = [
 				'id'      => 'app_passwords',
-				'label'   => __( 'Application Passwords', 'bricks-mcp' ),
+				'label'   => __( 'Application Passwords', 'lc-bricks-mcp' ),
 				'status'  => $app_pw_available ? 'pass' : 'fail',
 				'message' => $app_pw_available
-					? __( 'Application Passwords are available.', 'bricks-mcp' )
-					: __( 'Application Passwords are disabled. MCP clients require Application Passwords for authentication.', 'bricks-mcp' ),
+					? __( 'Application Passwords are available.', 'lc-bricks-mcp' )
+					: __( 'Application Passwords are disabled. MCP clients require Application Passwords for authentication.', 'lc-bricks-mcp' ),
 			];
 		}
 
@@ -95,11 +95,11 @@ final class Activator {
 		$bricks_active = class_exists( '\Bricks\Elements' );
 		$results[]     = [
 			'id'      => 'bricks_active',
-			'label'   => __( 'Bricks Builder', 'bricks-mcp' ),
+			'label'   => __( 'Bricks Builder', 'lc-bricks-mcp' ),
 			'status'  => $bricks_active ? 'pass' : 'fail',
 			'message' => $bricks_active
-				? __( 'Bricks Builder is active.', 'bricks-mcp' )
-				: __( 'Bricks Builder is not active. Bricks-specific MCP tools will be unavailable.', 'bricks-mcp' ),
+				? __( 'Bricks Builder is active.', 'lc-bricks-mcp' )
+				: __( 'Bricks Builder is not active. Bricks-specific MCP tools will be unavailable.', 'lc-bricks-mcp' ),
 		];
 
 		// Store results as transient for admin notice display only if issues exist.
@@ -112,7 +112,7 @@ final class Activator {
 		}
 
 		if ( $has_issues ) {
-			set_transient( 'bricks_mcp_activation_checks', $results, 3600 ); // 1 hour TTL.
+			set_transient( 'lc_bricks_mcp_activation_checks', $results, 3600 ); // 1 hour TTL.
 		}
 	}
 
@@ -127,7 +127,7 @@ final class Activator {
 			'require_auth' => true,
 		];
 
-		$existing = get_option( 'bricks_mcp_settings', [] );
+		$existing = get_option( 'lc_bricks_mcp_settings', [] );
 
 		if ( ! is_array( $existing ) ) {
 			$existing = [];
@@ -136,6 +136,6 @@ final class Activator {
 		// Merge defaults with existing settings.
 		$settings = array_merge( $defaults, $existing );
 
-		update_option( 'bricks_mcp_settings', $settings );
+		update_option( 'lc_bricks_mcp_settings', $settings );
 	}
 }

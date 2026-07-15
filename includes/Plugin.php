@@ -2,13 +2,13 @@
 /**
  * Main plugin class.
  *
- * @package BricksMCP
+ * @package LCBricksMCP
  * @license GPL-2.0-or-later
  */
 
 declare(strict_types=1);
 
-namespace BricksMCP;
+namespace LCBricksMCP;
 
 // Prevent direct access.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -157,7 +157,7 @@ final class Plugin {
 	 * @return void
 	 */
 	private function migrate_settings(): void {
-		$settings = get_option( 'bricks_mcp_settings', [] );
+		$settings = get_option( 'lc_bricks_mcp_settings', [] );
 
 		if ( ! is_array( $settings ) ) {
 			return;
@@ -173,7 +173,7 @@ final class Plugin {
 		}
 
 		if ( $dirty ) {
-			update_option( 'bricks_mcp_settings', $settings );
+			update_option( 'lc_bricks_mcp_settings', $settings );
 		}
 	}
 
@@ -185,7 +185,7 @@ final class Plugin {
 	private function register_hooks(): void {
 		// Add plugin action links.
 		add_filter(
-			'plugin_action_links_' . BRICKS_MCP_PLUGIN_BASENAME,
+			'plugin_action_links_' . LC_BRICKS_MCP_PLUGIN_BASENAME,
 			[ $this, 'add_action_links' ]
 		);
 	}
@@ -199,8 +199,8 @@ final class Plugin {
 	public function add_action_links( array $links ): array {
 		$settings_link = sprintf(
 			'<a href="%s">%s</a>',
-			esc_url( admin_url( 'admin.php?page=bricks-mcp' ) ),
-			esc_html__( 'Settings', 'bricks-mcp' )
+			esc_url( admin_url( 'admin.php?page=lc-bricks-mcp' ) ),
+			esc_html__( 'Settings', 'lc-bricks-mcp' )
 		);
 
 		array_unshift( $links, $settings_link );
@@ -232,6 +232,6 @@ final class Plugin {
 	 * @return string The plugin version.
 	 */
 	public function get_version(): string {
-		return BRICKS_MCP_VERSION;
+		return LC_BRICKS_MCP_VERSION;
 	}
 }

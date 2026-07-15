@@ -1,14 +1,14 @@
 <?php
 /**
- * PSR-4 compatible autoloader for the Bricks MCP plugin.
+ * PSR-4 compatible autoloader for the LC Bricks MCP plugin.
  *
- * @package BricksMCP
+ * @package LCBricksMCP
  * @license GPL-2.0-or-later
  */
 
 declare(strict_types=1);
 
-namespace BricksMCP;
+namespace LCBricksMCP;
 
 // Prevent direct access.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Autoloader class.
  *
  * Provides PSR-4 compatible autoloading without Composer.
- * Maps the BricksMCP namespace to the includes directory.
+ * Maps the LCBricksMCP namespace to the includes directory.
  */
 final class Autoloader {
 
@@ -28,7 +28,7 @@ final class Autoloader {
 	 *
 	 * @var string
 	 */
-	private const NAMESPACE_PREFIX = 'BricksMCP\\';
+	private const NAMESPACE_PREFIX = 'LCBricksMCP\\';
 
 	/**
 	 * Base directory for the namespace.
@@ -50,7 +50,7 @@ final class Autoloader {
 	 * @return void
 	 */
 	public static function register(): void {
-		self::$base_dir = BRICKS_MCP_PLUGIN_DIR . 'includes/';
+		self::$base_dir = LC_BRICKS_MCP_PLUGIN_DIR . 'includes/';
 		spl_autoload_register( [ self::class, 'load_class' ] );
 	}
 

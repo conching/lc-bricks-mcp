@@ -2,13 +2,13 @@
 /**
  * Internationalization handler.
  *
- * @package BricksMCP
+ * @package LCBricksMCP
  * @license GPL-2.0-or-later
  */
 
 declare(strict_types=1);
 
-namespace BricksMCP;
+namespace LCBricksMCP;
 
 // Prevent direct access.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -29,7 +29,7 @@ final class I18n {
 	 *
 	 * @var string
 	 */
-	private const TEXT_DOMAIN = 'bricks-mcp';
+	private const TEXT_DOMAIN = 'lc-bricks-mcp';
 
 	/**
 	 * Initialize internationalization.
@@ -54,7 +54,7 @@ final class I18n {
 		load_plugin_textdomain(
 			self::TEXT_DOMAIN,
 			false,
-			dirname( BRICKS_MCP_PLUGIN_BASENAME ) . '/languages'
+			dirname( LC_BRICKS_MCP_PLUGIN_BASENAME ) . '/languages'
 		);
 	}
 

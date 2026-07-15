@@ -2,7 +2,7 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Bricks MCP 1.0.0\n"
+"Project-Id-Version: LC Bricks MCP 2.0.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-01-13 00:00:00+0000\n"
 "MIME-Version: 1.0\n"
@@ -14,22 +14,22 @@ msgstr ""
 "Language: \n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: WP-CLI\n"
-"X-Domain: bricks-mcp\n"
+"X-Domain: lc-bricks-mcp\n"
 
 #. Plugin Name of the plugin
-msgid "Bricks MCP"
+msgid "LC Bricks MCP"
 msgstr ""
 
 #. Description of the plugin
 msgid "MCP (Model Context Protocol) server for WordPress AI integration."
 msgstr ""
 
-#: bricks-mcp.php
-msgid "Bricks MCP requires PHP %1$s or higher. You are running PHP %2$s. Please upgrade PHP to use this plugin."
+#: lc-bricks-mcp.php
+msgid "LC Bricks MCP requires PHP %1$s or higher. You are running PHP %2$s. Please upgrade PHP to use this plugin."
 msgstr ""
 
-#: bricks-mcp.php
-msgid "Bricks MCP requires WordPress %1$s or higher. You are running WordPress %2$s. Please upgrade WordPress to use this plugin."
+#: lc-bricks-mcp.php
+msgid "LC Bricks MCP requires WordPress %1$s or higher. You are running WordPress %2$s. Please upgrade WordPress to use this plugin."
 msgstr ""
 
 #: includes/Plugin.php
@@ -37,7 +37,7 @@ msgid "Settings"
 msgstr ""
 
 #: includes/MCP/Server.php
-msgid "The Bricks MCP server is currently disabled."
+msgid "The LC Bricks MCP server is currently disabled."
 msgstr ""
 
 #: includes/MCP/Server.php
@@ -121,7 +121,7 @@ msgid "Post not found."
 msgstr ""
 
 #: includes/Admin/Settings.php
-msgid "Bricks MCP Settings"
+msgid "LC Bricks MCP Settings"
 msgstr ""
 
 #: includes/Admin/Settings.php

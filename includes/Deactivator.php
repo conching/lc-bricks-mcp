@@ -2,13 +2,13 @@
 /**
  * Plugin deactivation handler.
  *
- * @package BricksMCP
+ * @package LCBricksMCP
  * @license GPL-2.0-or-later
  */
 
 declare(strict_types=1);
 
-namespace BricksMCP;
+namespace LCBricksMCP;
 
 // Prevent direct access.
 if ( ! defined( 'ABSPATH' ) ) {

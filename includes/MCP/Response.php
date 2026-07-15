@@ -2,13 +2,13 @@
 /**
  * MCP Response helper.
  *
- * @package BricksMCP
+ * @package LCBricksMCP
  * @license GPL-2.0-or-later
  */
 
 declare(strict_types=1);
 
-namespace BricksMCP\MCP;
+namespace LCBricksMCP\MCP;
 
 // Prevent direct access.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -31,7 +31,7 @@ final class Response {
 	 */
 	public static function success( mixed $data, int $status = 200 ): \WP_REST_Response {
 		$response = new \WP_REST_Response( $data, $status );
-		$response->header( 'X-MCP-Server', 'bricks-mcp/' . BRICKS_MCP_VERSION );
+		$response->header( 'X-MCP-Server', 'lc-bricks-mcp/' . LC_BRICKS_MCP_VERSION );
 
 		return $response;
 	}
@@ -69,7 +69,7 @@ final class Response {
 			$status
 		);
 
-		$response->header( 'X-MCP-Server', 'bricks-mcp/' . BRICKS_MCP_VERSION );
+		$response->header( 'X-MCP-Server', 'lc-bricks-mcp/' . LC_BRICKS_MCP_VERSION );
 
 		return $response;
 	}
@@ -125,7 +125,7 @@ final class Response {
 	 * @return \WP_REST_Response The REST response.
 	 */
 	public static function validation_error( array $errors ): \WP_REST_Response {
-		$message = __( 'Input validation failed. Fix the errors below and retry.', 'bricks-mcp' );
+		$message = __( 'Input validation failed. Fix the errors below and retry.', 'lc-bricks-mcp' );
 
 		$response = new \WP_REST_Response(
 			[
@@ -145,7 +145,7 @@ final class Response {
 			400
 		);
 
-		$response->header( 'X-MCP-Server', 'bricks-mcp/' . BRICKS_MCP_VERSION );
+		$response->header( 'X-MCP-Server', 'lc-bricks-mcp/' . LC_BRICKS_MCP_VERSION );
 
 		return $response;
 	}

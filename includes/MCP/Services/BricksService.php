@@ -2,13 +2,13 @@
 /**
  * Bricks Builder data access service.
  *
- * @package BricksMCP
+ * @package LCBricksMCP
  * @license GPL-2.0-or-later
  */
 
 declare(strict_types=1);
 
-namespace BricksMCP\MCP\Services;
+namespace LCBricksMCP\MCP\Services;
 
 // Prevent direct access.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -217,7 +217,7 @@ class BricksService {
 		if ( ! is_array( $stored ) || count( $stored ) !== count( $elements ) ) {
 			return new \WP_Error(
 				'save_elements_failed',
-				__( 'Elements appeared to save but verification read-back failed. The database may have rejected the write.', 'bricks-mcp' )
+				__( 'Elements appeared to save but verification read-back failed. The database may have rejected the write.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -364,7 +364,7 @@ class BricksService {
 				\Bricks\Assets::generate_css_from_elements( $elements, $post_id );
 			}
 		} catch ( \Throwable $e ) {
-			error_log( 'BricksMCP: CSS regen failed for post ' . $post_id . ': ' . $e->getMessage() );
+			error_log( 'LCBricksMCP: CSS regen failed for post ' . $post_id . ': ' . $e->getMessage() );
 		}
 	}
 
@@ -744,14 +744,14 @@ class BricksService {
 		if ( empty( $args['title'] ) ) {
 			return new \WP_Error(
 				'missing_title',
-				__( 'Template title is required. Provide a non-empty "title" parameter.', 'bricks-mcp' )
+				__( 'Template title is required. Provide a non-empty "title" parameter.', 'lc-bricks-mcp' )
 			);
 		}
 
 		if ( empty( $args['type'] ) ) {
 			return new \WP_Error(
 				'missing_type',
-				__( 'Template type is required. Provide a "type" parameter (e.g., header, footer, content, section, popup).', 'bricks-mcp' )
+				__( 'Template type is required. Provide a "type" parameter (e.g., header, footer, content, section, popup).', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -763,7 +763,7 @@ class BricksService {
 				'invalid_template_type',
 				sprintf(
 					/* translators: 1: Provided type, 2: Valid types list */
-					__( 'Invalid template type "%1$s". Valid types: %2$s.', 'bricks-mcp' ),
+					__( 'Invalid template type "%1$s". Valid types: %2$s.', 'lc-bricks-mcp' ),
 					$type,
 					implode( ', ', $valid_types )
 				)
@@ -828,7 +828,7 @@ class BricksService {
 				'template_not_found',
 				sprintf(
 					/* translators: %d: Template ID */
-					__( 'Bricks template %d not found. Verify the template_id is a valid bricks_template post.', 'bricks-mcp' ),
+					__( 'Bricks template %d not found. Verify the template_id is a valid bricks_template post.', 'lc-bricks-mcp' ),
 					$template_id
 				)
 			);
@@ -866,7 +866,7 @@ class BricksService {
 					'invalid_template_type',
 					sprintf(
 						/* translators: 1: Provided type, 2: Valid types list */
-						__( 'Invalid template type "%1$s". Valid types: %2$s.', 'bricks-mcp' ),
+						__( 'Invalid template type "%1$s". Valid types: %2$s.', 'lc-bricks-mcp' ),
 						$new_type,
 						implode( ', ', $valid_types )
 					)
@@ -877,7 +877,7 @@ class BricksService {
 			if ( $old_type !== $new_type ) {
 				$warning = sprintf(
 					/* translators: 1: Old type, 2: New type */
-					__( 'Template type changed from "%1$s" to "%2$s". Existing elements may need to be reviewed for compatibility with the new template slot.', 'bricks-mcp' ),
+					__( 'Template type changed from "%1$s" to "%2$s". Existing elements may need to be reviewed for compatibility with the new template slot.', 'lc-bricks-mcp' ),
 					$old_type,
 					$new_type
 				);
@@ -925,7 +925,7 @@ class BricksService {
 				'template_not_found',
 				sprintf(
 					/* translators: %d: Template ID */
-					__( 'Bricks template %d not found. Verify the template_id is a valid bricks_template post.', 'bricks-mcp' ),
+					__( 'Bricks template %d not found. Verify the template_id is a valid bricks_template post.', 'lc-bricks-mcp' ),
 					$template_id
 				)
 			);
@@ -1055,7 +1055,7 @@ class BricksService {
 				'template_not_found',
 				sprintf(
 					/* translators: %d: Template ID */
-					__( 'Bricks template %d not found. Verify the template_id is a valid bricks_template post.', 'bricks-mcp' ),
+					__( 'Bricks template %d not found. Verify the template_id is a valid bricks_template post.', 'lc-bricks-mcp' ),
 					$template_id
 				)
 			);
@@ -1198,7 +1198,7 @@ class BricksService {
 		if ( empty( $args['name'] ) ) {
 			return new \WP_Error(
 				'missing_name',
-				__( 'Class name is required. Provide a non-empty "name" parameter.', 'bricks-mcp' )
+				__( 'Class name is required. Provide a non-empty "name" parameter.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -1207,7 +1207,7 @@ class BricksService {
 		if ( '' === $name ) {
 			return new \WP_Error(
 				'missing_name',
-				__( 'Class name is required. Provide a non-empty "name" parameter.', 'bricks-mcp' )
+				__( 'Class name is required. Provide a non-empty "name" parameter.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -1218,7 +1218,7 @@ class BricksService {
 				'duplicate_name',
 				sprintf(
 					/* translators: %s: Class name */
-					__( 'A global class named "%s" already exists. Use update_global_class to modify it.', 'bricks-mcp' ),
+					__( 'A global class named "%s" already exists. Use update_global_class to modify it.', 'lc-bricks-mcp' ),
 					$name
 				)
 			);
@@ -1253,7 +1253,7 @@ class BricksService {
 		if ( null === $stored || ! is_array( $stored ) ) {
 			return new \WP_Error(
 				'global_class_create_failed',
-				__( 'Global class appeared to save but verification read-back failed. The database may have rejected the write.', 'bricks-mcp' )
+				__( 'Global class appeared to save but verification read-back failed. The database may have rejected the write.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -1290,7 +1290,7 @@ class BricksService {
 							'duplicate_name',
 							sprintf(
 								/* translators: %s: Class name */
-								__( 'A global class named "%s" already exists.', 'bricks-mcp' ),
+								__( 'A global class named "%s" already exists.', 'lc-bricks-mcp' ),
 								$new_name
 							)
 						);
@@ -1329,7 +1329,7 @@ class BricksService {
 			if ( null === $stored || ! is_array( $stored ) ) {
 				return new \WP_Error(
 					'global_class_update_failed',
-					__( 'Global class appeared to save but verification read-back failed. The database may have rejected the write.', 'bricks-mcp' )
+					__( 'Global class appeared to save but verification read-back failed. The database may have rejected the write.', 'lc-bricks-mcp' )
 				);
 			}
 
@@ -1341,7 +1341,7 @@ class BricksService {
 			'class_not_found',
 			sprintf(
 				/* translators: %s: Class ID */
-				__( 'Global class with ID "%s" not found.', 'bricks-mcp' ),
+				__( 'Global class with ID "%s" not found.', 'lc-bricks-mcp' ),
 				$class_id
 			)
 		);
@@ -1382,7 +1382,7 @@ class BricksService {
 				'class_not_found',
 				sprintf(
 					/* translators: %s: Class ID */
-					__( 'Global class with ID "%s" not found.', 'bricks-mcp' ),
+					__( 'Global class with ID "%s" not found.', 'lc-bricks-mcp' ),
 					$class_id
 				)
 			);
@@ -1399,7 +1399,7 @@ class BricksService {
 		if ( null === $stored || ! is_array( $stored ) ) {
 			return new \WP_Error(
 				'global_class_trash_failed',
-				__( 'Global class trash appeared to save but verification read-back failed. The database may have rejected the write.', 'bricks-mcp' )
+				__( 'Global class trash appeared to save but verification read-back failed. The database may have rejected the write.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -1643,7 +1643,7 @@ class BricksService {
 		if ( '' === $sanitized_name ) {
 			return new \WP_Error(
 				'missing_name',
-				__( 'Category name is required.', 'bricks-mcp' )
+				__( 'Category name is required.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -1654,7 +1654,7 @@ class BricksService {
 				'duplicate_name',
 				sprintf(
 					/* translators: %s: Category name */
-					__( 'A category named "%s" already exists.', 'bricks-mcp' ),
+					__( 'A category named "%s" already exists.', 'lc-bricks-mcp' ),
 					$sanitized_name
 				)
 			);
@@ -1707,7 +1707,7 @@ class BricksService {
 				'category_not_found',
 				sprintf(
 					/* translators: %s: Category ID */
-					__( 'Category with ID "%s" not found. Use list_global_class_categories to find valid IDs.', 'bricks-mcp' ),
+					__( 'Category with ID "%s" not found. Use list_global_class_categories to find valid IDs.', 'lc-bricks-mcp' ),
 					$category_id
 				)
 			);
@@ -2295,7 +2295,7 @@ class BricksService {
 				'invalid_element_ids',
 				sprintf(
 					/* translators: %s: Comma-separated list of invalid element IDs */
-					__( 'Element IDs not found on post %1$d: %2$s. Use get_bricks_content to retrieve valid element IDs.', 'bricks-mcp' ),
+					__( 'Element IDs not found on post %1$d: %2$s. Use get_bricks_content to retrieve valid element IDs.', 'lc-bricks-mcp' ),
 					$post_id,
 					implode( ', ', $invalid_ids )
 				)
@@ -2350,7 +2350,7 @@ class BricksService {
 				'invalid_element_ids',
 				sprintf(
 					/* translators: %s: Comma-separated list of invalid element IDs */
-					__( 'Element IDs not found on post %1$d: %2$s. Use get_bricks_content to retrieve valid element IDs.', 'bricks-mcp' ),
+					__( 'Element IDs not found on post %1$d: %2$s. Use get_bricks_content to retrieve valid element IDs.', 'lc-bricks-mcp' ),
 					$post_id,
 					implode( ', ', $invalid_ids )
 				)
@@ -2518,7 +2518,7 @@ class BricksService {
 		if ( empty( $args['title'] ) ) {
 			return new \WP_Error(
 				'missing_title',
-				__( 'Post title is required. Provide a non-empty "title" parameter.', 'bricks-mcp' )
+				__( 'Post title is required. Provide a non-empty "title" parameter.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -2568,7 +2568,7 @@ class BricksService {
 			return new \WP_Error(
 				'post_not_found',
 				/* translators: %d: Post ID */
-				sprintf( __( 'Post %d not found. Verify the post_id and try again.', 'bricks-mcp' ), $post_id )
+				sprintf( __( 'Post %d not found. Verify the post_id and try again.', 'lc-bricks-mcp' ), $post_id )
 			);
 		}
 
@@ -2620,7 +2620,7 @@ class BricksService {
 			return new \WP_Error(
 				'post_not_found',
 				/* translators: %d: Post ID */
-				sprintf( __( 'Post %d not found. The post may have already been deleted or the ID is incorrect.', 'bricks-mcp' ), $post_id )
+				sprintf( __( 'Post %d not found. The post may have already been deleted or the ID is incorrect.', 'lc-bricks-mcp' ), $post_id )
 			);
 		}
 
@@ -2629,7 +2629,7 @@ class BricksService {
 			return new \WP_Error(
 				'trash_failed',
 				/* translators: %d: Post ID */
-				sprintf( __( 'Failed to trash post %d. Check WordPress error logs for details.', 'bricks-mcp' ), $post_id )
+				sprintf( __( 'Failed to trash post %d. Check WordPress error logs for details.', 'lc-bricks-mcp' ), $post_id )
 			);
 		}
 
@@ -2652,13 +2652,13 @@ class BricksService {
 			return new \WP_Error(
 				'post_not_found',
 				/* translators: %d: Post ID */
-				sprintf( __( 'Post %d not found. Verify the post_id and try again.', 'bricks-mcp' ), $post_id )
+				sprintf( __( 'Post %d not found. Verify the post_id and try again.', 'lc-bricks-mcp' ), $post_id )
 			);
 		}
 
 		// Create new post with same data but draft status.
 		$new_post_data = [
-			'post_title'   => $post->post_title . __( ' (Copy)', 'bricks-mcp' ),
+			'post_title'   => $post->post_title . __( ' (Copy)', 'lc-bricks-mcp' ),
 			'post_type'    => $post->post_type,
 			'post_status'  => 'draft',
 			'post_content' => $post->post_content,
@@ -2820,7 +2820,7 @@ class BricksService {
 				'template_not_found',
 				sprintf(
 					/* translators: %d: Template ID */
-					__( 'Bricks template %d not found. Verify the template_id is a valid bricks_template post.', 'bricks-mcp' ),
+					__( 'Bricks template %d not found. Verify the template_id is a valid bricks_template post.', 'lc-bricks-mcp' ),
 					$template_id
 				)
 			);
@@ -2835,7 +2835,7 @@ class BricksService {
 					'invalid_condition',
 					sprintf(
 						/* translators: %d: Condition index */
-						__( 'Condition at index %d is missing required "main" key.', 'bricks-mcp' ),
+						__( 'Condition at index %d is missing required "main" key.', 'lc-bricks-mcp' ),
 						$index
 					)
 				);
@@ -2846,7 +2846,7 @@ class BricksService {
 					'invalid_condition_type',
 					sprintf(
 						/* translators: 1: Unknown type, 2: Valid types list */
-						__( 'Unknown condition type "%1$s". Valid types: %2$s.', 'bricks-mcp' ),
+						__( 'Unknown condition type "%1$s". Valid types: %2$s.', 'lc-bricks-mcp' ),
 						$condition['main'],
 						implode( ', ', $valid_types )
 					)
@@ -2889,7 +2889,7 @@ class BricksService {
 				'post_not_found',
 				sprintf(
 					/* translators: %d: Post ID */
-					__( 'Post %d not found. Verify the post_id and try again.', 'bricks-mcp' ),
+					__( 'Post %d not found. Verify the post_id and try again.', 'lc-bricks-mcp' ),
 					$post_id
 				)
 			);
@@ -3058,7 +3058,7 @@ class BricksService {
 			return new \WP_Error(
 				'post_not_found',
 				/* translators: %d: Post ID */
-				sprintf( __( 'Post %d not found. Verify the post_id and try again.', 'bricks-mcp' ), $post_id )
+				sprintf( __( 'Post %d not found. Verify the post_id and try again.', 'lc-bricks-mcp' ), $post_id )
 			);
 		}
 
@@ -3125,7 +3125,7 @@ class BricksService {
 			return new \WP_Error(
 				'post_not_found',
 				/* translators: %d: Post ID */
-				sprintf( __( 'Post %d not found. Verify the post_id and try again.', 'bricks-mcp' ), $post_id )
+				sprintf( __( 'Post %d not found. Verify the post_id and try again.', 'lc-bricks-mcp' ), $post_id )
 			);
 		}
 
@@ -3146,7 +3146,7 @@ class BricksService {
 				'element_not_found',
 				sprintf(
 					/* translators: 1: Element ID, 2: Post ID */
-					__( 'Element "%1$s" not found on post %2$d. Use get_bricks_content to retrieve valid element IDs.', 'bricks-mcp' ),
+					__( 'Element "%1$s" not found on post %2$d. Use get_bricks_content to retrieve valid element IDs.', 'lc-bricks-mcp' ),
 					$element_id,
 					$post_id
 				)
@@ -3179,7 +3179,7 @@ class BricksService {
 				'invalid_taxonomy',
 				sprintf(
 					/* translators: %s: Taxonomy slug */
-					__( 'Invalid taxonomy "%s". Must be "template_tag" or "template_bundle".', 'bricks-mcp' ),
+					__( 'Invalid taxonomy "%s". Must be "template_tag" or "template_bundle".', 'lc-bricks-mcp' ),
 					$taxonomy
 				)
 			);
@@ -3223,7 +3223,7 @@ class BricksService {
 				'invalid_taxonomy',
 				sprintf(
 					/* translators: %s: Taxonomy slug */
-					__( 'Invalid taxonomy "%s". Must be "template_tag" or "template_bundle".', 'bricks-mcp' ),
+					__( 'Invalid taxonomy "%s". Must be "template_tag" or "template_bundle".', 'lc-bricks-mcp' ),
 					$taxonomy
 				)
 			);
@@ -3256,7 +3256,7 @@ class BricksService {
 				'invalid_taxonomy',
 				sprintf(
 					/* translators: %s: Taxonomy slug */
-					__( 'Invalid taxonomy "%s". Must be "template_tag" or "template_bundle".', 'bricks-mcp' ),
+					__( 'Invalid taxonomy "%s". Must be "template_tag" or "template_bundle".', 'lc-bricks-mcp' ),
 					$taxonomy
 				)
 			);
@@ -3273,7 +3273,7 @@ class BricksService {
 				'term_not_found',
 				sprintf(
 					/* translators: %d: Term ID */
-					__( 'Term %d not found. Use list_template_tags or list_template_bundles to find valid term IDs.', 'bricks-mcp' ),
+					__( 'Term %d not found. Use list_template_tags or list_template_bundles to find valid term IDs.', 'lc-bricks-mcp' ),
 					$term_id
 				)
 			);
@@ -3284,7 +3284,7 @@ class BricksService {
 				'cannot_delete_default_term',
 				sprintf(
 					/* translators: %d: Term ID */
-					__( 'Cannot delete term %d because it is the default term for this taxonomy.', 'bricks-mcp' ),
+					__( 'Cannot delete term %d because it is the default term for this taxonomy.', 'lc-bricks-mcp' ),
 					$term_id
 				)
 			);
@@ -3310,7 +3310,7 @@ class BricksService {
 			return new \WP_Error(
 				'post_not_found',
 				/* translators: %d: Post ID */
-				sprintf( __( 'Post %d not found. Verify the post_id and try again.', 'bricks-mcp' ), $post_id )
+				sprintf( __( 'Post %d not found. Verify the post_id and try again.', 'lc-bricks-mcp' ), $post_id )
 			);
 		}
 
@@ -3333,7 +3333,7 @@ class BricksService {
 				'element_not_found',
 				sprintf(
 					/* translators: 1: Element ID, 2: Post ID */
-					__( 'Element "%1$s" not found on post %2$d. Use get_bricks_content to retrieve valid element IDs.', 'bricks-mcp' ),
+					__( 'Element "%1$s" not found on post %2$d. Use get_bricks_content to retrieve valid element IDs.', 'lc-bricks-mcp' ),
 					$element_id,
 					$post_id
 				)
@@ -3405,7 +3405,7 @@ class BricksService {
 			return new \WP_Error(
 				'post_not_found',
 				/* translators: %d: Post ID */
-				sprintf( __( 'Post %d not found. Verify the post_id and try again.', 'bricks-mcp' ), $post_id )
+				sprintf( __( 'Post %d not found. Verify the post_id and try again.', 'lc-bricks-mcp' ), $post_id )
 			);
 		}
 
@@ -3416,7 +3416,7 @@ class BricksService {
 				'no_elements',
 				sprintf(
 					/* translators: %d: Post ID */
-					__( 'No Bricks elements found on post %d.', 'bricks-mcp' ),
+					__( 'No Bricks elements found on post %d.', 'lc-bricks-mcp' ),
 					$post_id
 				)
 			);
@@ -3434,7 +3434,7 @@ class BricksService {
 				'element_not_found',
 				sprintf(
 					/* translators: 1: Element ID, 2: Post ID */
-					__( 'Element "%1$s" not found on post %2$d. Use get_bricks_content to retrieve valid element IDs.', 'bricks-mcp' ),
+					__( 'Element "%1$s" not found on post %2$d. Use get_bricks_content to retrieve valid element IDs.', 'lc-bricks-mcp' ),
 					$element_id,
 					$post_id
 				)
@@ -3460,7 +3460,7 @@ class BricksService {
 					'parent_not_found',
 					sprintf(
 						/* translators: %s: Parent element ID */
-						__( 'Target parent element "%s" not found. Use get_bricks_content to retrieve valid element IDs.', 'bricks-mcp' ),
+						__( 'Target parent element "%s" not found. Use get_bricks_content to retrieve valid element IDs.', 'lc-bricks-mcp' ),
 						$target_parent_id
 					)
 				);
@@ -3572,7 +3572,7 @@ class BricksService {
 		if ( count( $updates ) > 50 ) {
 			return new \WP_Error(
 				'batch_too_large',
-				__( 'Maximum 50 element updates per call. Split into multiple calls.', 'bricks-mcp' )
+				__( 'Maximum 50 element updates per call. Split into multiple calls.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -3581,7 +3581,7 @@ class BricksService {
 			return new \WP_Error(
 				'post_not_found',
 				/* translators: %d: Post ID */
-				sprintf( __( 'Post %d not found. Verify the post_id and try again.', 'bricks-mcp' ), $post_id )
+				sprintf( __( 'Post %d not found. Verify the post_id and try again.', 'lc-bricks-mcp' ), $post_id )
 			);
 		}
 
@@ -3592,7 +3592,7 @@ class BricksService {
 				'no_elements',
 				sprintf(
 					/* translators: %d: Post ID */
-					__( 'No Bricks elements found on post %d.', 'bricks-mcp' ),
+					__( 'No Bricks elements found on post %d.', 'lc-bricks-mcp' ),
 					$post_id
 				)
 			);
@@ -3649,7 +3649,7 @@ class BricksService {
 		if ( empty( $success ) ) {
 			return new \WP_Error(
 				'all_failed',
-				__( 'All element updates failed. Check element IDs and settings.', 'bricks-mcp' )
+				__( 'All element updates failed. Check element IDs and settings.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -3711,7 +3711,7 @@ class BricksService {
 				'not_found',
 				sprintf(
 					/* translators: %s: Style ID */
-					__( 'Theme style "%s" not found. Use list_theme_styles to discover available style IDs.', 'bricks-mcp' ),
+					__( 'Theme style "%s" not found. Use list_theme_styles to discover available style IDs.', 'lc-bricks-mcp' ),
 					$style_id
 				)
 			);
@@ -3737,7 +3737,7 @@ class BricksService {
 		if ( '' === $sanitized_label ) {
 			return new \WP_Error(
 				'missing_label',
-				__( 'Theme style label is required. Provide a non-empty "label" parameter.', 'bricks-mcp' )
+				__( 'Theme style label is required. Provide a non-empty "label" parameter.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -3796,7 +3796,7 @@ class BricksService {
 				'not_found',
 				sprintf(
 					/* translators: %s: Style ID */
-					__( 'Theme style "%s" not found. Use list_theme_styles to discover available style IDs.', 'bricks-mcp' ),
+					__( 'Theme style "%s" not found. Use list_theme_styles to discover available style IDs.', 'lc-bricks-mcp' ),
 					$style_id
 				)
 			);
@@ -3881,7 +3881,7 @@ class BricksService {
 				'not_found',
 				sprintf(
 					/* translators: %s: Style ID */
-					__( 'Theme style "%s" not found. Use list_theme_styles to discover available style IDs.', 'bricks-mcp' ),
+					__( 'Theme style "%s" not found. Use list_theme_styles to discover available style IDs.', 'lc-bricks-mcp' ),
 					$style_id
 				)
 			);
@@ -4023,21 +4023,21 @@ class BricksService {
 		if ( '' === $sanitized_name ) {
 			return new \WP_Error(
 				'missing_name',
-				__( 'Scale name is required. Provide a non-empty "name" parameter.', 'bricks-mcp' )
+				__( 'Scale name is required. Provide a non-empty "name" parameter.', 'lc-bricks-mcp' )
 			);
 		}
 
 		if ( ! str_starts_with( $prefix, '--' ) ) {
 			return new \WP_Error(
 				'invalid_prefix',
-				__( 'CSS variable prefix must start with "--" (e.g., "--text-", "--heading-").', 'bricks-mcp' )
+				__( 'CSS variable prefix must start with "--" (e.g., "--text-", "--heading-").', 'lc-bricks-mcp' )
 			);
 		}
 
 		if ( empty( $steps ) ) {
 			return new \WP_Error(
 				'missing_steps',
-				__( 'At least one step is required. Each step must have "name" and "value" (e.g., {"name": "sm", "value": "0.875rem"}).', 'bricks-mcp' )
+				__( 'At least one step is required. Each step must have "name" and "value" (e.g., {"name": "sm", "value": "0.875rem"}).', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -4048,7 +4048,7 @@ class BricksService {
 					'invalid_step',
 					sprintf(
 						/* translators: %d: Step index */
-						__( 'Step at index %d must have both "name" and "value" properties.', 'bricks-mcp' ),
+						__( 'Step at index %d must have both "name" and "value" properties.', 'lc-bricks-mcp' ),
 						$index
 					)
 				);
@@ -4175,7 +4175,7 @@ class BricksService {
 				'not_found',
 				sprintf(
 					/* translators: %s: Category ID */
-					__( 'Typography scale category "%s" not found. Use get_typography_scales to discover available scale IDs.', 'bricks-mcp' ),
+					__( 'Typography scale category "%s" not found. Use get_typography_scales to discover available scale IDs.', 'lc-bricks-mcp' ),
 					$category_id
 				)
 			);
@@ -4187,7 +4187,7 @@ class BricksService {
 				'not_a_scale',
 				sprintf(
 					/* translators: %s: Category ID */
-					__( 'Category "%s" is not a typography scale (no scale property). Use get_typography_scales to find scale categories.', 'bricks-mcp' ),
+					__( 'Category "%s" is not a typography scale (no scale property). Use get_typography_scales to find scale categories.', 'lc-bricks-mcp' ),
 					$category_id
 				)
 			);
@@ -4209,7 +4209,7 @@ class BricksService {
 			if ( ! str_starts_with( $prefix, '--' ) ) {
 				return new \WP_Error(
 					'invalid_prefix',
-					__( 'CSS variable prefix must start with "--" (e.g., "--text-", "--heading-").', 'bricks-mcp' )
+					__( 'CSS variable prefix must start with "--" (e.g., "--text-", "--heading-").', 'lc-bricks-mcp' )
 				);
 			}
 
@@ -4350,7 +4350,7 @@ class BricksService {
 				'not_found',
 				sprintf(
 					/* translators: %s: Category ID */
-					__( 'Typography scale category "%s" not found. Use get_typography_scales to discover available scale IDs.', 'bricks-mcp' ),
+					__( 'Typography scale category "%s" not found. Use get_typography_scales to discover available scale IDs.', 'lc-bricks-mcp' ),
 					$category_id
 				)
 			);
@@ -4362,7 +4362,7 @@ class BricksService {
 				'not_a_scale',
 				sprintf(
 					/* translators: %s: Category ID */
-					__( 'Category "%s" is not a typography scale. Will not delete plain variable categories from this tool.', 'bricks-mcp' ),
+					__( 'Category "%s" is not a typography scale. Will not delete plain variable categories from this tool.', 'lc-bricks-mcp' ),
 					$category_id
 				)
 			);
@@ -4512,7 +4512,7 @@ class BricksService {
 		if ( '' === $sanitized_name ) {
 			return new \WP_Error(
 				'missing_name',
-				__( 'Palette name is required.', 'bricks-mcp' )
+				__( 'Palette name is required.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -4661,7 +4661,7 @@ class BricksService {
 		if ( '' === $sanitized_name ) {
 			return new \WP_Error(
 				'missing_name',
-				__( 'Palette name is required.', 'bricks-mcp' )
+				__( 'Palette name is required.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -4684,7 +4684,7 @@ class BricksService {
 				'not_found',
 				sprintf(
 					/* translators: %s: Palette ID */
-					__( 'Palette "%s" not found. Use list_color_palettes to discover available palette IDs.', 'bricks-mcp' ),
+					__( 'Palette "%s" not found. Use list_color_palettes to discover available palette IDs.', 'lc-bricks-mcp' ),
 					$palette_id
 				)
 			);
@@ -4733,7 +4733,7 @@ class BricksService {
 				'not_found',
 				sprintf(
 					/* translators: %s: Palette ID */
-					__( 'Palette "%s" not found. Use list_color_palettes to discover available palette IDs.', 'bricks-mcp' ),
+					__( 'Palette "%s" not found. Use list_color_palettes to discover available palette IDs.', 'lc-bricks-mcp' ),
 					$palette_id
 				)
 			);
@@ -4775,7 +4775,7 @@ class BricksService {
 				'invalid_hex',
 				sprintf(
 					/* translators: %s: Provided hex value */
-					__( 'Invalid hex color "%s". Provide a valid hex color (e.g., "#3498db" or "#fff").', 'bricks-mcp' ),
+					__( 'Invalid hex color "%s". Provide a valid hex color (e.g., "#3498db" or "#fff").', 'lc-bricks-mcp' ),
 					$light
 				)
 			);
@@ -4786,7 +4786,7 @@ class BricksService {
 		if ( '' === $sanitized_name ) {
 			return new \WP_Error(
 				'missing_name',
-				__( 'Color name is required.', 'bricks-mcp' )
+				__( 'Color name is required.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -4809,7 +4809,7 @@ class BricksService {
 				'not_found',
 				sprintf(
 					/* translators: %s: Palette ID */
-					__( 'Palette "%s" not found. Use list_color_palettes to discover available palette IDs.', 'bricks-mcp' ),
+					__( 'Palette "%s" not found. Use list_color_palettes to discover available palette IDs.', 'lc-bricks-mcp' ),
 					$palette_id
 				)
 			);
@@ -4849,7 +4849,7 @@ class BricksService {
 					'parent_not_found',
 					sprintf(
 						/* translators: %1$s: Parent color ID, %2$s: Palette ID */
-						__( 'Parent color "%1$s" not found in palette "%2$s". Use list_color_palettes to see existing color IDs.', 'bricks-mcp' ),
+						__( 'Parent color "%1$s" not found in palette "%2$s". Use list_color_palettes to see existing color IDs.', 'lc-bricks-mcp' ),
 						$parent,
 						$palette_id
 					)
@@ -4912,7 +4912,7 @@ class BricksService {
 				'not_found',
 				sprintf(
 					/* translators: %s: Palette ID */
-					__( 'Palette "%s" not found. Use list_color_palettes to discover available palette IDs.', 'bricks-mcp' ),
+					__( 'Palette "%s" not found. Use list_color_palettes to discover available palette IDs.', 'lc-bricks-mcp' ),
 					$palette_id
 				)
 			);
@@ -4931,7 +4931,7 @@ class BricksService {
 				'color_not_found',
 				sprintf(
 					/* translators: %1$s: Color ID, %2$s: Palette ID */
-					__( 'Color "%1$s" not found in palette "%2$s". Use list_color_palettes to see existing color IDs.', 'bricks-mcp' ),
+					__( 'Color "%1$s" not found in palette "%2$s". Use list_color_palettes to see existing color IDs.', 'lc-bricks-mcp' ),
 					$color_id,
 					$palette_id
 				)
@@ -4949,7 +4949,7 @@ class BricksService {
 					'invalid_hex',
 					sprintf(
 						/* translators: %s: Provided hex value */
-						__( 'Invalid hex color "%s". Provide a valid hex color (e.g., "#3498db" or "#fff").', 'bricks-mcp' ),
+						__( 'Invalid hex color "%s". Provide a valid hex color (e.g., "#3498db" or "#fff").', 'lc-bricks-mcp' ),
 						$fields['light']
 					)
 				);
@@ -4989,7 +4989,7 @@ class BricksService {
 						'parent_not_found',
 						sprintf(
 							/* translators: %s: Parent color ID */
-							__( 'Parent color "%s" not found in this palette.', 'bricks-mcp' ),
+							__( 'Parent color "%s" not found in this palette.', 'lc-bricks-mcp' ),
 							$fields['parent']
 						)
 					);
@@ -5060,7 +5060,7 @@ class BricksService {
 				'not_found',
 				sprintf(
 					/* translators: %s: Palette ID */
-					__( 'Palette "%s" not found. Use list_color_palettes to discover available palette IDs.', 'bricks-mcp' ),
+					__( 'Palette "%s" not found. Use list_color_palettes to discover available palette IDs.', 'lc-bricks-mcp' ),
 					$palette_id
 				)
 			);
@@ -5083,7 +5083,7 @@ class BricksService {
 				'color_not_found',
 				sprintf(
 					/* translators: %1$s: Color ID, %2$s: Palette ID */
-					__( 'Color "%1$s" not found in palette "%2$s". Use list_color_palettes to see existing color IDs.', 'bricks-mcp' ),
+					__( 'Color "%1$s" not found in palette "%2$s". Use list_color_palettes to see existing color IDs.', 'lc-bricks-mcp' ),
 					$color_id,
 					$palette_id
 				)
@@ -5214,7 +5214,7 @@ class BricksService {
 			'categories'      => $result_categories,
 			'uncategorized'   => $formatted_uncategorized,
 			'total_variables' => $total,
-			'note'            => __( 'Plain global variables are stored as design tokens for AI reference. Only color palette colors and typography scale variables generate CSS output in style-manager.min.css.', 'bricks-mcp' ),
+			'note'            => __( 'Plain global variables are stored as design tokens for AI reference. Only color palette colors and typography scale variables generate CSS output in style-manager.min.css.', 'lc-bricks-mcp' ),
 		];
 	}
 
@@ -5230,7 +5230,7 @@ class BricksService {
 		if ( '' === $sanitized_name ) {
 			return new \WP_Error(
 				'missing_name',
-				__( 'Category name is required.', 'bricks-mcp' )
+				__( 'Category name is required.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -5280,7 +5280,7 @@ class BricksService {
 		if ( '' === $sanitized_name ) {
 			return new \WP_Error(
 				'missing_name',
-				__( 'Category name is required.', 'bricks-mcp' )
+				__( 'Category name is required.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -5303,7 +5303,7 @@ class BricksService {
 				'not_found',
 				sprintf(
 					/* translators: %s: Category ID */
-					__( 'Variable category "%s" not found. Use list_global_variables to discover available category IDs.', 'bricks-mcp' ),
+					__( 'Variable category "%s" not found. Use list_global_variables to discover available category IDs.', 'lc-bricks-mcp' ),
 					$category_id
 				)
 			);
@@ -5315,7 +5315,7 @@ class BricksService {
 				'is_scale_category',
 				sprintf(
 					/* translators: %s: Category ID */
-					__( 'Category "%s" is a typography scale. Use update_typography_scale to modify scale categories.', 'bricks-mcp' ),
+					__( 'Category "%s" is a typography scale. Use update_typography_scale to modify scale categories.', 'lc-bricks-mcp' ),
 					$category_id
 				)
 			);
@@ -5363,7 +5363,7 @@ class BricksService {
 				'not_found',
 				sprintf(
 					/* translators: %s: Category ID */
-					__( 'Variable category "%s" not found. Use list_global_variables to discover available category IDs.', 'bricks-mcp' ),
+					__( 'Variable category "%s" not found. Use list_global_variables to discover available category IDs.', 'lc-bricks-mcp' ),
 					$category_id
 				)
 			);
@@ -5375,7 +5375,7 @@ class BricksService {
 				'is_scale_category',
 				sprintf(
 					/* translators: %s: Category ID */
-					__( 'Category "%s" is a typography scale. Use delete_typography_scale to remove scale categories.', 'bricks-mcp' ),
+					__( 'Category "%s" is a typography scale. Use delete_typography_scale to remove scale categories.', 'lc-bricks-mcp' ),
 					$category_id
 				)
 			);
@@ -5444,7 +5444,7 @@ class BricksService {
 		if ( '--' === $normalized_name ) {
 			return new \WP_Error(
 				'missing_name',
-				__( 'Variable name is required.', 'bricks-mcp' )
+				__( 'Variable name is required.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -5453,7 +5453,7 @@ class BricksService {
 		if ( '' === $sanitized_value ) {
 			return new \WP_Error(
 				'missing_value',
-				__( 'Variable value is required.', 'bricks-mcp' )
+				__( 'Variable value is required.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -5473,7 +5473,7 @@ class BricksService {
 							'is_scale_category',
 							sprintf(
 								/* translators: %s: Category ID */
-								__( 'Category "%s" is a typography scale. Use create_typography_scale to add variables to scale categories.', 'bricks-mcp' ),
+								__( 'Category "%s" is a typography scale. Use create_typography_scale to add variables to scale categories.', 'lc-bricks-mcp' ),
 								$category_id
 							)
 						);
@@ -5488,7 +5488,7 @@ class BricksService {
 					'category_not_found',
 					sprintf(
 						/* translators: %s: Category ID */
-						__( 'Category "%s" not found. Use list_global_variables to discover available category IDs, or create_variable_category to create one.', 'bricks-mcp' ),
+						__( 'Category "%s" not found. Use list_global_variables to discover available category IDs, or create_variable_category to create one.', 'lc-bricks-mcp' ),
 						$category_id
 					)
 				);
@@ -5558,7 +5558,7 @@ class BricksService {
 				'not_found',
 				sprintf(
 					/* translators: %s: Variable ID */
-					__( 'Variable "%s" not found. Use list_global_variables to discover available variable IDs.', 'bricks-mcp' ),
+					__( 'Variable "%s" not found. Use list_global_variables to discover available variable IDs.', 'lc-bricks-mcp' ),
 					$variable_id
 				)
 			);
@@ -5574,7 +5574,7 @@ class BricksService {
 			if ( '--' === $new_name ) {
 				return new \WP_Error(
 					'missing_name',
-					__( 'Variable name cannot be empty.', 'bricks-mcp' )
+					__( 'Variable name cannot be empty.', 'lc-bricks-mcp' )
 				);
 			}
 
@@ -5582,7 +5582,7 @@ class BricksService {
 				$variables[ $var_index ]['name'] = $new_name;
 				$rename_warning                  = sprintf(
 					/* translators: %s: Old variable name */
-					__( 'Variable renamed. Existing references to var(%s) in elements and styles will NOT be automatically updated.', 'bricks-mcp' ),
+					__( 'Variable renamed. Existing references to var(%s) in elements and styles will NOT be automatically updated.', 'lc-bricks-mcp' ),
 					$old_name
 				);
 			}
@@ -5595,7 +5595,7 @@ class BricksService {
 			if ( '' === $sanitized_value ) {
 				return new \WP_Error(
 					'missing_value',
-					__( 'Variable value cannot be empty.', 'bricks-mcp' )
+					__( 'Variable value cannot be empty.', 'lc-bricks-mcp' )
 				);
 			}
 
@@ -5621,7 +5621,7 @@ class BricksService {
 								'is_scale_category',
 								sprintf(
 									/* translators: %s: Category ID */
-									__( 'Category "%s" is a typography scale. Cannot assign plain variables to scale categories.', 'bricks-mcp' ),
+									__( 'Category "%s" is a typography scale. Cannot assign plain variables to scale categories.', 'lc-bricks-mcp' ),
 									$new_category
 								)
 							);
@@ -5636,7 +5636,7 @@ class BricksService {
 						'category_not_found',
 						sprintf(
 							/* translators: %s: Category ID */
-							__( 'Category "%s" not found.', 'bricks-mcp' ),
+							__( 'Category "%s" not found.', 'lc-bricks-mcp' ),
 							$new_category
 						)
 					);
@@ -5693,7 +5693,7 @@ class BricksService {
 				'not_found',
 				sprintf(
 					/* translators: %s: Variable ID */
-					__( 'Variable "%s" not found. Use list_global_variables to discover available variable IDs.', 'bricks-mcp' ),
+					__( 'Variable "%s" not found. Use list_global_variables to discover available variable IDs.', 'lc-bricks-mcp' ),
 					$variable_id
 				)
 			);
@@ -5710,7 +5710,7 @@ class BricksService {
 			'name'            => $var_name,
 			'note'            => sprintf(
 				/* translators: %s: Variable name */
-				__( 'Existing elements referencing var(%s) will show CSS fallback values.', 'bricks-mcp' ),
+				__( 'Existing elements referencing var(%s) will show CSS fallback values.', 'lc-bricks-mcp' ),
 				$var_name
 			),
 			'css_regenerated' => $css_regenerated,
@@ -5741,7 +5741,7 @@ class BricksService {
 					if ( isset( $cat['scale'] ) ) {
 						return [
 							'created'         => [],
-							'errors'          => [ 'category' => __( 'Cannot add plain variables to a typography scale category.', 'bricks-mcp' ) ],
+							'errors'          => [ 'category' => __( 'Cannot add plain variables to a typography scale category.', 'lc-bricks-mcp' ) ],
 							'css_regenerated' => false,
 						];
 					}
@@ -5756,7 +5756,7 @@ class BricksService {
 					'errors'          => [
 						'category' => sprintf(
 							/* translators: %s: Category ID */
-							__( 'Category "%s" not found.', 'bricks-mcp' ),
+							__( 'Category "%s" not found.', 'lc-bricks-mcp' ),
 							$category_id
 						),
 					],
@@ -5778,19 +5778,19 @@ class BricksService {
 
 		foreach ( $variable_defs as $index => $def ) {
 			if ( empty( $def['name'] ) ) {
-				$errors[ $index ] = __( 'Missing name', 'bricks-mcp' );
+				$errors[ $index ] = __( 'Missing name', 'lc-bricks-mcp' );
 				continue;
 			}
 
 			$normalized_name = $this->normalize_variable_name( $def['name'] );
 
 			if ( '--' === $normalized_name ) {
-				$errors[ $index ] = __( 'Empty name after normalization', 'bricks-mcp' );
+				$errors[ $index ] = __( 'Empty name after normalization', 'lc-bricks-mcp' );
 				continue;
 			}
 
 			if ( ! isset( $def['value'] ) || '' === $def['value'] ) {
-				$errors[ $index ] = __( 'Missing value', 'bricks-mcp' );
+				$errors[ $index ] = __( 'Missing value', 'lc-bricks-mcp' );
 				continue;
 			}
 
@@ -5838,7 +5838,7 @@ class BricksService {
 	 */
 	public function batch_delete_global_variables( array $variable_ids ): array|\WP_Error {
 		if ( count( $variable_ids ) > 50 ) {
-			return new \WP_Error( 'batch_too_large', __( 'Maximum 50 variable deletions per call.', 'bricks-mcp' ) );
+			return new \WP_Error( 'batch_too_large', __( 'Maximum 50 variable deletions per call.', 'lc-bricks-mcp' ) );
 		}
 
 		$variables = get_option( 'bricks_global_variables', [] );
@@ -5867,7 +5867,7 @@ class BricksService {
 		}
 
 		if ( empty( $success ) ) {
-			return new \WP_Error( 'all_failed', __( 'None of the specified variable IDs were found.', 'bricks-mcp' ) );
+			return new \WP_Error( 'all_failed', __( 'None of the specified variable IDs were found.', 'lc-bricks-mcp' ) );
 		}
 
 		// Sort descending to avoid index shifting during splice.
@@ -5971,7 +5971,7 @@ class BricksService {
 				'invalid_category',
 				sprintf(
 					/* translators: 1: provided category, 2: valid categories */
-					__( 'Invalid category "%1$s". Valid categories: %2$s', 'bricks-mcp' ),
+					__( 'Invalid category "%1$s". Valid categories: %2$s', 'lc-bricks-mcp' ),
 					$category,
 					implode( ', ', $available_categories )
 				)
@@ -6160,7 +6160,7 @@ class BricksService {
 		if ( ! $post ) {
 			return new \WP_Error(
 				'invalid_post',
-				__( 'Post not found. Use list_pages or get_posts to find valid post IDs.', 'bricks-mcp' )
+				__( 'Post not found. Use list_pages or get_posts to find valid post IDs.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -6195,7 +6195,7 @@ class BricksService {
 		if ( ! $post ) {
 			return new \WP_Error(
 				'invalid_post',
-				__( 'Post not found. Use list_pages or get_posts to find valid post IDs.', 'bricks-mcp' )
+				__( 'Post not found. Use list_pages or get_posts to find valid post IDs.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -6223,7 +6223,7 @@ class BricksService {
 			if ( ! in_array( $key, $allowlist, true ) ) {
 				$rejected[]      = [
 					'key'    => $key,
-					'reason' => __( 'unknown key', 'bricks-mcp' ),
+					'reason' => __( 'unknown key', 'lc-bricks-mcp' ),
 				];
 				$rejected_keys[] = $key;
 				continue;
@@ -6233,7 +6233,7 @@ class BricksService {
 			if ( in_array( $key, $js_gated_keys, true ) && ! $this->is_dangerous_actions_enabled() ) {
 				$rejected[]      = [
 					'key'    => $key,
-					'reason' => __( 'requires dangerous actions mode (Settings > Bricks MCP > Enable Dangerous Actions)', 'bricks-mcp' ),
+					'reason' => __( 'requires dangerous actions mode (Settings > LC Bricks MCP > Enable Dangerous Actions)', 'lc-bricks-mcp' ),
 				];
 				$rejected_keys[] = $key;
 				continue;
@@ -6272,10 +6272,10 @@ class BricksService {
 
 		// Build warnings.
 		if ( $css_set ) {
-			$warnings[] = __( 'Bricks-first principle: prefer native Bricks elements and classes over custom CSS. Only use custom CSS when the desired result cannot be achieved with Bricks features.', 'bricks-mcp' );
+			$warnings[] = __( 'Bricks-first principle: prefer native Bricks elements and classes over custom CSS. Only use custom CSS when the desired result cannot be achieved with Bricks features.', 'lc-bricks-mcp' );
 		}
 		if ( $js_set ) {
-			$warnings[] = __( 'Custom scripts execute on the frontend. Ensure code is safe and necessary.', 'bricks-mcp' );
+			$warnings[] = __( 'Custom scripts execute on the frontend. Ensure code is safe and necessary.', 'lc-bricks-mcp' );
 		}
 
 		return [
@@ -6380,7 +6380,7 @@ class BricksService {
 				'not_found',
 				sprintf(
 					/* translators: %d: Template ID */
-					__( 'Template %d not found. Verify the template_id is a valid bricks_template post.', 'bricks-mcp' ),
+					__( 'Template %d not found. Verify the template_id is a valid bricks_template post.', 'lc-bricks-mcp' ),
 					$template_id
 				)
 			);
@@ -6392,7 +6392,7 @@ class BricksService {
 				'wrong_type',
 				sprintf(
 					/* translators: 1: Template ID, 2: Actual type */
-					__( "Template %1\$d is type '%2\$s', not 'popup'.", 'bricks-mcp' ),
+					__( "Template %1\$d is type '%2\$s', not 'popup'.", 'lc-bricks-mcp' ),
 					$template_id,
 					$type
 				)
@@ -6440,7 +6440,7 @@ class BricksService {
 				'not_found',
 				sprintf(
 					/* translators: %d: Template ID */
-					__( 'Template %d not found. Verify the template_id is a valid bricks_template post.', 'bricks-mcp' ),
+					__( 'Template %d not found. Verify the template_id is a valid bricks_template post.', 'lc-bricks-mcp' ),
 					$template_id
 				)
 			);
@@ -6452,7 +6452,7 @@ class BricksService {
 				'wrong_type',
 				sprintf(
 					/* translators: 1: Template ID, 2: Actual type */
-					__( "Template %1\$d is type '%2\$s', not 'popup'.", 'bricks-mcp' ),
+					__( "Template %1\$d is type '%2\$s', not 'popup'.", 'lc-bricks-mcp' ),
 					$template_id,
 					$type
 				)
@@ -6467,7 +6467,7 @@ class BricksService {
 				'unknown_keys',
 				sprintf(
 					/* translators: %s: Unknown key names */
-					__( 'Unknown popup setting keys: %s', 'bricks-mcp' ),
+					__( 'Unknown popup setting keys: %s', 'lc-bricks-mcp' ),
 					implode( ', ', $unknown )
 				)
 			);
@@ -6567,13 +6567,13 @@ class BricksService {
 	/**
 	 * Check if dangerous actions mode is enabled.
 	 *
-	 * Reads the bricks_mcp_settings option to check the dangerous_actions toggle.
+	 * Reads the lc_bricks_mcp_settings option to check the dangerous_actions toggle.
 	 * Used to gate JS writes on page settings and global settings mutations.
 	 *
 	 * @return bool True if dangerous actions mode is enabled.
 	 */
 	public function is_dangerous_actions_enabled(): bool {
-		$settings = get_option( 'bricks_mcp_settings', [] );
+		$settings = get_option( 'lc_bricks_mcp_settings', [] );
 		return ! empty( $settings['dangerous_actions'] );
 	}
 
@@ -6633,7 +6633,7 @@ class BricksService {
 		if ( ! $post ) {
 			return new \WP_Error(
 				'invalid_post',
-				__( 'Post not found. Use page tool (action: list) to find valid post IDs.', 'bricks-mcp' )
+				__( 'Post not found. Use page tool (action: list) to find valid post IDs.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -6765,14 +6765,14 @@ class BricksService {
 		if ( ! $post ) {
 			return new \WP_Error(
 				'invalid_post',
-				__( 'Post not found. Use page tool (action: list) to find valid post IDs.', 'bricks-mcp' )
+				__( 'Post not found. Use page tool (action: list) to find valid post IDs.', 'lc-bricks-mcp' )
 			);
 		}
 
 		if ( empty( $fields ) ) {
 			return new \WP_Error(
 				'empty_fields',
-				__( 'At least one SEO field must be provided. Accepted: title, description, robots_noindex, robots_nofollow, canonical, og_title, og_description, og_image, twitter_title, twitter_description, twitter_image, focus_keyword.', 'bricks-mcp' )
+				__( 'At least one SEO field must be provided. Accepted: title, description, robots_noindex, robots_nofollow, canonical, og_title, og_description, og_image, twitter_title, twitter_description, twitter_image, focus_keyword.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -6803,11 +6803,11 @@ class BricksService {
 		$unsupported = array();
 
 		$plugin_notes = array(
-			'yoast'    => __( 'SEO fields written to Yoast SEO meta keys. Changes will appear in the Yoast metabox.', 'bricks-mcp' ),
-			'rankmath' => __( 'SEO fields written to Rank Math meta keys. Changes will appear in the Rank Math metabox.', 'bricks-mcp' ),
-			'seopress' => __( 'SEO fields written to SEOPress meta keys. Changes will appear in the SEOPress metabox.', 'bricks-mcp' ),
-			'slimseo'  => __( 'SEO fields written to Slim SEO meta key. Only title, description, and canonical are supported.', 'bricks-mcp' ),
-			'bricks'   => __( 'SEO fields written to Bricks native page settings. Only effective when no SEO plugin is active.', 'bricks-mcp' ),
+			'yoast'    => __( 'SEO fields written to Yoast SEO meta keys. Changes will appear in the Yoast metabox.', 'lc-bricks-mcp' ),
+			'rankmath' => __( 'SEO fields written to Rank Math meta keys. Changes will appear in the Rank Math metabox.', 'lc-bricks-mcp' ),
+			'seopress' => __( 'SEO fields written to SEOPress meta keys. Changes will appear in the SEOPress metabox.', 'lc-bricks-mcp' ),
+			'slimseo'  => __( 'SEO fields written to Slim SEO meta key. Only title, description, and canonical are supported.', 'lc-bricks-mcp' ),
+			'bricks'   => __( 'SEO fields written to Bricks native page settings. Only effective when no SEO plugin is active.', 'lc-bricks-mcp' ),
 		);
 
 		switch ( $plugin ) {
@@ -6891,7 +6891,7 @@ class BricksService {
 				$rm_unsupported = array( 'og_title', 'og_description', 'twitter_title', 'twitter_description', 'twitter_image' );
 				foreach ( $rm_unsupported as $field ) {
 					if ( array_key_exists( $field, $sanitized ) ) {
-						$unsupported[ $field ] = __( 'Rank Math uses the main title/description for OG/Twitter.', 'bricks-mcp' );
+						$unsupported[ $field ] = __( 'Rank Math uses the main title/description for OG/Twitter.', 'lc-bricks-mcp' );
 					}
 				}
 				break;
@@ -6928,7 +6928,7 @@ class BricksService {
 
 				// SEOPress unsupported.
 				if ( array_key_exists( 'focus_keyword', $sanitized ) ) {
-					$unsupported['focus_keyword'] = __( 'SEOPress does not support focus keyword per post.', 'bricks-mcp' );
+					$unsupported['focus_keyword'] = __( 'SEOPress does not support focus keyword per post.', 'lc-bricks-mcp' );
 				}
 				break;
 
@@ -6953,7 +6953,7 @@ class BricksService {
 				$slim_unsupported = array( 'robots_noindex', 'robots_nofollow', 'og_title', 'og_description', 'og_image', 'twitter_title', 'twitter_description', 'twitter_image', 'focus_keyword' );
 				foreach ( $slim_unsupported as $field ) {
 					if ( array_key_exists( $field, $sanitized ) ) {
-						$unsupported[ $field ] = __( 'Slim SEO only supports title, description, and canonical per post.', 'bricks-mcp' );
+						$unsupported[ $field ] = __( 'Slim SEO only supports title, description, and canonical per post.', 'lc-bricks-mcp' );
 					}
 				}
 				break;
@@ -7010,7 +7010,7 @@ class BricksService {
 				$bricks_unsupported = array( 'canonical', 'twitter_title', 'twitter_description', 'twitter_image', 'focus_keyword' );
 				foreach ( $bricks_unsupported as $field ) {
 					if ( array_key_exists( $field, $sanitized ) ) {
-						$unsupported[ $field ] = __( 'Bricks native SEO does not support this field.', 'bricks-mcp' );
+						$unsupported[ $field ] = __( 'Bricks native SEO does not support this field.', 'lc-bricks-mcp' );
 					}
 				}
 				break;
@@ -7040,7 +7040,7 @@ class BricksService {
 				'template_not_found',
 				sprintf(
 					/* translators: %d: Template ID */
-					__( 'Bricks template %d not found. Verify the template_id is a valid bricks_template post.', 'bricks-mcp' ),
+					__( 'Bricks template %d not found. Verify the template_id is a valid bricks_template post.', 'lc-bricks-mcp' ),
 					$template_id
 				)
 			);
@@ -7095,14 +7095,14 @@ class BricksService {
 		if ( empty( $data['title'] ) || ! is_string( $data['title'] ) ) {
 			return new \WP_Error(
 				'invalid_template',
-				__( 'Template must have a non-empty title string.', 'bricks-mcp' )
+				__( 'Template must have a non-empty title string.', 'lc-bricks-mcp' )
 			);
 		}
 
 		if ( empty( $data['content'] ) || ! is_array( $data['content'] ) ) {
 			return new \WP_Error(
 				'invalid_template',
-				__( 'Template must have a non-empty content array of Bricks elements.', 'bricks-mcp' )
+				__( 'Template must have a non-empty content array of Bricks elements.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -7121,7 +7121,7 @@ class BricksService {
 		if ( 0 === $template_id ) {
 			return new \WP_Error(
 				'insert_failed',
-				__( 'Failed to create template post.', 'bricks-mcp' )
+				__( 'Failed to create template post.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -7184,7 +7184,7 @@ class BricksService {
 		if ( ! empty( $stripped_js_keys ) ) {
 			$result['warnings'] = array(
 				sprintf(
-					'Stripped JS-capable page settings keys (%s) because dangerous actions mode is disabled. Enable in Settings > Bricks MCP to allow.',
+					'Stripped JS-capable page settings keys (%s) because dangerous actions mode is disabled. Enable in Settings > LC Bricks MCP to allow.',
 					implode( ', ', $stripped_js_keys )
 				),
 			);
@@ -7203,7 +7203,7 @@ class BricksService {
 		if ( ! wp_http_validate_url( $url ) ) {
 			return new \WP_Error(
 				'invalid_url',
-				__( 'The provided URL is not valid.', 'bricks-mcp' )
+				__( 'The provided URL is not valid.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -7225,7 +7225,7 @@ class BricksService {
 				'fetch_failed',
 				sprintf(
 					/* translators: %d: HTTP status code */
-					__( 'Remote URL returned HTTP %d. Expected 200.', 'bricks-mcp' ),
+					__( 'Remote URL returned HTTP %d. Expected 200.', 'lc-bricks-mcp' ),
 					$status_code
 				)
 			);
@@ -7237,7 +7237,7 @@ class BricksService {
 		if ( strlen( $body ) > 10485760 ) {
 			return new \WP_Error(
 				'response_too_large',
-				__( 'Remote response exceeds 10MB size limit.', 'bricks-mcp' )
+				__( 'Remote response exceeds 10MB size limit.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -7246,7 +7246,7 @@ class BricksService {
 		if ( json_last_error() !== JSON_ERROR_NONE ) {
 			return new \WP_Error(
 				'invalid_json',
-				__( 'Remote URL did not return valid JSON.', 'bricks-mcp' )
+				__( 'Remote URL did not return valid JSON.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -7295,7 +7295,7 @@ class BricksService {
 		} else {
 			return new \WP_Error(
 				'invalid_classes_data',
-				__( 'classes_data must be an object with a "classes" array or a raw array of class objects with "name" keys.', 'bricks-mcp' )
+				__( 'classes_data must be an object with a "classes" array or a raw array of class objects with "name" keys.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -7374,17 +7374,17 @@ class BricksService {
 			'google_fonts'         => array(
 				'enabled' => empty( $settings['disableGoogleFonts'] ),
 				'note'    => empty( $settings['disableGoogleFonts'] )
-					? __( 'Google Fonts are loaded by default. Use font:update_settings with disable_google_fonts to disable.', 'bricks-mcp' )
-					: __( 'Google Fonts are disabled. Use font:update_settings with disable_google_fonts to re-enable.', 'bricks-mcp' ),
+					? __( 'Google Fonts are loaded by default. Use font:update_settings with disable_google_fonts to disable.', 'lc-bricks-mcp' )
+					: __( 'Google Fonts are disabled. Use font:update_settings with disable_google_fonts to re-enable.', 'lc-bricks-mcp' ),
 			),
 			'adobe_fonts'          => array(
 				'configured'   => ! empty( $settings['adobeFontsProjectId'] ),
 				'fonts_cached' => is_array( $adobe_fonts ) ? count( $adobe_fonts ) : 0,
-				'note'         => __( 'Set Adobe Fonts project ID via bricks:update_settings (integrations category, adobeFontsProjectId key). Use font:get_adobe_fonts to list cached fonts.', 'bricks-mcp' ),
+				'note'         => __( 'Set Adobe Fonts project ID via bricks:update_settings (integrations category, adobeFontsProjectId key). Use font:get_adobe_fonts to list cached fonts.', 'lc-bricks-mcp' ),
 			),
 			'webfont_loading'      => $settings['webfontLoading'] ?? 'swap',
 			'custom_fonts_preload' => ! empty( $settings['customFontsPreload'] ),
-			'usage_tip'            => __( 'Apply fonts via _typography["font-family"] in element settings or theme style typography group.', 'bricks-mcp' ),
+			'usage_tip'            => __( 'Apply fonts via _typography["font-family"] in element settings or theme style typography group.', 'lc-bricks-mcp' ),
 		);
 	}
 
@@ -7401,7 +7401,7 @@ class BricksService {
 			return array(
 				'fonts' => array(),
 				'count' => 0,
-				'note'  => __( 'Adobe Fonts project ID is not configured. Set it via bricks:update_settings (integrations category, adobeFontsProjectId key).', 'bricks-mcp' ),
+				'note'  => __( 'Adobe Fonts project ID is not configured. Set it via bricks:update_settings (integrations category, adobeFontsProjectId key).', 'lc-bricks-mcp' ),
 			);
 		}
 
@@ -7409,14 +7409,14 @@ class BricksService {
 			return array(
 				'fonts' => array(),
 				'count' => 0,
-				'note'  => __( 'Adobe Fonts project ID is configured but no fonts are cached. Open Bricks settings in the WordPress admin to trigger a refresh.', 'bricks-mcp' ),
+				'note'  => __( 'Adobe Fonts project ID is configured but no fonts are cached. Open Bricks settings in the WordPress admin to trigger a refresh.', 'lc-bricks-mcp' ),
 			);
 		}
 
 		return array(
 			'fonts' => $adobe_fonts,
 			'count' => count( $adobe_fonts ),
-			'note'  => __( 'These fonts are cached from your Adobe Fonts project. Refresh by re-saving the project ID in Bricks settings.', 'bricks-mcp' ),
+			'note'  => __( 'These fonts are cached from your Adobe Fonts project. Refresh by re-saving the project ID in Bricks settings.', 'lc-bricks-mcp' ),
 		);
 	}
 
@@ -7436,7 +7436,7 @@ class BricksService {
 
 		foreach ( $fields as $key => $value ) {
 			if ( ! in_array( $key, $allowed_keys, true ) ) {
-				$rejected[ $key ] = __( 'Not a font setting. Use bricks:update_settings for other Bricks settings.', 'bricks-mcp' );
+				$rejected[ $key ] = __( 'Not a font setting. Use bricks:update_settings for other Bricks settings.', 'lc-bricks-mcp' );
 				continue;
 			}
 
@@ -7444,7 +7444,7 @@ class BricksService {
 				if ( ! in_array( (string) $value, $valid_loading, true ) ) {
 					$rejected[ $key ] = sprintf(
 						/* translators: %s: Valid values */
-						__( 'Invalid value. Must be one of: %s', 'bricks-mcp' ),
+						__( 'Invalid value. Must be one of: %s', 'lc-bricks-mcp' ),
 						implode( ', ', array_map( fn( $v ) => $v === '' ? '""' : $v, $valid_loading ) )
 					);
 					continue;
@@ -7535,7 +7535,7 @@ class BricksService {
 				'post_not_found',
 				sprintf(
 					/* translators: %d: Post ID */
-					__( 'Post %d not found.', 'bricks-mcp' ),
+					__( 'Post %d not found.', 'lc-bricks-mcp' ),
 					$post_id
 				)
 			);
@@ -7574,7 +7574,7 @@ class BricksService {
 		if ( ! $this->is_dangerous_actions_enabled() ) {
 			return new \WP_Error(
 				'dangerous_actions_disabled',
-				__( 'Custom CSS requires the Dangerous Actions toggle to be enabled in Bricks MCP settings. This is a security measure to prevent code injection.', 'bricks-mcp' )
+				__( 'Custom CSS requires the Dangerous Actions toggle to be enabled in LC Bricks MCP settings. This is a security measure to prevent code injection.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -7585,7 +7585,7 @@ class BricksService {
 				'post_not_found',
 				sprintf(
 					/* translators: %d: Post ID */
-					__( 'Post %d not found.', 'bricks-mcp' ),
+					__( 'Post %d not found.', 'lc-bricks-mcp' ),
 					$post_id
 				)
 			);
@@ -7630,7 +7630,7 @@ class BricksService {
 				'post_not_found',
 				sprintf(
 					/* translators: %d: Post ID */
-					__( 'Post %d not found.', 'bricks-mcp' ),
+					__( 'Post %d not found.', 'lc-bricks-mcp' ),
 					$post_id
 				)
 			);
@@ -7639,7 +7639,7 @@ class BricksService {
 		if ( ! $this->is_dangerous_actions_enabled() ) {
 			return new \WP_Error(
 				'dangerous_actions_disabled',
-				__( 'Custom scripts require the Dangerous Actions toggle to be enabled in Bricks MCP settings. This is a security measure to prevent accidental code injection.', 'bricks-mcp' )
+				__( 'Custom scripts require the Dangerous Actions toggle to be enabled in LC Bricks MCP settings. This is a security measure to prevent accidental code injection.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -7677,7 +7677,7 @@ class BricksService {
 			'post_id'  => $post_id,
 			'updated'  => $updated,
 			'rejected' => $rejected,
-			'warning'  => __( 'Scripts are executed on page load. Test carefully.', 'bricks-mcp' ),
+			'warning'  => __( 'Scripts are executed on page load. Test carefully.', 'lc-bricks-mcp' ),
 		);
 	}
 }

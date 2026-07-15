@@ -2,13 +2,13 @@
 /**
  * WP Site Health integration.
  *
- * @package BricksMCP
+ * @package LCBricksMCP
  * @license GPL-2.0-or-later
  */
 
 declare(strict_types=1);
 
-namespace BricksMCP\Admin;
+namespace LCBricksMCP\Admin;
 
 // Prevent direct access.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * SiteHealth class.
  *
- * Registers Bricks MCP checks in the WordPress Site Health screen.
+ * Registers LC Bricks MCP checks in the WordPress Site Health screen.
  */
 class SiteHealth {
 
@@ -32,22 +32,22 @@ class SiteHealth {
 	}
 
 	/**
-	 * Register Bricks MCP direct tests with WP Site Health.
+	 * Register LC Bricks MCP direct tests with WP Site Health.
 	 *
 	 * @param array<string, mixed> $tests Existing tests.
-	 * @return array<string, mixed> Modified tests with Bricks MCP checks added.
+	 * @return array<string, mixed> Modified tests with LC Bricks MCP checks added.
 	 */
 	public function register_tests( array $tests ): array {
-		$tests['direct']['bricks_mcp_rest_api'] = [
-			'label' => __( 'Bricks MCP: REST API reachable', 'bricks-mcp' ),
+		$tests['direct']['lc_bricks_mcp_rest_api'] = [
+			'label' => __( 'LC Bricks MCP: REST API reachable', 'lc-bricks-mcp' ),
 			'test'  => [ $this, 'test_rest_api' ],
 		];
-		$tests['direct']['bricks_mcp_app_passwords'] = [
-			'label' => __( 'Bricks MCP: Application Passwords', 'bricks-mcp' ),
+		$tests['direct']['lc_bricks_mcp_app_passwords'] = [
+			'label' => __( 'LC Bricks MCP: Application Passwords', 'lc-bricks-mcp' ),
 			'test'  => [ $this, 'test_app_passwords' ],
 		];
-		$tests['direct']['bricks_mcp_bricks_active'] = [
-			'label' => __( 'Bricks MCP: Bricks Builder active', 'bricks-mcp' ),
+		$tests['direct']['lc_bricks_mcp_bricks_active'] = [
+			'label' => __( 'LC Bricks MCP: Bricks Builder active', 'lc-bricks-mcp' ),
 			'test'  => [ $this, 'test_bricks_active' ],
 		];
 		return $tests;
@@ -114,12 +114,12 @@ class SiteHealth {
 			'label'       => $check_result['label'],
 			'status'      => $status_map[ $check_result['status'] ] ?? 'recommended',
 			'badge'       => [
-				'label' => __( 'Bricks MCP', 'bricks-mcp' ),
+				'label' => __( 'LC Bricks MCP', 'lc-bricks-mcp' ),
 				'color' => 'blue',
 			],
 			'description' => $description,
 			'actions'     => '',
-			'test'        => 'bricks_mcp_' . $check_result['id'],
+			'test'        => 'lc_bricks_mcp_' . $check_result['id'],
 		];
 	}
 }

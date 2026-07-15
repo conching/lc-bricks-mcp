@@ -2,13 +2,13 @@
 /**
  * Atomic rate limiter for MCP endpoints.
  *
- * @package BricksMCP
+ * @package LCBricksMCP
  * @license GPL-2.0-or-later
  */
 
 declare(strict_types=1);
 
-namespace BricksMCP\MCP;
+namespace LCBricksMCP\MCP;
 
 // Prevent direct access.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -40,7 +40,7 @@ final class RateLimiter {
 	 *
 	 * @var string
 	 */
-	private const CACHE_GROUP = 'bricks_mcp';
+	private const CACHE_GROUP = 'lc_bricks_mcp';
 
 	/**
 	 * Rate limit window in seconds.
@@ -59,7 +59,7 @@ final class RateLimiter {
 	 * @return true|\WP_Error True if within limit, WP_Error with status 429 if exceeded.
 	 */
 	public static function check( string $identifier ): true|\WP_Error {
-		$settings = get_option( 'bricks_mcp_settings', [] );
+		$settings = get_option( 'lc_bricks_mcp_settings', [] );
 		$limit    = (int) ( $settings['rate_limit_rpm'] ?? 120 );
 
 		if ( wp_using_ext_object_cache() ) {
@@ -73,8 +73,8 @@ final class RateLimiter {
 			@header( 'Retry-After: ' . self::WINDOW );
 
 			return new \WP_Error(
-				'bricks_mcp_rate_limit',
-				__( 'Rate limit exceeded. Try again later.', 'bricks-mcp' ),
+				'lc_bricks_mcp_rate_limit',
+				__( 'Rate limit exceeded. Try again later.', 'lc-bricks-mcp' ),
 				[ 'status' => 429 ]
 			);
 		}
@@ -108,7 +108,7 @@ final class RateLimiter {
 	 * @return int New counter value.
 	 */
 	private static function increment_via_transient( string $identifier ): int {
-		$transient_key = 'bricks_mcp_rl_' . $identifier;
+		$transient_key = 'lc_bricks_mcp_rl_' . $identifier;
 		$current       = get_transient( $transient_key );
 
 		if ( false === $current ) {

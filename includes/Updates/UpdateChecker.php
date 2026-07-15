@@ -5,13 +5,13 @@
  * Hooks into WordPress 5.8+ Update URI system to check GitHub Releases
  * for new plugin versions.
  *
- * @package BricksMCP
+ * @package LCBricksMCP
  * @license GPL-2.0-or-later
  */
 
 declare(strict_types=1);
 
-namespace BricksMCP\Updates;
+namespace LCBricksMCP\Updates;
 
 // Prevent direct access.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -31,14 +31,14 @@ final class UpdateChecker {
 	 *
 	 * @var string
 	 */
-	private const GITHUB_API_URL = 'https://api.github.com/repos/cristianuibar/bricks-mcp/releases/latest';
+	private const GITHUB_API_URL = 'https://api.github.com/repos/conching/lc-bricks-mcp/releases/latest';
 
 	/**
 	 * Transient key for cached update data.
 	 *
 	 * @var string
 	 */
-	private const TRANSIENT_KEY = 'bricks_mcp_update_data';
+	private const TRANSIENT_KEY = 'lc_bricks_mcp_update_data';
 
 	/**
 	 * Cache TTL in seconds (12 hours).
@@ -70,7 +70,7 @@ final class UpdateChecker {
 		add_filter( 'upgrader_pre_download', [ $this, 'verify_download' ], 10, 4 );
 
 		// AJAX handler for "Check Now" button on settings page.
-		add_action( 'wp_ajax_bricks_mcp_check_update', [ $this, 'ajax_check_update' ] );
+		add_action( 'wp_ajax_lc_bricks_mcp_check_update', [ $this, 'ajax_check_update' ] );
 
 		// Refresh update data on plugins page when our cache has expired.
 		add_action( 'load-plugins.php', [ $this, 'maybe_refresh_on_plugins_page' ] );
@@ -121,7 +121,7 @@ final class UpdateChecker {
 
 		return [
 			'id'           => $plugin_data['UpdateURI'],
-			'slug'         => 'bricks-mcp',
+			'slug'         => 'lc-bricks-mcp',
 			'version'      => $remote['version'],
 			'url'          => $remote['url'] ?? '',
 			'package'      => $remote['package'] ?? '',
@@ -236,7 +236,7 @@ final class UpdateChecker {
 
 		// Only verify our own plugin — leave other plugins untouched.
 		$plugin = $hook_extra['plugin'] ?? '';
-		if ( 'bricks-mcp/bricks-mcp.php' !== $plugin ) {
+		if ( 'lc-bricks-mcp/lc-bricks-mcp.php' !== $plugin ) {
 			return $reply;
 		}
 
@@ -258,7 +258,7 @@ final class UpdateChecker {
 			wp_delete_file( $temp_file );
 			return new \WP_Error(
 				'checksum_mismatch',
-				__( 'Update integrity check failed: SHA-256 checksum does not match expected value.', 'bricks-mcp' )
+				__( 'Update integrity check failed: SHA-256 checksum does not match expected value.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -296,10 +296,10 @@ final class UpdateChecker {
 	 * @return void
 	 */
 	public function ajax_check_update(): void {
-		check_ajax_referer( 'bricks_mcp_settings_nonce', 'nonce' );
+		check_ajax_referer( 'lc_bricks_mcp_settings_nonce', 'nonce' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( [ 'message' => __( 'Unauthorized.', 'bricks-mcp' ) ], 403 );
+			wp_send_json_error( [ 'message' => __( 'Unauthorized.', 'lc-bricks-mcp' ) ], 403 );
 		}
 
 		// Clear our own cache.

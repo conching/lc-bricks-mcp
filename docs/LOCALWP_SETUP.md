@@ -1,11 +1,11 @@
 # LocalWP Setup Guide
 
-This guide configures your LocalWP environment for stable MCP connections. Bricks MCP uses Server-Sent Events (SSE) for streaming, which requires PHP execution time and Nginx buffering adjustments.
+This guide configures your LocalWP environment for stable MCP connections. LC Bricks MCP uses Server-Sent Events (SSE) for streaming, which requires PHP execution time and Nginx buffering adjustments.
 
 ## Prerequisites
 
 - LocalWP installed with a running WordPress site
-- Bricks MCP plugin activated
+- LC Bricks MCP plugin activated
 - Site using Nginx (LocalWP default)
 
 ## 1. Find Your Site's Configuration Directory
@@ -60,7 +60,7 @@ In LocalWP, right-click your site and select **Restart** (or click the Stop/Star
 
 ## 5. Verify
 
-1. Open **Settings > Bricks MCP** in WordPress admin
+1. Open **Settings > LC Bricks MCP** in WordPress admin
 2. Run the diagnostic checks — **PHP Execution Time** should show a green pass
 3. Test an MCP connection with a long-running tool call (e.g., listing many posts)
 

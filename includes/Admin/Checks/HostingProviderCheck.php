@@ -2,15 +2,15 @@
 /**
  * Hosting provider detection check.
  *
- * @package BricksMCP
+ * @package LCBricksMCP
  * @license GPL-2.0-or-later
  */
 
 declare(strict_types=1);
 
-namespace BricksMCP\Admin\Checks;
+namespace LCBricksMCP\Admin\Checks;
 
-use BricksMCP\Admin\DiagnosticCheck;
+use LCBricksMCP\Admin\DiagnosticCheck;
 
 // Prevent direct access.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -45,7 +45,7 @@ class HostingProviderCheck implements DiagnosticCheck {
 			'risk'       => 'medium',
 			'fix_steps'  => array(
 				'WP Engine may strip Authorization headers. Add to .htaccess: SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1',
-				'If using WP Engine Smart Plugin Manager, ensure Bricks MCP is not disabled.',
+				'If using WP Engine Smart Plugin Manager, ensure LC Bricks MCP is not disabled.',
 			),
 		),
 		'kinsta'     => array(
@@ -121,7 +121,7 @@ class HostingProviderCheck implements DiagnosticCheck {
 	 * @return string
 	 */
 	public function label(): string {
-		return __( 'Hosting Provider Compatibility', 'bricks-mcp' );
+		return __( 'Hosting Provider Compatibility', 'lc-bricks-mcp' );
 	}
 
 	/**
@@ -160,7 +160,7 @@ class HostingProviderCheck implements DiagnosticCheck {
 					'status'    => 'warn',
 					'message'   => sprintf(
 						// translators: %s is the hosting provider name.
-						__( 'Detected hosting: %s. This provider may require additional configuration for Application Passwords to work.', 'bricks-mcp' ),
+						__( 'Detected hosting: %s. This provider may require additional configuration for Application Passwords to work.', 'lc-bricks-mcp' ),
 						$provider['name']
 					),
 					'fix_steps' => $provider['fix_steps'],
@@ -174,7 +174,7 @@ class HostingProviderCheck implements DiagnosticCheck {
 				'status'    => 'pass',
 				'message'   => sprintf(
 					// translators: %s is the hosting provider name.
-					__( 'Detected hosting: %s. No known compatibility issues.', 'bricks-mcp' ),
+					__( 'Detected hosting: %s. No known compatibility issues.', 'lc-bricks-mcp' ),
 					$provider['name']
 				),
 				'fix_steps' => array(),
@@ -186,7 +186,7 @@ class HostingProviderCheck implements DiagnosticCheck {
 			'id'        => $this->id(),
 			'label'     => $this->label(),
 			'status'    => 'pass',
-			'message'   => __( 'No specific hosting provider detected. Standard WordPress configuration assumed.', 'bricks-mcp' ),
+			'message'   => __( 'No specific hosting provider detected. Standard WordPress configuration assumed.', 'lc-bricks-mcp' ),
 			'fix_steps' => array(),
 			'category'  => $this->category(),
 		);

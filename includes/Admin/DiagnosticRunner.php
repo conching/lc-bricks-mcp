@@ -2,24 +2,24 @@
 /**
  * DiagnosticRunner class.
  *
- * @package BricksMCP
+ * @package LCBricksMCP
  * @license GPL-2.0-or-later
  */
 
 declare(strict_types=1);
 
-namespace BricksMCP\Admin;
+namespace LCBricksMCP\Admin;
 
-use BricksMCP\Admin\Checks\AppPasswordsAvailableCheck;
-use BricksMCP\Admin\Checks\AppPasswordsUserCheck;
-use BricksMCP\Admin\Checks\BricksActiveCheck;
-use BricksMCP\Admin\Checks\HostingProviderCheck;
-use BricksMCP\Admin\Checks\HttpsCheck;
-use BricksMCP\Admin\Checks\McpEndpointCheck;
-use BricksMCP\Admin\Checks\PermalinkStructureCheck;
-use BricksMCP\Admin\Checks\PhpTimeoutCheck;
-use BricksMCP\Admin\Checks\RestApiReachableCheck;
-use BricksMCP\Admin\Checks\SecurityPluginCheck;
+use LCBricksMCP\Admin\Checks\AppPasswordsAvailableCheck;
+use LCBricksMCP\Admin\Checks\AppPasswordsUserCheck;
+use LCBricksMCP\Admin\Checks\BricksActiveCheck;
+use LCBricksMCP\Admin\Checks\HostingProviderCheck;
+use LCBricksMCP\Admin\Checks\HttpsCheck;
+use LCBricksMCP\Admin\Checks\McpEndpointCheck;
+use LCBricksMCP\Admin\Checks\PermalinkStructureCheck;
+use LCBricksMCP\Admin\Checks\PhpTimeoutCheck;
+use LCBricksMCP\Admin\Checks\RestApiReachableCheck;
+use LCBricksMCP\Admin\Checks\SecurityPluginCheck;
 
 // Prevent direct access.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -55,7 +55,7 @@ class DiagnosticRunner {
 	 * Register all default diagnostic checks.
 	 *
 	 * Instantiates and registers the 9 built-in checks. Applies the
-	 * bricks_mcp_diagnostic_checks filter to allow third-party extensions.
+	 * lc_bricks_mcp_diagnostic_checks filter to allow third-party extensions.
 	 *
 	 * @return void
 	 */
@@ -76,7 +76,7 @@ class DiagnosticRunner {
 		 *
 		 * @param array<string, DiagnosticCheck> $checks Checks keyed by ID.
 		 */
-		$this->checks = apply_filters( 'bricks_mcp_diagnostic_checks', $this->checks );
+		$this->checks = apply_filters( 'lc_bricks_mcp_diagnostic_checks', $this->checks );
 	}
 
 	/**
@@ -115,7 +115,7 @@ class DiagnosticRunner {
 					'status'    => 'skipped',
 					'message'   => sprintf(
 						// translators: %s is the label of the failed dependency check.
-						__( 'Skipped -- blocked by failed check: %s', 'bricks-mcp' ),
+						__( 'Skipped -- blocked by failed check: %s', 'lc-bricks-mcp' ),
 						$dep_label
 					),
 					'fix_steps' => array(),

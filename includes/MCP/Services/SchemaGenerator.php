@@ -2,13 +2,13 @@
 /**
  * Bricks element schema generator service.
  *
- * @package BricksMCP
+ * @package LCBricksMCP
  * @license GPL-2.0-or-later
  */
 
 declare(strict_types=1);
 
-namespace BricksMCP\MCP\Services;
+namespace LCBricksMCP\MCP\Services;
 
 // Prevent direct access.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -28,13 +28,13 @@ class SchemaGenerator {
 	 * Survives full object cache flushes by WP Rocket and similar plugins.
 	 * @var string
 	 */
-	private const CACHE_OPTION_PREFIX = 'bricks_mcp_schema_cache';
+	private const CACHE_OPTION_PREFIX = 'lc_bricks_mcp_schema_cache';
 
 	/**
 	 * Cache expiry option name.
 	 * @var string
 	 */
-	private const CACHE_EXPIRY_OPTION = 'bricks_mcp_schema_cache_expires';
+	private const CACHE_EXPIRY_OPTION = 'lc_bricks_mcp_schema_cache_expires';
 
 	/**
 	 * Cache duration in seconds (24 hours).
@@ -110,7 +110,7 @@ class SchemaGenerator {
 		if ( empty( $all_schemas ) && ! class_exists( '\Bricks\Elements' ) ) {
 			return new \WP_Error(
 				'bricks_not_active',
-				__( 'Bricks Builder must be installed and active to retrieve element schemas.', 'bricks-mcp' )
+				__( 'Bricks Builder must be installed and active to retrieve element schemas.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -122,7 +122,7 @@ class SchemaGenerator {
 				'element_not_found',
 				sprintf(
 					/* translators: %s: Element type name */
-					__( 'Element type "%s" not found in Bricks element registry.', 'bricks-mcp' ),
+					__( 'Element type "%s" not found in Bricks element registry.', 'lc-bricks-mcp' ),
 					$element_name
 				),
 				[

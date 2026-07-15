@@ -2,15 +2,15 @@
 /**
  * MCP endpoint reachability check.
  *
- * @package BricksMCP
+ * @package LCBricksMCP
  * @license GPL-2.0-or-later
  */
 
 declare(strict_types=1);
 
-namespace BricksMCP\Admin\Checks;
+namespace LCBricksMCP\Admin\Checks;
 
-use BricksMCP\Admin\DiagnosticCheck;
+use LCBricksMCP\Admin\DiagnosticCheck;
 
 // Prevent direct access.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Checks whether the Bricks MCP REST endpoint is registered and responding.
+ * Checks whether the LC Bricks MCP REST endpoint is registered and responding.
  *
  * A 401 or 405 (Method Not Allowed) response is treated as pass because
  * the MCP endpoint expects POST requests with authentication — the unauthenticated
@@ -41,7 +41,7 @@ class McpEndpointCheck implements DiagnosticCheck {
 	 * @return string
 	 */
 	public function label(): string {
-		return __( 'MCP Endpoint Registered', 'bricks-mcp' );
+		return __( 'MCP Endpoint Registered', 'lc-bricks-mcp' );
 	}
 
 	/**
@@ -68,7 +68,7 @@ class McpEndpointCheck implements DiagnosticCheck {
 	 * @return array<string, mixed>
 	 */
 	public function run(): array {
-		$endpoint_url = rest_url( 'bricks-mcp/v1/mcp' );
+		$endpoint_url = rest_url( 'lc-bricks-mcp/v1/mcp' );
 
 		$response = wp_remote_get(
 			$endpoint_url,
@@ -85,12 +85,12 @@ class McpEndpointCheck implements DiagnosticCheck {
 				'status'    => 'fail',
 				'message'   => sprintf(
 					// translators: %s is the WP_Error message.
-					__( 'MCP endpoint loopback request failed: %s', 'bricks-mcp' ),
+					__( 'MCP endpoint loopback request failed: %s', 'lc-bricks-mcp' ),
 					$response->get_error_message()
 				),
 				'fix_steps' => array(
-					__( 'Check that loopback requests are allowed on your server.', 'bricks-mcp' ),
-					__( 'Check the WordPress Site Health page for loopback request status.', 'bricks-mcp' ),
+					__( 'Check that loopback requests are allowed on your server.', 'lc-bricks-mcp' ),
+					__( 'Check the WordPress Site Health page for loopback request status.', 'lc-bricks-mcp' ),
 				),
 				'category'  => $this->category(),
 			);
@@ -103,9 +103,9 @@ class McpEndpointCheck implements DiagnosticCheck {
 				'id'        => $this->id(),
 				'label'     => $this->label(),
 				'status'    => 'fail',
-				'message'   => __( 'MCP endpoint not found. The bricks-mcp/v1 namespace may not be registered.', 'bricks-mcp' ),
+				'message'   => __( 'MCP endpoint not found. The lc-bricks-mcp/v1 namespace may not be registered.', 'lc-bricks-mcp' ),
 				'fix_steps' => array(
-					__( 'Ensure the Bricks MCP plugin is activated and the "Enable MCP Server" setting is on.', 'bricks-mcp' ),
+					__( 'Ensure the LC Bricks MCP plugin is activated and the "Enable MCP Server" setting is on.', 'lc-bricks-mcp' ),
 				),
 				'category'  => $this->category(),
 			);
@@ -117,7 +117,7 @@ class McpEndpointCheck implements DiagnosticCheck {
 			'id'        => $this->id(),
 			'label'     => $this->label(),
 			'status'    => 'pass',
-			'message'   => __( 'MCP endpoint is registered and responding.', 'bricks-mcp' ),
+			'message'   => __( 'MCP endpoint is registered and responding.', 'lc-bricks-mcp' ),
 			'fix_steps' => array(),
 			'category'  => $this->category(),
 		);

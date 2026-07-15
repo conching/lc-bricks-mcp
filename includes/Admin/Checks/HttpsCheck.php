@@ -2,15 +2,15 @@
 /**
  * HTTPS check.
  *
- * @package BricksMCP
+ * @package LCBricksMCP
  * @license GPL-2.0-or-later
  */
 
 declare(strict_types=1);
 
-namespace BricksMCP\Admin\Checks;
+namespace LCBricksMCP\Admin\Checks;
 
-use BricksMCP\Admin\DiagnosticCheck;
+use LCBricksMCP\Admin\DiagnosticCheck;
 
 // Prevent direct access.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -39,7 +39,7 @@ class HttpsCheck implements DiagnosticCheck {
 	 * @return string
 	 */
 	public function label(): string {
-		return __( 'HTTPS / SSL', 'bricks-mcp' );
+		return __( 'HTTPS / SSL', 'lc-bricks-mcp' );
 	}
 
 	/**
@@ -74,7 +74,7 @@ class HttpsCheck implements DiagnosticCheck {
 				'id'        => $this->id(),
 				'label'     => $this->label(),
 				'status'    => 'pass',
-				'message'   => __( 'Site is served over HTTPS.', 'bricks-mcp' ),
+				'message'   => __( 'Site is served over HTTPS.', 'lc-bricks-mcp' ),
 				'fix_steps' => array(),
 				'category'  => $this->category(),
 			);
@@ -86,7 +86,7 @@ class HttpsCheck implements DiagnosticCheck {
 				'id'        => $this->id(),
 				'label'     => $this->label(),
 				'status'    => 'pass',
-				'message'   => __( 'No HTTPS detected, but Application Passwords are available (enabled via filter).', 'bricks-mcp' ),
+				'message'   => __( 'No HTTPS detected, but Application Passwords are available (enabled via filter).', 'lc-bricks-mcp' ),
 				'fix_steps' => array(),
 				'category'  => $this->category(),
 			);
@@ -96,11 +96,11 @@ class HttpsCheck implements DiagnosticCheck {
 			'id'        => $this->id(),
 			'label'     => $this->label(),
 			'status'    => 'fail',
-			'message'   => __( 'Your site is not served over HTTPS. Application Passwords require HTTPS by default.', 'bricks-mcp' ),
+			'message'   => __( 'Your site is not served over HTTPS. Application Passwords require HTTPS by default.', 'lc-bricks-mcp' ),
 			'fix_steps' => array(
-				__( 'Enable HTTPS/SSL on your site via your hosting provider.', 'bricks-mcp' ),
-				__( 'If behind a reverse proxy, ensure X-Forwarded-Proto header is set to https.', 'bricks-mcp' ),
-				__( 'Or force-enable App Passwords: add_filter( "wp_is_application_passwords_available", "__return_true" );', 'bricks-mcp' ),
+				__( 'Enable HTTPS/SSL on your site via your hosting provider.', 'lc-bricks-mcp' ),
+				__( 'If behind a reverse proxy, ensure X-Forwarded-Proto header is set to https.', 'lc-bricks-mcp' ),
+				__( 'Or force-enable App Passwords: add_filter( "wp_is_application_passwords_available", "__return_true" );', 'lc-bricks-mcp' ),
 			),
 			'category'  => $this->category(),
 		);
