@@ -43,8 +43,18 @@ else
 fi
 
 # --- Schema<->handler parity gate -----------------------------------------
-# (wired in by the parity-script change; see bin/check-tool-parity.php)
-# PARITY_GATE_ANCHOR
+# Blocks the build if a tool schema advertises a param no handler reads, or a
+# handler reads an undeclared param (outside the documented allowlist). Skipped
+# with a warning when no PHP CLI is available.
+if command -v php >/dev/null 2>&1; then
+	echo "==> schema<->handler parity gate"
+	php "${ROOT}/bin/check-tool-parity.php" || {
+		echo "ERROR: tool parity check failed — aborting build." >&2
+		exit 1
+	}
+else
+	echo "WARN: no PHP CLI found — skipping parity gate." >&2
+fi
 
 # --- Assemble staging tree ------------------------------------------------
 echo "==> Staging (honoring .distignore)"
