@@ -1,0 +1,198 @@
+/**
+ * Bricks MCP admin settings page styles.
+ *
+ * @package BricksMCP
+ */
+
+/* ==========================================================================
+   Card / Section shared base
+   ========================================================================== */
+
+.bricks-mcp-info,
+.bricks-mcp-version-card,
+.bricks-mcp-config-section {
+	background: #fff;
+	padding: 15px 20px;
+	margin: 20px 0;
+	border-left: 4px solid #2271b1;
+}
+
+.bricks-mcp-info {
+	padding: 15px;
+}
+
+/* ==========================================================================
+   Version card
+   ========================================================================== */
+
+.bricks-mcp-version-card--has-update {
+	border-left-color: #dba617;
+}
+
+.bricks-mcp-update-available {
+	color: #dba617;
+	font-weight: 600;
+}
+
+.bricks-mcp-up-to-date {
+	color: #00a32a;
+}
+
+/* ==========================================================================
+   Dangerous actions warning
+   ========================================================================== */
+
+.bricks-mcp-danger-notice {
+	margin-top: 10px;
+	padding: 10px 12px;
+	border-left: 4px solid #d63638;
+	background: #fcf0f0;
+}
+
+.bricks-mcp-danger-notice p {
+	margin: 6px 0 0;
+}
+
+/* ==========================================================================
+   Quick setup box
+   ========================================================================== */
+
+.bricks-mcp-quick-setup {
+	margin: 15px 0 20px;
+	padding: 15px;
+	background: #f6f7f7;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+}
+
+.bricks-mcp-important-notice {
+	padding: 10px 12px;
+	border-left: 4px solid #dba617;
+	background: #fcf0e8;
+	margin-bottom: 15px;
+}
+
+/* ==========================================================================
+   Code blocks with copy button
+   ========================================================================== */
+
+.bricks-mcp-code-wrap {
+	position: relative;
+}
+
+.bricks-mcp-code-wrap pre {
+	background: #1e1e1e;
+	color: #d4d4d4;
+	padding: 15px;
+	border-radius: 4px;
+	overflow: auto;
+	margin: 0;
+}
+
+.bricks-mcp-code-wrap--breakall pre {
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+.bricks-mcp-code-wrap .bricks-mcp-copy-btn {
+	position: absolute;
+	top: 8px;
+	right: 8px;
+}
+
+/* ==========================================================================
+   Tabs
+   ========================================================================== */
+
+.bricks-mcp-tabs [role="tablist"] {
+	border-bottom: 2px solid #ddd;
+	margin-bottom: 15px;
+}
+
+.bricks-mcp-tabs [role="tab"] {
+	background: none;
+	border: none;
+	padding: 8px 16px;
+	cursor: pointer;
+	font-size: 14px;
+	color: #666;
+	border-bottom: 2px solid transparent;
+	margin-bottom: -2px;
+}
+
+.bricks-mcp-tabs [role="tab"].active {
+	font-weight: 600;
+	color: inherit;
+	border-bottom-color: #2271b1;
+}
+
+/* ==========================================================================
+   Test connection
+   ========================================================================== */
+
+.bricks-mcp-test-connection {
+	margin-top: 20px;
+	padding-top: 15px;
+	border-top: 1px solid #ddd;
+}
+
+.bricks-mcp-test-connection input[type="text"][readonly] {
+	width: 300px;
+	background: #f0f0f0;
+}
+
+.bricks-mcp-test-connection input[type="password"] {
+	width: 300px;
+}
+
+/* ==========================================================================
+   Utility — reused across sections
+   ========================================================================== */
+
+.bricks-mcp-config-section .spinner,
+.bricks-mcp-version-card .spinner {
+	float: none;
+}
+
+.bricks-mcp-config-section h3:first-child,
+.bricks-mcp-info h3:first-child,
+.bricks-mcp-quick-setup h3:first-child,
+.bricks-mcp-test-connection h3:first-child {
+	margin-top: 0;
+}
+
+.bricks-mcp-config-section h4 {
+	margin: 15px 0 8px;
+}
+
+.bricks-mcp-config-section h4:first-child {
+	margin-top: 0;
+}
+
+.bricks-mcp-config-section hr {
+	margin: 15px 0;
+}
+
+.bricks-mcp-generated-result {
+	margin-top: 15px;
+}
+
+.bricks-mcp-generate-error {
+	margin-top: 10px;
+}
+
+.bricks-mcp-test-result {
+	margin-top: 10px;
+}
+
+.bricks-mcp-tabs-wrap {
+	margin-top: 15px;
+}
+
+.bricks-mcp-generate-btn-wrap {
+	margin-top: 10px;
+}
+
+.bricks-mcp-tab-description {
+	margin-top: 10px;
+}
