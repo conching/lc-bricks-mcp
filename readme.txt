@@ -1,9 +1,9 @@
 === LC Bricks MCP ===
-Contributors: cristianuibar, optiwebopz
+Contributors: conching, cristianuibar, optiwebopz
 Tags: ai, bricks builder, mcp, artificial intelligence, page builder
 Requires at least: 6.4
 Tested up to: 6.8
-Stable tag: 1.5.0
+Stable tag: 2.0.0
 Requires PHP: 8.2
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -16,25 +16,40 @@ LC Bricks MCP turns your WordPress site into an AI-controlled page builder. It i
 
 Tell your AI assistant "create a hero section with a headline and a call-to-action button" and it happens. No template hunting. No clicking through panels.
 
+= Provenance =
+
+LC Bricks MCP is a Library Creative fork of **Bricks MCP** by Uibar Ion-Cristian / BUFF UP MEDIA S.R.L. (cristianuibar/bricks-mcp v1.5.1). It carries three previously-local Stronger Hawaii patches as native code and adds correctness fixes for template creation, header/footer element conditions, root-level element placement, and post-save read-back verification. Distributed under GPL-2.0-or-later, retaining the original copyright and license. Upstream: https://github.com/cristianuibar/bricks-mcp
+
 = How It Works =
 
 The plugin registers a REST API endpoint on your WordPress site that speaks the MCP protocol. You add the endpoint URL to your AI client's MCP configuration, authenticate with a WordPress Application Password, and your AI can start working with your site immediately.
 
 = Available Tools =
 
-* **get_site_info** — Retrieve site name, description, URL, and active theme
-* **get_posts** — List posts and pages with filtering and pagination
-* **get_post** — Fetch the full content of any post or page
-* **get_users** — List WordPress users
-* **get_plugins** — List installed and active plugins
-* **get_bricks_page** — Read the full Bricks Builder element tree for any page
-* **get_builder_guide** — Fetch the built-in builder reference guide for AI context
-* **search_media** — Search for images via the Unsplash API (requires your own Unsplash API key)
-* **create_bricks_page** — Create a new page with a complete Bricks Builder layout
-* **update_bricks_page** — Modify the element tree of an existing Bricks Builder page
-* **delete_bricks_element** — Remove a specific element from a page
+The tool surface is consolidated into 20 action-based tools. Each tool takes an `action` parameter that selects the operation.
 
-All tools are free to use. The plugin is open source and hosted on [GitHub](https://github.com/cristianuibar/lc-bricks-mcp).
+* **get_site_info** — Site info and connection diagnostics (info, diagnose)
+* **wordpress** — Query WordPress data (get_posts, get_post, get_users, get_plugins)
+* **get_builder_guide** — Fetch the built-in builder reference guide for AI context
+* **bricks** — Bricks settings, schemas, and global queries (enable, get_element_schemas, get_form_schema, set_global_query, and more)
+* **page** — Manage pages and Bricks content (list, search, get, create, update_content, update_meta, delete, duplicate, get/update_settings, get/update_seo)
+* **element** — Manage individual elements (add, update, remove, get/set_conditions, move, bulk_update)
+* **template** — Manage templates (list, get, create, update, delete, duplicate, popup settings, export, import, import_url)
+* **template_condition** — Manage template display conditions (get_types, set, resolve)
+* **template_taxonomy** — Manage template tags and bundles (list/create/delete tag/bundle)
+* **global_class** — Manage global CSS classes (list, create, update, delete, apply, remove, batch, import_css, categories, export, import_json)
+* **theme_style** — Manage theme styles (list, get, create, update, delete)
+* **typography_scale** — Manage typography scale variables (list, create, update, delete)
+* **color_palette** — Manage color palettes (list, create, update, delete, add/update/delete_color)
+* **global_variable** — Manage global variables and categories (list, create, update, delete, batch, search)
+* **media** — Media library and Unsplash (search_unsplash, sideload, list, set/remove_featured, get_image_settings)
+* **menu** — Manage WordPress nav menus (list, get, create, update, delete, set_items, assign, unassign, list_locations)
+* **component** — Manage Bricks components (list, get, create, update, delete, instantiate, update_properties, fill_slot)
+* **woocommerce** — WooCommerce elements and scaffolds (status, get_elements, get_dynamic_tags, scaffold_template, scaffold_store)
+* **font** — Font settings (get_status, get_adobe_fonts, update_settings)
+* **code** — Page CSS/scripts (get/set_page_css, get/set_page_scripts)
+
+All tools are free to use. The plugin is open source and hosted on [GitHub](https://github.com/conching/lc-bricks-mcp).
 
 = Authentication =
 
@@ -54,7 +69,7 @@ All requests are authenticated using WordPress Application Passwords, the built-
 4. Add the MCP server URL to your AI client configuration.
 5. Start building pages with natural language.
 
-Full setup documentation is available in the [GitHub repository](https://github.com/cristianuibar/lc-bricks-mcp).
+Full setup documentation is available in the [GitHub repository](https://github.com/conching/lc-bricks-mcp).
 
 == External Services ==
 
@@ -78,7 +93,7 @@ No other external services are contacted by this plugin.
 3. Navigate to **Settings > LC Bricks MCP** to configure the plugin.
 4. Enable the MCP server and optionally require authentication (strongly recommended for production sites).
 5. Go to **Users > Your Profile** and scroll to **Application Passwords**. Create a new Application Password and copy it — you will need it for your AI client.
-6. Add your site's MCP endpoint URL and credentials to your AI client (see the [GitHub repository](https://github.com/cristianuibar/lc-bricks-mcp) for client-specific setup guides).
+6. Add your site's MCP endpoint URL and credentials to your AI client (see the [GitHub repository](https://github.com/conching/lc-bricks-mcp) for client-specific setup guides).
 7. (Optional) Enter an Unsplash API key in the settings to enable image search.
 
 == Frequently Asked Questions ==
@@ -89,7 +104,7 @@ MCP is an open protocol created by Anthropic that gives AI assistants a standard
 
 = Does this plugin work without Bricks Builder? =
 
-Yes, partially. The core WordPress tools (get_site_info, get_posts, get_post, get_users, get_plugins) work on any WordPress site regardless of the active theme. The Bricks-specific tools (get_bricks_page, create_bricks_page, update_bricks_page) require Bricks Builder to be installed and active.
+Yes, partially. The core WordPress tools (get_site_info, and the wordpress tool's get_posts/get_post/get_users/get_plugins actions) work on any WordPress site regardless of the active theme. The Bricks-specific tools (page, element, template, and the rest) require Bricks Builder to be installed and active.
 
 = Which AI tools and clients are supported? =
 
@@ -106,6 +121,15 @@ Yes, when configured correctly. The plugin enforces WordPress Application Passwo
 3. An AI assistant creating a Bricks Builder hero section from a plain-text prompt.
 
 == Changelog ==
+
+= 2.0.0 =
+* Fork: Library Creative fork of cristianuibar/bricks-mcp v1.5.1 (+ 3 Stronger Hawaii patches, now native). Renamed to LC Bricks MCP — slug/text domain `lc-bricks-mcp`, namespace `LCBricksMCP\`, REST namespace `lc-bricks-mcp/v1`. Update checker repointed to github.com/conching/lc-bricks-mcp (SHA-256-verified self-update retained). Original copyright and GPL-2.0-or-later license retained.
+* Fix: template:create now honors its documented `elements` param — previously it reported success and created an empty template. Routed through save_elements so header/footer templates write the correct meta key.
+* Fix: element:set_conditions now writes the resolved meta key instead of a hardcoded content key — header/footer template conditions now persist correctly and get validation + read-back.
+* Fix: root-level element `position` (element:add, component:instantiate) is now a sibling index among root elements, not a raw flat-array offset — inserts land in the intended spot even when earlier roots have children.
+* Fix: typography_scale:create/update now accept prefix/steps/utility_classes nested under a `settings` object as well as at top level.
+* New: save-path tools (page:update_content, element:add/update/bulk_update/set_conditions, template:create) return `persisted` (bool) and a compact `stripped` diff of any altered HTML-content settings; pass `return_persisted: true` for the full read-back tree.
+* Dev: schema↔handler parity check (bin/check-tool-parity.php) wired into the build; build-zip.sh produces dist/lc-bricks-mcp-<version>.zip honoring .distignore. Dev-only wp-env mu-plugin excluded from the distributable.
 
 = 1.5.0 =
 * Security: Fix SSRF in template import by enforcing wp_safe_remote_get (blocks internal network requests).
@@ -215,6 +239,9 @@ Yes, when configured correctly. The plugin enforces WordPress Application Passwo
 * Unsplash API integration for image search.
 
 == Upgrade Notice ==
+
+= 2.0.0 =
+Library Creative fork (LC Bricks MCP). New slug, namespace, and REST endpoint — MCP clients must be reconfigured with the new lc-bricks-mcp/v1 endpoint and a fresh Application Password. Fixes silent-success bugs in template creation, header/footer conditions, and root element placement; adds post-save read-back verification.
 
 = 1.5.0 =
 Major security hardening release: fixes SSRF, XSS, parameter injection, and CSS injection vulnerabilities. CSS sanitization overhaul for visual builder compatibility. MCP auth discovery endpoints. Recommended for all users.
