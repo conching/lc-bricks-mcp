@@ -3,7 +3,7 @@ Contributors: conching, cristianuibar, optiwebopz
 Tags: ai, bricks builder, mcp, artificial intelligence, page builder
 Requires at least: 6.4
 Tested up to: 6.8
-Stable tag: 2.0.0
+Stable tag: 2.1.0
 Requires PHP: 8.2
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -123,6 +123,14 @@ Yes, when configured correctly. The plugin enforces WordPress Application Passwo
 
 == Changelog ==
 
+= 2.1.0 =
+* New tool `verify` — read-only page verification. `verify:page` returns the ordered root sections (element_id, name, label, DOM id override) and, given an element_id, its parent chain, straight from the stored tree (deterministic, no HTTP); pass `rendered: true` to verify against the rendered permalink instead. Response includes a `mode` field. Replaces the curl+grep verification loop.
+* New action `verify:orphaned_css` — scans element/page/global-class custom CSS for `#brxe-<id>` selectors that target a missing element or one whose DOM id is overridden (via _attributes id / _cssId). Static Bricks CSS files on disk and external stylesheets are not scanned.
+* New action `template:create_from_elements` — deep-copies a subtree of an existing page (regenerating element IDs) into a new template, routed through save_elements for correct meta-key + read-back. Response includes the new template_id and resulting root order.
+* New action `template:insert_reference` — inserts a Bricks template-reference element into a target page at a given parent/position; response includes the inserted element_id and the page's resulting root order.
+* Fix: global-class list/get/create/update responses now expose the CSS rules under `styles` (matching the schema and apply/remove) instead of the internal `settings` key.
+* Fix: header/footer templates now unhook their own per-key sanitize filter on save, aligned to the resolved meta key.
+
 = 2.0.0 =
 * Fork: Library Creative fork of cristianuibar/bricks-mcp v1.5.1 (+ 3 Stronger Hawaii patches, now native). Renamed to LC Bricks MCP — slug/text domain `lc-bricks-mcp`, namespace `LCBricksMCP\`, REST namespace `lc-bricks-mcp/v1`. Update checker repointed to github.com/conching/lc-bricks-mcp (SHA-256-verified self-update retained). Original copyright and GPL-2.0-or-later license retained.
 * Fix: template:create now honors its documented `elements` param — previously it reported success and created an empty template. Routed through save_elements so header/footer templates write the correct meta key.
@@ -240,6 +248,9 @@ Yes, when configured correctly. The plugin enforces WordPress Application Passwo
 * Unsplash API integration for image search.
 
 == Upgrade Notice ==
+
+= 2.1.0 =
+Adds the `verify` tool (assert page/section order without curl+grep, stored or rendered) and an orphaned-CSS scan, plus template-first tooling (create a template from a page subtree; insert a template reference). Also normalizes the global-class response key to `styles`. No breaking changes; the MCP endpoint and auth are unchanged.
 
 = 2.0.0 =
 Library Creative fork (LC Bricks MCP). New slug, namespace, and REST endpoint — MCP clients must be reconfigured with the new lc-bricks-mcp/v1 endpoint and a fresh Application Password. Fixes silent-success bugs in template creation, header/footer conditions, and root element placement; adds post-save read-back verification.

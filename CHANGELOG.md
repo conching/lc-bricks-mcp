@@ -6,6 +6,82 @@ Library Creative fork of [`cristianuibar/bricks-mcp`](https://github.com/cristia
 v1.5.1 and remains licensed under GPL-2.0-or-later, retaining the original
 copyright (© 2025 BUFF UP MEDIA S.R.L., author Uibar Ion-Cristian).
 
+## [2.1.0] — 2026-07-14
+
+Enhancement layer on top of the 2.0.0 correctness release: read-only
+verification tooling, template-first authoring, an orphaned-CSS scan, and P3
+polish. No breaking changes — the REST namespace, endpoint, and auth are
+unchanged.
+
+### Added — `verify` meta-tool (audit §5b, §5c)
+
+- **`verify:page`** — read-only page/template structure verification that
+  replaces the curl+grep loop. **Stored mode** (default) reads the persisted
+  flat tree and returns the ordered root sections (`element_id`, `name`,
+  `label`, and the `_attributes`/`_cssId` DOM id override when set) plus, when
+  an `element_id` is given, its parent chain — deterministic, no HTTP.
+  **Rendered mode** (`rendered:true`) issues an internal `wp_safe_remote_get()`
+  of the permalink and returns the document-order of `id="brxe-…"` elements, to
+  catch template resolution / conditions / dynamic data. The response carries a
+  `mode` field (`stored`|`rendered`). Target resolved by `post_id` or `url`
+  (via `url_to_postid`). Read-only; `manage_options` (consistent with the other
+  Bricks tools).
+- **`verify:orphaned_css`** — scans the CSS surfaces reachable from the DB
+  (each element's `_cssCustom`, the page-settings `_cssCustom`, and the
+  `_cssCustom` of global classes in use on the page) for `#brxe-<id>` selectors
+  whose target (i) doesn't exist on the page or (ii) has a DOM id override so
+  the rendered id differs. Returns `[{selector, element_id, reason, source}]`.
+  Documented limit: Bricks-generated static CSS files on disk and external
+  stylesheets are **not** scanned.
+
+### Added — template-first tooling (audit §5a)
+
+- **`template:create_from_elements`** — deep-copies the subtree rooted at a
+  source `post_id` + `root_element_id`, regenerating every element id
+  (`ElementIdGenerator`) with the copy's root re-parented to `0`, then persists
+  it as a new template via `create_template()` → `save_elements()` (so
+  header/footer types get the correct meta key, validation, and read-back).
+  Response includes `template_id`, the new root element id, copied count, and
+  the resulting root order (reusing the `verify_page` internals).
+- **`template:insert_reference`** — inserts a Bricks template-reference element
+  (`{name:'template', settings:{template:<id>}}`) into a target page at
+  `parent_id`/`position` by reusing `add_element` (root placement honored after
+  the Stage-A `merge_elements` fix). Response includes the inserted
+  `element_id` and the target page's resulting root order.
+
+### Added — internals & tests
+
+- **`PageInspector`** (`includes/MCP/Services/PageInspector.php`) — a
+  WordPress-free helper holding the pure tree/CSS logic: `root_sections`,
+  `parent_chain`, `attributes_id`, `parse_rendered_order`, `extract_subtree`,
+  and `scan_orphaned_css`. Kept pure so it is unit-testable without a WP
+  runtime; the WP-touching wrappers live in `BricksService`.
+- **Standalone unit tests** (`tests/Unit/*Test.php`, WP-free) for subtree
+  deep-copy id-regeneration (no collisions, intact linkage), the orphaned-CSS
+  regex/cross-ref logic, and `verify_page`'s tree-ordering (root order, parent
+  chains, rendered parsing). Runnable directly (`php tests/Unit/XTest.php`) and
+  wired into `bin/build-zip.sh` as a build gate; excluded from the dist zip via
+  `.distignore`.
+
+### Fixed (P3 polish)
+
+- **Global-class response key normalized back to `styles`** (audit §2.4
+  residual sh3 drift). Bricks core stores class rules under `settings`;
+  `global_class:list/get/create/update` now present the field as `styles`
+  (matching the schema and the `apply`/`remove` responses) while storage stays
+  on `settings`.
+- **Header/footer sanitize-filter unhook aligned to the resolved meta key**
+  (audit §4 note). `unhook_bricks_meta_filters()`/`rehook_bricks_meta_filters()`
+  now take the content key being written; `save_elements()` passes the resolved
+  key so a header/footer template unhooks its own
+  `sanitize_post_meta__bricks_page_header_2`/`_footer_2` filter, not just the
+  content key's. Default unchanged for all other callers.
+
+### Documentation
+
+- `readme.txt` tool list updated (20 → 21 tools; new `verify` tool and the two
+  new `template` actions), plus 2.1.0 changelog and upgrade notes.
+
 ## [2.0.0] — 2026-07-14
 
 First Library Creative release. Forked from bricks-mcp v1.5.1.3 (upstream
