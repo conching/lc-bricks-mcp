@@ -195,7 +195,10 @@ class BricksService {
 		wp_cache_delete( $post_id, 'post_meta' );
 
 		// Temporarily unhook Bricks sanitize/update filters that block programmatic meta writes.
-		$this->unhook_bricks_meta_filters();
+		// Pass the resolved key so header/footer templates unhook their own per-key
+		// sanitize filter (sanitize_post_meta__bricks_page_header_2 / _footer_2), not
+		// just the content key's.
+		$this->unhook_bricks_meta_filters( $sh_meta_key );
 		try {
 			$updated = update_post_meta( $post_id, $sh_meta_key, $elements );
 
@@ -215,7 +218,7 @@ class BricksService {
 			wp_cache_delete( $post_id, 'post_meta' );
 			$stored = get_post_meta( $post_id, $sh_meta_key, true );
 		} finally {
-			$this->rehook_bricks_meta_filters();
+			$this->rehook_bricks_meta_filters( $sh_meta_key );
 		}
 
 		if ( ! is_array( $stored ) || count( $stored ) !== count( $elements ) ) {
@@ -365,12 +368,17 @@ class BricksService {
 	 * instance methods on its Ajax class. These reject writes outside the Bricks
 	 * editor context. We temporarily unhook them so MCP can save validated data.
 	 *
+	 * @param string|null $meta_key The content meta key being written. Header/footer
+	 *                              templates persist to dedicated keys, so the per-key
+	 *                              sanitize filter to unhook must match the resolved key
+	 *                              (defaults to the content key). Pass the SAME key to
+	 *                              rehook_bricks_meta_filters() so the filter is restored.
 	 * @return void
 	 */
-	public function unhook_bricks_meta_filters(): void {
+	public function unhook_bricks_meta_filters( ?string $meta_key = null ): void {
 		global $wp_filter;
 
-		$sanitize_key = 'sanitize_post_meta_' . self::META_KEY;
+		$sanitize_key = 'sanitize_post_meta_' . ( $meta_key ?? self::META_KEY );
 
 		// Store and remove the sanitize filter entirely.
 		if ( isset( $wp_filter[ $sanitize_key ] ) ) {
@@ -399,12 +407,15 @@ class BricksService {
 	/**
 	 * Re-hook Bricks meta filters after programmatic write.
 	 *
+	 * @param string|null $meta_key The content meta key that was written. Must match
+	 *                              the key passed to unhook_bricks_meta_filters() so the
+	 *                              stored per-key sanitize filter is restored.
 	 * @return void
 	 */
-	public function rehook_bricks_meta_filters(): void {
+	public function rehook_bricks_meta_filters( ?string $meta_key = null ): void {
 		global $wp_filter;
 
-		$sanitize_key = 'sanitize_post_meta_' . self::META_KEY;
+		$sanitize_key = 'sanitize_post_meta_' . ( $meta_key ?? self::META_KEY );
 
 		// Restore the sanitize filter.
 		if ( isset( $this->stored_filters[ $sanitize_key ] ) ) {
@@ -1263,6 +1274,25 @@ class BricksService {
 	 * Reads from the `bricks_global_classes` WordPress option.
 	 * Returns flat list of classes with id, name, and styles in Bricks composite key format.
 	 *
+	 * Present a stored global class in the API response shape.
+	 *
+	 * Bricks core stores class rules under the `settings` key (SH patch #3). The
+	 * MCP schema and the apply/remove responses expose the field as `styles`, so
+	 * list/get/create/update normalize the same way here: map `settings`/`styles`
+	 * to `styles` for the response and drop the internal `settings` key. Storage
+	 * is untouched — this only shapes the returned copy.
+	 *
+	 * @param array<string, mixed> $class Stored class array (has a `settings` key).
+	 * @return array<string, mixed> Class array with a `styles` key.
+	 */
+	private function present_global_class( array $class ): array {
+		$styles = $class['settings'] ?? $class['styles'] ?? [];
+		unset( $class['settings'], $class['styles'] );
+		$class['styles'] = $styles;
+		return $class;
+	}
+
+	/**
 	 * @param string $search Optional partial name match filter.
 	 * @return array<int, array<string, mixed>> Array of global classes.
 	 */
@@ -1287,7 +1317,7 @@ class BricksService {
 			);
 		}
 
-		return array_values( $classes );
+		return array_map( [ $this, 'present_global_class' ], array_values( $classes ) );
 	}
 
 	/**
@@ -1373,7 +1403,7 @@ class BricksService {
 			);
 		}
 
-		return $new_class;
+		return $this->present_global_class( $new_class );
 	}
 
 	/**
@@ -1449,7 +1479,7 @@ class BricksService {
 				);
 			}
 
-			return $class;
+			return $this->present_global_class( $class );
 		}
 		unset( $class );
 

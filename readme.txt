@@ -26,7 +26,7 @@ The plugin registers a REST API endpoint on your WordPress site that speaks the 
 
 = Available Tools =
 
-The tool surface is consolidated into 20 action-based tools. Each tool takes an `action` parameter that selects the operation.
+The tool surface is consolidated into 21 action-based tools. Each tool takes an `action` parameter that selects the operation.
 
 * **get_site_info** — Site info and connection diagnostics (info, diagnose)
 * **wordpress** — Query WordPress data (get_posts, get_post, get_users, get_plugins)
@@ -34,7 +34,7 @@ The tool surface is consolidated into 20 action-based tools. Each tool takes an 
 * **bricks** — Bricks settings, schemas, and global queries (enable, get_element_schemas, get_form_schema, set_global_query, and more)
 * **page** — Manage pages and Bricks content (list, search, get, create, update_content, update_meta, delete, duplicate, get/update_settings, get/update_seo)
 * **element** — Manage individual elements (add, update, remove, get/set_conditions, move, bulk_update)
-* **template** — Manage templates (list, get, create, update, delete, duplicate, popup settings, export, import, import_url)
+* **template** — Manage templates (list, get, create, create_from_elements, insert_reference, update, delete, duplicate, popup settings, export, import, import_url)
 * **template_condition** — Manage template display conditions (get_types, set, resolve)
 * **template_taxonomy** — Manage template tags and bundles (list/create/delete tag/bundle)
 * **global_class** — Manage global CSS classes (list, create, update, delete, apply, remove, batch, import_css, categories, export, import_json)
@@ -48,6 +48,7 @@ The tool surface is consolidated into 20 action-based tools. Each tool takes an 
 * **woocommerce** — WooCommerce elements and scaffolds (status, get_elements, get_dynamic_tags, scaffold_template, scaffold_store)
 * **font** — Font settings (get_status, get_adobe_fonts, update_settings)
 * **code** — Page CSS/scripts (get/set_page_css, get/set_page_scripts)
+* **verify** — Read-only page verification (page: ordered root sections + parent chains, stored or rendered; orphaned_css: find `#brxe-<id>` rules with no matching or id-overridden element)
 
 All tools are free to use. The plugin is open source and hosted on [GitHub](https://github.com/conching/lc-bricks-mcp).
 
