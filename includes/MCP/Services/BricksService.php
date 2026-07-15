@@ -2598,6 +2598,371 @@ class BricksService {
 	}
 
 	/**
+	 * Verify a page's stored Bricks structure (no HTTP).
+	 *
+	 * Reads the stored flat element array and returns the ordered root sections
+	 * (deterministic render order) plus, optionally, the parent chain for a
+	 * given element. This is the reliable, side-effect-free way to assert
+	 * section order — it replaces the curl+grep verification loop.
+	 *
+	 * @param int         $post_id    The post/template ID.
+	 * @param string|null $element_id Optional element ID to trace a parent chain for.
+	 * @return array<string, mixed>|\WP_Error Verification data or error.
+	 */
+	public function verify_page_stored( int $post_id, ?string $element_id = null ): array|\WP_Error {
+		$post = get_post( $post_id );
+		if ( ! $post ) {
+			return new \WP_Error(
+				'post_not_found',
+				/* translators: %d: Post ID */
+				sprintf( __( 'Post %d not found. Use page:list to find valid post IDs.', 'lc-bricks-mcp' ), $post_id )
+			);
+		}
+
+		$elements      = $this->get_elements( $post_id );
+		$template_type = (string) get_post_meta( $post_id, '_bricks_template_type', true );
+		$root_sections = PageInspector::root_sections( $elements );
+
+		$result = [
+			'mode'           => 'stored',
+			'post_id'        => $post_id,
+			'title'          => $post->post_title,
+			'post_type'      => $post->post_type,
+			'is_bricks_page' => $this->is_bricks_page( $post_id ),
+			'template_type'  => '' !== $template_type ? $template_type : null,
+			'root_count'     => count( $root_sections ),
+			'element_count'  => count( $elements ),
+			'root_sections'  => $root_sections,
+		];
+
+		if ( null !== $element_id && '' !== $element_id ) {
+			$chain = PageInspector::parent_chain( $elements, $element_id );
+			if ( null === $chain ) {
+				return new \WP_Error(
+					'element_not_found',
+					sprintf(
+						/* translators: 1: Element ID, 2: Post ID */
+						__( 'Element "%1$s" not found on post %2$d. Use page:get to retrieve valid element IDs.', 'lc-bricks-mcp' ),
+						$element_id,
+						$post_id
+					)
+				);
+			}
+			$result['element_id']   = $element_id;
+			$result['parent_chain'] = $chain;
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Verify a page's RENDERED Bricks structure via an internal request.
+	 *
+	 * Fetches the permalink server-side and extracts the document-order sequence
+	 * of Bricks elements (id="brxe-…"). Unlike stored mode this reflects template
+	 * resolution, conditions, and dynamic data — at the cost of an HTTP round
+	 * trip and document-order (not nesting-filtered) results.
+	 *
+	 * @param int $post_id The post/template ID.
+	 * @return array<string, mixed>|\WP_Error Verification data or error.
+	 */
+	public function verify_page_rendered( int $post_id ): array|\WP_Error {
+		$post = get_post( $post_id );
+		if ( ! $post ) {
+			return new \WP_Error(
+				'post_not_found',
+				/* translators: %d: Post ID */
+				sprintf( __( 'Post %d not found. Use page:list to find valid post IDs.', 'lc-bricks-mcp' ), $post_id )
+			);
+		}
+
+		$permalink = get_permalink( $post_id );
+		if ( ! $permalink ) {
+			return new \WP_Error(
+				'no_permalink',
+				sprintf(
+					/* translators: %d: Post ID */
+					__( 'Post %d has no permalink to render (it may be a template or draft). Use stored mode instead.', 'lc-bricks-mcp' ),
+					$post_id
+				)
+			);
+		}
+
+		$response = wp_safe_remote_get(
+			$permalink,
+			[
+				'timeout'     => 15,
+				'redirection' => 3,
+				'sslverify'   => false,
+			]
+		);
+
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		$code = (int) wp_remote_retrieve_response_code( $response );
+		if ( 200 !== $code ) {
+			return new \WP_Error(
+				'render_fetch_failed',
+				sprintf(
+					/* translators: 1: URL, 2: HTTP status code */
+					__( 'Rendering %1$s returned HTTP %2$d. The page may be private, redirected, or protected.', 'lc-bricks-mcp' ),
+					$permalink,
+					$code
+				),
+				[ 'status' => $code ]
+			);
+		}
+
+		$html  = (string) wp_remote_retrieve_body( $response );
+		$order = PageInspector::parse_rendered_order( $html );
+
+		return [
+			'mode'            => 'rendered',
+			'post_id'         => $post_id,
+			'url'             => $permalink,
+			'http_status'     => $code,
+			'rendered_count'  => count( $order ),
+			'rendered_order'  => $order,
+			'note'            => __( 'Document-order Bricks elements across all nesting levels. For authoritative root/nesting order, use stored mode (rendered:false).', 'lc-bricks-mcp' ),
+		];
+	}
+
+	/**
+	 * Create a template from a subtree of an existing page's elements.
+	 *
+	 * Deep-copies the subtree rooted at $root_element_id (regenerating every ID
+	 * to avoid collisions), sets the copy's root parent to 0, and persists it as
+	 * a new template via create_template() — so header/footer types get the
+	 * correct meta key, validation, and read-back. The response includes the new
+	 * template_id and its resulting root order (from the persisted tree) for
+	 * immediate verification.
+	 *
+	 * @param array<string, mixed>      $args        source_post_id, root_element_id, and optional title/type/status.
+	 * @param array<string, mixed>|null $persistence Out-param forwarded from save_elements().
+	 * @return array<string, mixed>|\WP_Error Result data or error.
+	 */
+	public function create_template_from_elements( array $args, ?array &$persistence = null ): array|\WP_Error {
+		$source_post_id  = isset( $args['source_post_id'] ) ? (int) $args['source_post_id'] : 0;
+		$root_element_id = isset( $args['root_element_id'] ) ? (string) $args['root_element_id'] : '';
+
+		if ( $source_post_id <= 0 ) {
+			return new \WP_Error( 'missing_source_post_id', __( 'source_post_id is required. Use page:list to find valid post IDs.', 'lc-bricks-mcp' ) );
+		}
+		if ( '' === $root_element_id ) {
+			return new \WP_Error( 'missing_root_element_id', __( 'root_element_id is required. Use page:get to find the element ID of the subtree root to copy.', 'lc-bricks-mcp' ) );
+		}
+
+		$source_post = get_post( $source_post_id );
+		if ( ! $source_post ) {
+			return new \WP_Error(
+				'source_not_found',
+				/* translators: %d: Post ID */
+				sprintf( __( 'Source post %d not found. Use page:list to find valid post IDs.', 'lc-bricks-mcp' ), $source_post_id )
+			);
+		}
+
+		$source_elements = $this->get_elements( $source_post_id );
+		if ( empty( $source_elements ) ) {
+			return new \WP_Error(
+				'source_has_no_elements',
+				/* translators: %d: Post ID */
+				sprintf( __( 'Source post %d has no Bricks elements to copy.', 'lc-bricks-mcp' ), $source_post_id )
+			);
+		}
+
+		$extracted = PageInspector::extract_subtree( $source_elements, $root_element_id, new ElementIdGenerator() );
+		if ( null === $extracted ) {
+			return new \WP_Error(
+				'root_element_not_found',
+				sprintf(
+					/* translators: 1: Element ID, 2: Post ID */
+					__( 'Element "%1$s" not found on post %2$d. Use page:get to retrieve valid element IDs.', 'lc-bricks-mcp' ),
+					$root_element_id,
+					$source_post_id
+				)
+			);
+		}
+
+		$type  = ( isset( $args['type'] ) && '' !== (string) $args['type'] ) ? (string) $args['type'] : 'section';
+		$title = ( isset( $args['title'] ) && '' !== (string) $args['title'] )
+			? (string) $args['title']
+			: $source_post->post_title . ' — section';
+
+		$create_args = [
+			'title'    => $title,
+			'type'     => $type,
+			'status'   => $args['status'] ?? 'publish',
+			'elements' => $extracted['elements'], // Native flat format — passed through normalize() unchanged.
+		];
+
+		$template_id = $this->create_template( $create_args, $persistence );
+		if ( is_wp_error( $template_id ) ) {
+			return $template_id;
+		}
+
+		// Resulting root order from the persisted template (reuse verify internals).
+		$root_sections = PageInspector::root_sections( $this->get_elements( $template_id ) );
+
+		return [
+			'template_id'            => $template_id,
+			'template_type'          => $type,
+			'title'                  => $title,
+			'source_post_id'         => $source_post_id,
+			'source_root_element_id' => $root_element_id,
+			'new_root_element_id'    => $extracted['root_id'],
+			'copied_element_count'   => count( $extracted['elements'] ),
+			'root_sections'          => $root_sections,
+			'permalink'              => get_permalink( $template_id ),
+			'edit_url'               => admin_url( 'post.php?post=' . $template_id . '&action=edit' ),
+		];
+	}
+
+	/**
+	 * Insert a Bricks template-reference element into a target page.
+	 *
+	 * Adds a `{name:'template', settings:{template:<id>}}` element at the given
+	 * parent/position (reusing add_element, so root placement is honored). The
+	 * response includes the inserted element id and the target page's resulting
+	 * root order for immediate verification.
+	 *
+	 * @param int                       $target_post_id Target page ID to insert into.
+	 * @param int                       $template_id    Template post ID to reference.
+	 * @param string                    $parent_id      Parent element ID ('0' for root).
+	 * @param int|null                  $position       Sibling position (null = append).
+	 * @param array<string, mixed>|null $persistence    Out-param forwarded from save_elements().
+	 * @return array<string, mixed>|\WP_Error Result data or error.
+	 */
+	public function insert_template_reference( int $target_post_id, int $template_id, string $parent_id = '0', ?int $position = null, ?array &$persistence = null ): array|\WP_Error {
+		$target = get_post( $target_post_id );
+		if ( ! $target ) {
+			return new \WP_Error(
+				'target_not_found',
+				/* translators: %d: Post ID */
+				sprintf( __( 'Target post %d not found. Use page:list to find valid post IDs.', 'lc-bricks-mcp' ), $target_post_id )
+			);
+		}
+
+		$template = get_post( $template_id );
+		if ( ! $template || 'bricks_template' !== $template->post_type ) {
+			return new \WP_Error(
+				'template_not_found',
+				/* translators: %d: Template ID */
+				sprintf( __( 'Bricks template %d not found. Use template:list to find valid template IDs.', 'lc-bricks-mcp' ), $template_id )
+			);
+		}
+
+		$element = [
+			'name'     => 'template',
+			'settings' => [ 'template' => (string) $template_id ],
+		];
+
+		$result = $this->add_element( $target_post_id, $element, $parent_id, $position, $persistence );
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		$result['template_id']   = $template_id;
+		$result['parent_id']     = $parent_id;
+		$result['root_sections'] = PageInspector::root_sections( $this->get_elements( $target_post_id ) );
+
+		return $result;
+	}
+
+	/**
+	 * Scan a page's CSS surfaces for orphaned #brxe-<id> selectors.
+	 *
+	 * Collects the page's element IDs and their DOM id overrides, then scans the
+	 * CSS surfaces reachable from the database — each element's _cssCustom, the
+	 * page-settings _cssCustom, and the _cssCustom of global classes used on the
+	 * page — for `#brxe-<id>` selectors that target a non-existent element or an
+	 * element whose DOM id is overridden.
+	 *
+	 * KNOWN LIMIT: Bricks' generated static CSS files on disk and external
+	 * stylesheets are NOT scanned — only the CSS stored in post meta / options.
+	 *
+	 * @param int $post_id The post ID.
+	 * @return array<string, mixed>|\WP_Error Scan result or error.
+	 */
+	public function scan_orphaned_css( int $post_id ): array|\WP_Error {
+		$post = get_post( $post_id );
+		if ( ! $post ) {
+			return new \WP_Error(
+				'post_not_found',
+				/* translators: %d: Post ID */
+				sprintf( __( 'Post %d not found. Use page:list to find valid post IDs.', 'lc-bricks-mcp' ), $post_id )
+			);
+		}
+
+		$elements    = $this->get_elements( $post_id );
+		$css_sources = [];
+		$used_class_ids = [];
+
+		// 1. Per-element custom CSS + collect referenced global-class IDs.
+		foreach ( $elements as $element ) {
+			if ( ! is_array( $element ) ) {
+				continue;
+			}
+			$eid      = isset( $element['id'] ) ? (string) $element['id'] : '';
+			$settings = ( isset( $element['settings'] ) && is_array( $element['settings'] ) ) ? $element['settings'] : [];
+
+			if ( '' !== $eid && isset( $settings['_cssCustom'] ) && is_string( $settings['_cssCustom'] ) && '' !== $settings['_cssCustom'] ) {
+				$css_sources[] = [
+					'source' => 'element:' . $eid . ':_cssCustom',
+					'css'    => $settings['_cssCustom'],
+				];
+			}
+
+			if ( isset( $settings['_cssGlobalClasses'] ) && is_array( $settings['_cssGlobalClasses'] ) ) {
+				foreach ( $settings['_cssGlobalClasses'] as $cid ) {
+					$used_class_ids[ (string) $cid ] = true;
+				}
+			}
+		}
+
+		// 2. Page-settings custom CSS.
+		$page_settings_key = defined( 'BRICKS_DB_PAGE_SETTINGS' ) ? BRICKS_DB_PAGE_SETTINGS : '_bricks_page_settings';
+		$page_settings     = get_post_meta( $post_id, $page_settings_key, true );
+		if ( is_array( $page_settings ) && isset( $page_settings['_cssCustom'] ) && is_string( $page_settings['_cssCustom'] ) && '' !== $page_settings['_cssCustom'] ) {
+			$css_sources[] = [
+				'source' => 'page_settings:_cssCustom',
+				'css'    => $page_settings['_cssCustom'],
+			];
+		}
+
+		// 3. Custom CSS of global classes used on this page.
+		if ( ! empty( $used_class_ids ) ) {
+			$global_classes = get_option( 'bricks_global_classes', [] );
+			if ( is_array( $global_classes ) ) {
+				foreach ( $global_classes as $cls ) {
+					if ( ! is_array( $cls ) || ! isset( $cls['id'] ) || ! isset( $used_class_ids[ (string) $cls['id'] ] ) ) {
+						continue;
+					}
+					$style = $cls['settings'] ?? $cls['styles'] ?? [];
+					if ( is_array( $style ) && isset( $style['_cssCustom'] ) && is_string( $style['_cssCustom'] ) && '' !== $style['_cssCustom'] ) {
+						$css_sources[] = [
+							'source' => 'global_class:' . (string) $cls['id'] . ':_cssCustom',
+							'css'    => $style['_cssCustom'],
+						];
+					}
+				}
+			}
+		}
+
+		$orphaned = PageInspector::scan_orphaned_css( $elements, $css_sources );
+
+		return [
+			'post_id'         => $post_id,
+			'element_count'   => count( $elements ),
+			'scanned_sources' => count( $css_sources ),
+			'orphaned_count'  => count( $orphaned ),
+			'orphaned'        => $orphaned,
+			'limits'          => __( 'Only CSS stored in post meta / options is scanned (element _cssCustom, page-settings _cssCustom, in-use global-class _cssCustom). Bricks-generated static CSS files on disk and external stylesheets are not scanned.', 'lc-bricks-mcp' ),
+		];
+	}
+
+	/**
 	 * Get all post types that have Bricks editing enabled.
 	 *
 	 * Checks Bricks database settings if Bricks is active, falls back to defaults.

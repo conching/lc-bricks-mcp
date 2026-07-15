@@ -1504,6 +1504,41 @@ final class Router {
 			),
 			array( $this, 'tool_code' )
 		);
+
+		// Verify consolidated tool — read-only inspection to assert page structure
+		// (replaces the curl+grep verification loop) and scan for orphaned CSS.
+		$this->register_tool(
+			'verify',
+			__( "Read-only verification of a Bricks page's structure.\n\nActions:\n- page: Return the ordered root sections of a page/template (element_id, name, label, _attributes id override). Stored mode (default) reads the persisted tree — deterministic, no HTTP. Pass rendered:true to instead fetch the permalink and return the document-order of rendered Bricks elements (reflects template resolution/conditions). Resolve by post_id or url. Optionally pass element_id to also get its parent chain (stored mode). Response includes a `mode` field (stored|rendered).\n- orphaned_css: Scan the page's stored CSS surfaces for `#brxe-<id>` selectors that target a non-existent element or an element whose DOM id is overridden (via _attributes id / _cssId). Returns [{selector, element_id, reason, source}].", 'lc-bricks-mcp' ),
+			array(
+				'type'       => 'object',
+				'properties' => array(
+					'action'     => array(
+						'type'        => 'string',
+						'enum'        => array( 'page', 'orphaned_css' ),
+						'description' => __( 'Action to perform', 'lc-bricks-mcp' ),
+					),
+					'post_id'    => array(
+						'type'        => 'integer',
+						'description' => __( 'Post/template ID (page: required unless url given; orphaned_css: required)', 'lc-bricks-mcp' ),
+					),
+					'url'        => array(
+						'type'        => 'string',
+						'description' => __( 'Page URL to resolve to a post ID (page: optional alternative to post_id)', 'lc-bricks-mcp' ),
+					),
+					'element_id' => array(
+						'type'        => 'string',
+						'description' => __( 'Element ID to also return a parent chain for (page, stored mode: optional)', 'lc-bricks-mcp' ),
+					),
+					'rendered'   => array(
+						'type'        => 'boolean',
+						'description' => __( 'Verify against rendered HTML instead of the stored tree (page: optional, default false). Rendered mode issues an internal request to the permalink.', 'lc-bricks-mcp' ),
+					),
+				),
+				'required'   => array( 'action' ),
+			),
+			array( $this, 'tool_verify' )
+		);
 	}
 
 	/**
@@ -3994,6 +4029,98 @@ final class Router {
 				)
 			),
 		};
+	}
+
+	/**
+	 * Tool: Verify dispatcher — routes to page, orphaned_css.
+	 *
+	 * @param array<string, mixed> $args Tool arguments including 'action'.
+	 * @return array<string, mixed>|\WP_Error Result data or error.
+	 */
+	public function tool_verify( array $args ): array|\WP_Error {
+		$bricks_error = $this->require_bricks();
+		if ( null !== $bricks_error ) {
+			return $bricks_error;
+		}
+
+		$action = $args['action'] ?? '';
+
+		return match ( $action ) {
+			'page'         => $this->tool_verify_page( $args ),
+			'orphaned_css' => $this->tool_verify_orphaned_css( $args ),
+			default        => new \WP_Error(
+				'invalid_action',
+				sprintf(
+					/* translators: %s: Action name */
+					__( 'Invalid action "%s". Valid actions: page, orphaned_css', 'lc-bricks-mcp' ),
+					$action
+				)
+			),
+		};
+	}
+
+	/**
+	 * Resolve a verify action's target post ID from post_id or url.
+	 *
+	 * @param array<string, mixed> $args Tool arguments.
+	 * @return int|\WP_Error Post ID, or WP_Error if neither resolves.
+	 */
+	private function resolve_verify_post_id( array $args ): int|\WP_Error {
+		if ( ! empty( $args['post_id'] ) ) {
+			return (int) $args['post_id'];
+		}
+
+		if ( ! empty( $args['url'] ) && is_string( $args['url'] ) ) {
+			$resolved = url_to_postid( $args['url'] );
+			if ( $resolved > 0 ) {
+				return $resolved;
+			}
+			return new \WP_Error(
+				'url_not_resolved',
+				sprintf(
+					/* translators: %s: URL */
+					__( 'Could not resolve URL "%s" to a post on this site. Provide post_id instead.', 'lc-bricks-mcp' ),
+					$args['url']
+				)
+			);
+		}
+
+		return new \WP_Error( 'missing_post_id', __( 'post_id (or url) is required.', 'lc-bricks-mcp' ) );
+	}
+
+	/**
+	 * Tool: Verify a page's structure (stored tree or rendered HTML).
+	 *
+	 * @param array<string, mixed> $args Tool arguments.
+	 * @return array<string, mixed>|\WP_Error Verification data or error.
+	 */
+	private function tool_verify_page( array $args ): array|\WP_Error {
+		$post_id = $this->resolve_verify_post_id( $args );
+		if ( is_wp_error( $post_id ) ) {
+			return $post_id;
+		}
+
+		if ( ! empty( $args['rendered'] ) ) {
+			return $this->bricks_service->verify_page_rendered( $post_id );
+		}
+
+		$element_id = isset( $args['element_id'] ) ? (string) $args['element_id'] : null;
+		return $this->bricks_service->verify_page_stored( $post_id, $element_id );
+	}
+
+	/**
+	 * Tool: Scan a page for orphaned #brxe-<id> CSS selectors.
+	 *
+	 * @param array<string, mixed> $args Tool arguments.
+	 * @return array<string, mixed>|\WP_Error Scan result or error.
+	 */
+	private function tool_verify_orphaned_css( array $args ): array|\WP_Error {
+		$post_id = $this->resolve_verify_post_id( $args );
+		if ( is_wp_error( $post_id ) ) {
+			return $post_id;
+		}
+
+		return $this->bricks_service->scan_orphaned_css( $post_id );
 	}
 
 	/**

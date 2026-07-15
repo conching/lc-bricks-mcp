@@ -56,6 +56,22 @@ else
 	echo "WARN: no PHP CLI found — skipping parity gate." >&2
 fi
 
+# --- Unit test gate -------------------------------------------------------
+# Runs the standalone (WordPress-free) unit tests. Each tests/Unit/*Test.php is
+# a self-contained script that exits nonzero on failure. Skipped with a warning
+# when no PHP CLI is available.
+if command -v php >/dev/null 2>&1; then
+	echo "==> unit test gate"
+	test_fail=0
+	for t in "${ROOT}"/tests/Unit/*Test.php; do
+		[ -e "$t" ] || continue
+		php "$t" || test_fail=1
+	done
+	[ "$test_fail" -eq 0 ] || { echo "ERROR: unit tests failed — aborting build." >&2; exit 1; }
+else
+	echo "WARN: no PHP CLI found — skipping unit test gate." >&2
+fi
+
 # --- Assemble staging tree ------------------------------------------------
 echo "==> Staging (honoring .distignore)"
 rm -rf "${BUILD}"
