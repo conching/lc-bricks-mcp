@@ -187,7 +187,7 @@ class BricksService {
 			}
 		}
 
-		// SH patch: header/footer templates store elements under dedicated meta keys.
+		// predecessor patch: header/footer templates store elements under dedicated meta keys.
 		// Mirror resolve_elements_meta_key() on the WRITE path (upstream writes hardcode META_KEY).
 		$sh_meta_key = $this->resolve_elements_meta_key( $post_id );
 
@@ -1286,7 +1286,7 @@ class BricksService {
 	 *
 	 * Present a stored global class in the API response shape.
 	 *
-	 * Bricks core stores class rules under the `settings` key (SH patch #3). The
+	 * Bricks core stores class rules under the `settings` key (predecessor patch #3). The
 	 * MCP schema and the apply/remove responses expose the field as `styles`, so
 	 * list/get/create/update normalize the same way here: map `settings`/`styles`
 	 * to `styles` for the response and drop the internal `settings` key. Storage
@@ -1391,7 +1391,7 @@ class BricksService {
 			'id'     => $new_id,
 			'name'   => $name,
 			'color'  => isset( $args['color'] ) ? sanitize_text_field( $args['color'] ) : '#686868',
-			'settings' => $this->sanitize_styles_array( $args['styles'] ?? [] ), // SH patch: Bricks reads 'settings'
+			'settings' => $this->sanitize_styles_array( $args['styles'] ?? [] ), // predecessor patch: Bricks reads 'settings'
 		];
 
 		if ( ! empty( $args['category'] ) ) {
@@ -1465,7 +1465,7 @@ class BricksService {
 
 			if ( isset( $args['styles'] ) ) {
 				$sanitized_styles = $this->sanitize_styles_array( $args['styles'] );
-				// SH patch: Bricks reads 'settings'; migrate any legacy 'styles' key on write.
+				// predecessor patch: Bricks reads 'settings'; migrate any legacy 'styles' key on write.
 				$sh_existing = $class['settings'] ?? $class['styles'] ?? [];
 				unset( $class['styles'] );
 				if ( ! empty( $args['replace_styles'] ) ) {
@@ -1666,7 +1666,7 @@ class BricksService {
 				'id'     => $new_id,
 				'name'   => $name,
 				'color'  => isset( $def['color'] ) ? sanitize_text_field( $def['color'] ) : '#686868',
-				'settings' => $def['styles'] ?? $def['settings'] ?? [], // SH patch: Bricks reads 'settings'
+				'settings' => $def['styles'] ?? $def['settings'] ?? [], // predecessor patch: Bricks reads 'settings'
 			];
 
 			if ( ! empty( $def['category'] ) ) {

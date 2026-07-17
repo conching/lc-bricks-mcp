@@ -4452,7 +4452,7 @@ final class Router {
 			$args['label'] = $args['name'];
 		}
 
-		// SH patch: map 'styles' (schema param) to 'settings' (handler param) — upstream bug in v1.5.1.
+		// predecessor patch: map 'styles' (schema param) to 'settings' (handler param) — upstream bug in v1.5.1.
 		if ( isset( $args['styles'] ) && ! isset( $args['settings'] ) ) {
 			$args['settings'] = $args['styles'];
 		}
@@ -5090,7 +5090,7 @@ final class Router {
 		return array(
 			'class_name' => $class['name'],
 			'class_id'   => $class['id'],
-			'styles'     => $class['settings'] ?? $class['styles'] ?? array(), // SH patch
+			'styles'     => $class['settings'] ?? $class['styles'] ?? array(), // predecessor patch
 			'applied_to' => $element_ids,
 			'post_id'    => $post_id,
 		);
@@ -5424,7 +5424,7 @@ final class Router {
 		return array(
 			'class_name'   => $class['name'],
 			'class_id'     => $class['id'],
-			'styles'       => $class['settings'] ?? $class['styles'] ?? array(), // SH patch
+			'styles'       => $class['settings'] ?? $class['styles'] ?? array(), // predecessor patch
 			'removed_from' => $element_ids,
 			'post_id'      => $post_id,
 		);

@@ -18,7 +18,7 @@ Tell your AI assistant "create a hero section with a headline and a call-to-acti
 
 = Provenance =
 
-LC Bricks MCP is a Library Creative fork of **Bricks MCP** by Uibar Ion-Cristian / BUFF UP MEDIA S.R.L. (cristianuibar/bricks-mcp v1.5.1). It carries three previously-local Stronger Hawaii patches as native code and adds correctness fixes for template creation, header/footer element conditions, root-level element placement, and post-save read-back verification. Distributed under GPL-2.0-or-later, retaining the original copyright and license. Upstream: https://github.com/cristianuibar/bricks-mcp
+LC Bricks MCP is a Library Creative fork of **Bricks MCP** by Uibar Ion-Cristian / BUFF UP MEDIA S.R.L. (cristianuibar/bricks-mcp v1.5.1). It carries three previously-local private patches as native code and adds correctness fixes for template creation, header/footer element conditions, root-level element placement, and post-save read-back verification. Distributed under GPL-2.0-or-later, retaining the original copyright and license. Upstream: https://github.com/cristianuibar/bricks-mcp
 
 = How It Works =
 
@@ -137,7 +137,7 @@ Yes, when configured correctly. The plugin enforces WordPress Application Passwo
 * Fix: header/footer templates now unhook their own per-key sanitize filter on save, aligned to the resolved meta key.
 
 = 2.0.0 =
-* Fork: Library Creative fork of cristianuibar/bricks-mcp v1.5.1 (+ 3 Stronger Hawaii patches, now native). Renamed to LC Bricks MCP — slug/text domain `lc-bricks-mcp`, namespace `LCBricksMCP\`, REST namespace `lc-bricks-mcp/v1`. Update checker repointed to github.com/conching/lc-bricks-mcp (SHA-256-verified self-update retained). Original copyright and GPL-2.0-or-later license retained.
+* Fork: Library Creative fork of cristianuibar/bricks-mcp v1.5.1 (+ 3 private patches, now native). Renamed to LC Bricks MCP — slug/text domain `lc-bricks-mcp`, namespace `LCBricksMCP\`, REST namespace `lc-bricks-mcp/v1`. Update checker repointed to github.com/conching/lc-bricks-mcp (SHA-256-verified self-update retained). Original copyright and GPL-2.0-or-later license retained.
 * Fix: template:create now honors its documented `elements` param — previously it reported success and created an empty template. Routed through save_elements so header/footer templates write the correct meta key.
 * Fix: element:set_conditions now writes the resolved meta key instead of a hardcoded content key — header/footer template conditions now persist correctly and get validation + read-back.
 * Fix: root-level element `position` (element:add, component:instantiate) is now a sibling index among root elements, not a raw flat-array offset — inserts land in the intended spot even when earlier roots have children.

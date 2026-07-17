@@ -7,7 +7,7 @@
  * @copyright         2025 BUFF UP MEDIA S.R.L. (original work); 2026 Library Creative (fork)
  * @license           GPL-2.0-or-later
  *
- * Forked from cristianuibar/bricks-mcp v1.5.1 (plus 3 Stronger Hawaii patches, now
+ * Forked from cristianuibar/bricks-mcp v1.5.1 (plus 3 private patches, now
  * native in 2.0.0). Original plugin "Bricks MCP" (c) 2025 BUFF UP MEDIA S.R.L.,
  * author Uibar Ion-Cristian. Distributed under GPL-2.0-or-later.
  *
