@@ -347,9 +347,9 @@ class MenuService {
 	/**
 	 * Replace all items in a navigation menu with a new nested tree of items.
 	 *
-	 * Deletes all existing items first (force-delete, no trash), then inserts the
-	 * new tree via wp_update_nav_menu_item. Validates post_type and taxonomy
-	 * object references before insertion.
+	 * Validates the entire replacement first, inserts it while the old menu remains
+	 * intact, and only removes old items after every new item was created. If an
+	 * insertion fails, newly created items are removed and the old menu is untouched.
 	 *
 	 * @param int   $menu_id Menu ID (term_id) to set items on.
 	 * @param array $items   Nested item tree to insert.
@@ -366,25 +366,115 @@ class MenuService {
 			);
 		}
 
-		// Step 1: Delete all existing items.
+		$validation_errors = $this->validate_items_recursive( $items );
+		if ( ! empty( $validation_errors ) ) {
+			return new \WP_Error(
+				'invalid_menu_items',
+				__( 'Menu replacement was not applied because one or more items are invalid.', 'lc-bricks-mcp' ),
+				[ 'errors' => $validation_errors ]
+			);
+		}
+
+		// Snapshot old IDs, but keep them live until the complete replacement has
+		// been created successfully.
 		$existing_items = wp_get_nav_menu_items( $menu_id );
-		$old_count      = 0;
+		$old_ids        = [];
 		if ( is_array( $existing_items ) ) {
-			$old_count = count( $existing_items );
 			foreach ( $existing_items as $item ) {
-				wp_delete_post( $item->ID, true );
+				$old_ids[] = (int) $item->ID;
 			}
 		}
 
-		// Step 2: Insert new items from the nested tree.
+		// Insert the replacement alongside the existing menu. Parent references are
+		// scoped to the newly created IDs, so the two trees do not intermix.
 		$result = $this->insert_items_recursive( $menu_id, $items, 0 );
+		if ( ! empty( $result['errors'] ) ) {
+			foreach ( $result['created_ids'] as $created_id ) {
+				wp_delete_post( $created_id, true );
+			}
 
-		return array(
+			return new \WP_Error(
+				'menu_replacement_failed',
+				__( 'Menu replacement failed during creation. The previous menu was preserved.', 'lc-bricks-mcp' ),
+				[ 'errors' => $result['errors'] ]
+			);
+		}
+
+		$cleanup_errors = [];
+		foreach ( $old_ids as $old_id ) {
+			if ( ! wp_delete_post( $old_id, true ) ) {
+				$cleanup_errors[] = $old_id;
+			}
+		}
+
+		$response = array(
 			'menu_id'       => $menu_id,
-			'items_deleted' => $old_count,
+			'items_deleted' => count( $old_ids ) - count( $cleanup_errors ),
 			'items_created' => count( $result['created_ids'] ),
 			'items'         => $this->build_item_tree( $menu_id ),
 		);
+
+		if ( ! empty( $cleanup_errors ) ) {
+			$response['warning']            = __( 'The replacement was created, but some old menu items could not be removed.', 'lc-bricks-mcp' );
+			$response['cleanup_failed_ids'] = $cleanup_errors;
+		}
+
+		return $response;
+	}
+
+	/**
+	 * Validate an entire nested menu payload without mutating WordPress state.
+	 *
+	 * @param array<int, mixed> $items Menu item tree.
+	 * @param string            $path  Human-readable input path.
+	 * @return array<int, string> Validation errors.
+	 */
+	private function validate_items_recursive( array $items, string $path = 'items' ): array {
+		$errors      = [];
+		$valid_types = [ 'custom', 'post_type', 'taxonomy' ];
+
+		foreach ( $items as $index => $item ) {
+			$item_path = $path . '[' . $index . ']';
+			if ( ! is_array( $item ) ) {
+				$errors[] = sprintf( __( '%s must be an item object.', 'lc-bricks-mcp' ), $item_path );
+				continue;
+			}
+
+			if ( empty( $item['title'] ) || ! is_string( $item['title'] ) ) {
+				$errors[] = sprintf( __( '%s.title is required and must be a non-empty string.', 'lc-bricks-mcp' ), $item_path );
+			}
+
+			$type = isset( $item['type'] ) ? (string) $item['type'] : 'custom';
+			if ( ! in_array( $type, $valid_types, true ) ) {
+				$errors[] = sprintf( __( '%1$s.type must be one of: %2$s.', 'lc-bricks-mcp' ), $item_path, implode( ', ', $valid_types ) );
+			} elseif ( 'post_type' === $type ) {
+				if ( empty( $item['object'] ) || ! isset( $item['object_id'] ) ) {
+					$errors[] = sprintf( __( '%s requires object and object_id.', 'lc-bricks-mcp' ), $item_path );
+				} else {
+					$post = get_post( (int) $item['object_id'] );
+					if ( null === $post || get_post_type( (int) $item['object_id'] ) !== $item['object'] ) {
+						$errors[] = sprintf( __( '%s references a missing or mismatched post.', 'lc-bricks-mcp' ), $item_path );
+					}
+				}
+			} elseif ( 'taxonomy' === $type ) {
+				if ( empty( $item['object'] ) || ! isset( $item['object_id'] ) ) {
+					$errors[] = sprintf( __( '%s requires object and object_id.', 'lc-bricks-mcp' ), $item_path );
+				} else {
+					$term = get_term( (int) $item['object_id'], (string) $item['object'] );
+					if ( null === $term || is_wp_error( $term ) ) {
+						$errors[] = sprintf( __( '%s references a missing or mismatched term.', 'lc-bricks-mcp' ), $item_path );
+					}
+				}
+			}
+
+			if ( isset( $item['children'] ) && ! is_array( $item['children'] ) ) {
+				$errors[] = sprintf( __( '%s.children must be an array.', 'lc-bricks-mcp' ), $item_path );
+			} elseif ( ! empty( $item['children'] ) ) {
+				$errors = array_merge( $errors, $this->validate_items_recursive( $item['children'], $item_path . '.children' ) );
+			}
+		}
+
+		return $errors;
 	}
 
 	/**

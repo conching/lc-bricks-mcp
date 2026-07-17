@@ -303,9 +303,22 @@ final class Router {
 				)
 			);
 		} catch ( \Throwable $e ) {
+			$reference = function_exists( 'wp_generate_uuid4' ) ? wp_generate_uuid4() : uniqid( 'lc-mcp-', true );
+			error_log( // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				sprintf(
+					'LC Bricks MCP tool failure [%s] %s: %s',
+					$reference,
+					get_class( $e ),
+					$e->getMessage()
+				)
+			);
 			return Response::error(
 				'tool_execution_error',
-				$e->getMessage(),
+				sprintf(
+					/* translators: %s: server-side error reference */
+					__( 'Tool execution failed unexpectedly. Reference: %s', 'lc-bricks-mcp' ),
+					$reference
+				),
 				500
 			);
 		}
@@ -1300,6 +1313,10 @@ final class Router {
 					'mime_type'     => array(
 						'type'        => 'string',
 						'description' => __( "MIME type filter (list: optional, e.g. 'image', 'image/jpeg')", 'lc-bricks-mcp' ),
+					),
+					'include_sizes' => array(
+						'type'        => 'boolean',
+						'description' => __( 'Include every generated image size in list results (optional, default false; more expensive)', 'lc-bricks-mcp' ),
 					),
 					'target'        => array(
 						'type'        => 'string',
@@ -7068,12 +7085,13 @@ final class Router {
 			return $bricks_error;
 		}
 
-		$search    = isset( $args['search'] ) && is_string( $args['search'] ) ? $args['search'] : '';
-		$mime_type = isset( $args['mime_type'] ) && is_string( $args['mime_type'] ) ? $args['mime_type'] : 'image';
-		$per_page  = isset( $args['per_page'] ) && is_int( $args['per_page'] ) ? $args['per_page'] : 20;
-		$page      = isset( $args['page'] ) && is_int( $args['page'] ) ? $args['page'] : 1;
+		$search        = isset( $args['search'] ) && is_string( $args['search'] ) ? $args['search'] : '';
+		$mime_type     = isset( $args['mime_type'] ) && is_string( $args['mime_type'] ) ? $args['mime_type'] : 'image';
+		$per_page      = isset( $args['per_page'] ) && is_int( $args['per_page'] ) ? $args['per_page'] : 20;
+		$page          = isset( $args['page'] ) && is_int( $args['page'] ) ? $args['page'] : 1;
+		$include_sizes = ! empty( $args['include_sizes'] );
 
-		return $this->media_service->get_media_library_items( $search, $mime_type, $per_page, $page );
+		return $this->media_service->get_media_library_items( $search, $mime_type, $per_page, $page, $include_sizes );
 	}
 
 	/**

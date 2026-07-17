@@ -31,6 +31,13 @@ class BricksService {
 	private ElementNormalizer $normalizer;
 
 	/**
+	 * Executable element policy.
+	 *
+	 * @var ElementPolicy
+	 */
+	private ElementPolicy $element_policy;
+
+	/**
 	 * Validation service instance.
 	 *
 	 * Optional — when set, validates element settings against Bricks schemas before saving.
@@ -45,7 +52,8 @@ class BricksService {
 	 * Initializes the element normalizer with an ID generator.
 	 */
 	public function __construct() {
-		$this->normalizer = new ElementNormalizer( new ElementIdGenerator() );
+		$this->normalizer     = new ElementNormalizer( new ElementIdGenerator() );
+		$this->element_policy = new ElementPolicy();
 	}
 
 	/**
@@ -171,6 +179,30 @@ class BricksService {
 	 * @return true|\WP_Error True on success, WP_Error on failure.
 	 */
 	public function save_elements( int $post_id, array $elements, ?array &$persistence = null ): true|\WP_Error {
+		$existing_elements = $this->get_elements( $post_id );
+		$input_strips      = $this->normalizer->consume_strip_log();
+
+		// Enforce executable-content policy at the final persistence gateway so
+		// every page, template, element, component, and internal mutation path is
+		// covered. Existing code may remain unchanged while the toggle is off.
+		if ( ! $this->is_dangerous_actions_enabled() ) {
+			$violations = $this->element_policy->changed_executable_payloads( $elements, $existing_elements );
+			if ( ! empty( $violations ) ) {
+				$persistence = [ 'persisted' => false, 'stripped' => $input_strips ];
+				return new \WP_Error(
+					'dangerous_actions_disabled',
+					__( 'Creating or changing executable Bricks element content requires Dangerous Actions to be enabled.', 'lc-bricks-mcp' ),
+					[ 'violations' => $violations ]
+				);
+			}
+		}
+
+		// Native flat arrays must receive the same sanitation as simplified input.
+		// Unchanged stored settings are preserved so safe structural edits do not
+		// rewrite legacy content or existing code elements.
+		$elements     = $this->normalizer->sanitize_flat_elements( $elements, $existing_elements );
+		$input_strips = array_merge( $input_strips, $this->normalizer->consume_strip_log() );
+
 		// Always run structural linkage validation.
 		$linkage_validation = $this->validate_element_linkage( $elements );
 
@@ -200,19 +232,10 @@ class BricksService {
 		// just the content key's.
 		$this->unhook_bricks_meta_filters( $sh_meta_key );
 		try {
-			$updated = update_post_meta( $post_id, $sh_meta_key, $elements );
-
-			if ( false === $updated ) {
-				// update_post_meta returns false when old === new (stale cache or serialization mismatch).
-				// Force write via delete + add.
-				delete_post_meta( $post_id, $sh_meta_key );
-				add_post_meta( $post_id, $sh_meta_key, $elements, true );
-			}
-
-			update_post_meta( $post_id, self::EDITOR_MODE_KEY, 'bricks' );
-
-			// Trigger CSS regeneration so frontend styles reflect new content.
-			$this->trigger_css_regeneration( $post_id );
+			// A false return is a normal no-op when old and new values are equal.
+			// Read-back verification below distinguishes that case from a real failure
+			// without introducing a destructive delete-then-add window.
+			update_post_meta( $post_id, $sh_meta_key, $elements );
 
 			// Verify write persisted — bypass cache, read raw from database.
 			wp_cache_delete( $post_id, 'post_meta' );
@@ -221,18 +244,18 @@ class BricksService {
 			$this->rehook_bricks_meta_filters( $sh_meta_key );
 		}
 
-		// Strips recorded at the input boundary by this save's normalize() call.
-		// Consumed (not just read) so a save that ran without normalization
-		// cannot inherit a previous call's log.
-		$input_strips = $this->normalizer->consume_strip_log();
-
-		if ( ! is_array( $stored ) || count( $stored ) !== count( $elements ) ) {
+		if ( ! is_array( $stored ) || $stored !== $elements ) {
 			$persistence = array( 'persisted' => false, 'stripped' => $input_strips );
 			return new \WP_Error(
 				'save_elements_failed',
 				__( 'Elements appeared to save but verification read-back failed. The database may have rejected the write.', 'lc-bricks-mcp' )
 			);
 		}
+
+		update_post_meta( $post_id, self::EDITOR_MODE_KEY, 'bricks' );
+
+		// Trigger CSS regeneration only after exact read-back verification passes.
+		$this->trigger_css_regeneration( $post_id );
 
 		// Expose verification data for the caller's response (fix #5). "stripped"
 		// merges two baselines: normalizer sanitization (anchored at the caller's
@@ -2733,7 +2756,6 @@ class BricksService {
 			[
 				'timeout'     => 15,
 				'redirection' => 3,
-				'sslverify'   => false,
 			]
 		);
 
@@ -7632,6 +7654,36 @@ class BricksService {
 			);
 		}
 
+		$template_type = sanitize_key( $data['templateType'] ?? 'section' );
+		$valid_types   = $this->get_valid_template_types();
+		if ( ! in_array( $template_type, $valid_types, true ) ) {
+			return new \WP_Error(
+				'invalid_template_type',
+				sprintf(
+					/* translators: 1: Provided type, 2: Valid types list */
+					__( 'Invalid template type "%1$s". Valid types: %2$s.', 'lc-bricks-mcp' ),
+					$template_type,
+					implode( ', ', $valid_types )
+				)
+			);
+		}
+
+		$is_flat = $this->normalizer->is_flat_format( $data['content'] );
+		if ( $is_flat ) {
+			$linkage = $this->validate_element_linkage( $data['content'] );
+			if ( is_wp_error( $linkage ) ) {
+				return $linkage;
+			}
+		}
+
+		// Validate and normalize before creating the post so malformed imports do
+		// not leave published template shells behind. Native exports also receive
+		// fresh IDs and rewritten internal references to avoid collisions.
+		$content = $this->normalizer->normalize( $data['content'] );
+		if ( $is_flat ) {
+			$content = $this->normalizer->regenerate_flat_ids( $content );
+		}
+
 		$template_id = wp_insert_post(
 			array(
 				'post_title'  => sanitize_text_field( $data['title'] ),
@@ -7651,16 +7703,22 @@ class BricksService {
 			);
 		}
 
-		// Regenerate element IDs to prevent collisions.
-		$content = $this->normalizer->normalize( $data['content'] );
+		// Set the type before saving so header/footer templates resolve their
+		// dedicated Bricks meta key. Then use the central policy, schema,
+		// persistence, and read-back pipeline instead of a raw metadata write.
+		$this->unhook_bricks_meta_filters();
+		try {
+			update_post_meta( $template_id, '_bricks_template_type', $template_type );
+		} finally {
+			$this->rehook_bricks_meta_filters();
+		}
 
-		// Save content and editor mode.
-		update_post_meta( $template_id, self::META_KEY, $content );
-		update_post_meta( $template_id, self::EDITOR_MODE_KEY, 'bricks' );
-
-		// Set template type (default to 'section' if not provided).
-		$template_type = sanitize_text_field( $data['templateType'] ?? 'section' );
-		update_post_meta( $template_id, '_bricks_template_type', $template_type );
+		$persistence = null;
+		$saved       = $this->save_elements( $template_id, $content, $persistence );
+		if ( is_wp_error( $saved ) ) {
+			wp_delete_post( $template_id, true );
+			return $saved;
+		}
 
 		// Save page settings if provided, stripping JS-capable keys when dangerous_actions is disabled.
 		$page_settings_key = defined( 'BRICKS_DB_PAGE_SETTINGS' ) ? BRICKS_DB_PAGE_SETTINGS : '_bricks_page_settings';
@@ -7705,6 +7763,7 @@ class BricksService {
 			'template_type'  => $template_type,
 			'elements_count' => count( $content ),
 			'global_classes' => $class_summary,
+			'persistence'    => $this->build_persistence_response( $persistence, false ),
 		);
 
 		if ( ! empty( $stripped_js_keys ) ) {
@@ -7736,8 +7795,9 @@ class BricksService {
 		$response = wp_safe_remote_get(
 			$url,
 			array(
-				'timeout' => 30,
-				'headers' => array( 'Accept' => 'application/json' ),
+				'timeout'             => 30,
+				'headers'             => array( 'Accept' => 'application/json' ),
+				'limit_response_size' => 10485761,
 			)
 		);
 

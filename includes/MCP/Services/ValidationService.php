@@ -358,7 +358,7 @@ class ValidationService {
 			$schema_json   = json_decode( (string) wp_json_encode( $settings_schema ) );
 
 			if ( null === $settings_json || null === $schema_json ) {
-				return [];
+				return [ $this->validator_failure_error() ];
 			}
 
 			$result = $validator->validate( $settings_json, $schema_json );
@@ -371,7 +371,7 @@ class ValidationService {
 			$opis_errors = $result->error();
 
 			if ( null === $opis_errors ) {
-				return [];
+				return [ $this->validator_failure_error() ];
 			}
 
 			$formatted = $this->extract_opis_errors( $opis_errors, $element_type );
@@ -379,9 +379,24 @@ class ValidationService {
 
 			return $errors;
 		} catch ( \Throwable $e ) {
-			// If Opis validation itself throws, log and skip — don't block saves.
-			return [];
+			// Schema validation is part of the persistence boundary. A validator
+			// failure must block the save rather than silently accepting data that
+			// could not be checked.
+			return [ $this->validator_failure_error() ];
 		}
+	}
+
+	/**
+	 * Return a stable fail-closed error without leaking validator internals.
+	 *
+	 * @return array{path: string, message: string, suggestion: string}
+	 */
+	private function validator_failure_error(): array {
+		return [
+			'path'       => '/',
+			'message'    => __( 'Element schema validation failed unexpectedly.', 'lc-bricks-mcp' ),
+			'suggestion' => __( 'Retry the request. If the problem persists, verify the bundled schema validator and Bricks element schema.', 'lc-bricks-mcp' ),
+		];
 	}
 
 	/**

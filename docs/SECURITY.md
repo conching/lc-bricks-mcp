@@ -26,22 +26,23 @@ The plugin enforces a per-user request rate limit to prevent runaway AI agent lo
 
 - Default: 120 requests per minute per authenticated user
 - Configurable from **Bricks > MCP > Rate Limit** (range: 10–1000 RPM)
-- Per-user tracking uses WordPress transients keyed by user ID (`lc_bricks_mcp_rl_{user_id}`)
+- Per-user tracking uses a persistent object-cache counter when available and a fixed-expiry WordPress transient otherwise
 - When the limit is exceeded, the server returns HTTP `429` Too Many Requests with a `Retry-After` header indicating when the window resets
 - Applies to both REST API routes and the Streamable HTTP (SSE) endpoint
-- Rate limiting is only active when authentication is required — without a user identity, there is no user to track
-- Window: 60-second sliding window, auto-resets via transient TTL
+- Anonymous requests (when explicitly enabled) are tracked by `REMOTE_ADDR`; configure trusted proxy/CDN handling at the hosting layer
+- Window: 60-second fixed window; retries do not extend the reset time
+- JSON-RPC batch members each consume one unit
 
 For intensive AI building sessions (for example, "build me a landing page" workflows that fire 30–50 tool calls), consider increasing the limit to 300 RPM in the settings.
 
 ## Dangerous Actions Toggle
 
-Some operations — specifically writing JavaScript to page scripts — are gated behind a separate **Dangerous Actions** toggle in addition to normal authentication.
+Executable operations are gated behind a separate **Dangerous Actions** toggle in addition to normal authentication.
 
 - Off by default, with a prominent red warning in the admin settings
-- When enabled, AI tools can write JavaScript to page header and body script fields, and modify code execution settings
+- When enabled, AI tools can write JavaScript to page script fields and create or change executable Bricks element payloads
 - When disabled (default), these operations return an error regardless of user capability
-- CSS writes are not dangerous-actions-gated — CSS cannot execute code
+- Existing executable elements may be moved unchanged while the toggle is off; changing their executable payload remains blocked
 - API keys and secrets stored in Bricks settings are always masked as `****configured****` regardless of this setting
 
 Recommendation: only enable on development sites or when working with a trusted AI agent team.
@@ -57,10 +58,8 @@ Recommendation: only enable on development sites or when working with a trusted 
 - No unauthenticated write operations — all mutations require the `manage_options` capability
 - No stdio or WebSocket transport — HTTP REST only, through WordPress's built-in REST infrastructure
 - No cross-site data access — the plugin operates within the single WordPress installation it is installed on
-- No browser-facing CORS headers — CLI tools connect server-side; no `Access-Control-Allow-Origin` headers are emitted
+- The MCP route does not add a wildcard CORS policy. Public `/.well-known/` authentication metadata intentionally sends `Access-Control-Allow-Origin: *` and contains no credentials.
 
 ## Reporting Vulnerabilities
 
-To report a security vulnerability, contact: **cristi@buffup.media**
-
-Please use responsible disclosure — share details privately before publishing. The maintainer will acknowledge the report within 48 hours and provide a timeline for a fix.
+Report vulnerabilities privately through the repository's [GitHub Security Advisory form](https://github.com/conching/lc-bricks-mcp/security/advisories/new). Do not open a public issue for an unpatched vulnerability.
