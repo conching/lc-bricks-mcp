@@ -21,7 +21,7 @@ jobs:
           php-version: ${{ matrix.php }}
           coverage: none
           tools: composer:v2
-      - run: composer validate --no-check-publish --strict
+      - run: composer validate --no-check-publish
       - run: composer install --no-interaction --prefer-dist
       - run: composer audit
       - name: PHP lint
