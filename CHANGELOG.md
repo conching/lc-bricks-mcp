@@ -6,6 +6,28 @@ Library Creative fork of [`cristianuibar/bricks-mcp`](https://github.com/cristia
 v1.5.1 and remains licensed under GPL-2.0-or-later, retaining the original
 copyright (© 2025 BUFF UP MEDIA S.R.L., author Uibar Ion-Cristian).
 
+## [2.2.0] — 2026-07-17
+
+### Security
+
+- Enforce executable-element policy and native-flat sanitation at the final
+  persistence boundary; unchanged existing code elements can still be moved.
+- Route template imports through validation/read-back persistence and regenerate
+  imported IDs and exact internal references.
+- Make release checksum verification package-bound, cross-request, and fail-closed.
+- Cap template/media downloads, retain TLS verification, fail closed on schema
+  validator errors, and replace client-visible exceptions with error references.
+
+### Reliability and performance
+
+- Remove the destructive delete/add page-meta fallback and require exact read-back.
+- Build complete replacement menus before deleting the old tree.
+- Reject malformed JSON-RPC batches, weight batches for rate limiting, use fixed
+  transient windows, and return 405 instead of holding idle PHP workers for GET SSE.
+- Flatten simplified element trees in one traversal and make media-size expansion
+  opt-in.
+- Add dependency metadata, CI matrices, and focused security regression tests.
+
 ## [2.1.1] — 2026-07-14
 
 Fix release from pilot E2E verification: the `stripped` diff now actually

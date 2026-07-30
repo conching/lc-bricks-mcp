@@ -30,6 +30,9 @@ final class StreamableHttpHandler {
 	 */
 	public const PROTOCOL_VERSION = '2025-03-26';
 
+	/** @var array<int, string> */
+	public const SUPPORTED_PROTOCOL_VERSIONS = [ self::PROTOCOL_VERSION ];
+
 	/**
 	 * JSON-RPC parse error code.
 	 *
@@ -119,6 +122,15 @@ final class StreamableHttpHandler {
 			exit;
 		}
 
+		$accept = strtolower( (string) $request->get_header( 'Accept' ) );
+		if ( false === strpos( $accept, 'application/json' ) || false === strpos( $accept, 'text/event-stream' ) ) {
+			status_header( 406 );
+			header( 'Content-Type: application/json' );
+			header( 'Connection: close' );
+			echo wp_json_encode( $this->jsonrpc_error( null, self::INVALID_REQUEST, 'Not Acceptable' ) );
+			exit;
+		}
+
 		// Check body size before parsing.
 		$body     = $request->get_body();
 		$max_body = (int) apply_filters( 'lc_bricks_mcp_max_body_size', self::MAX_BODY_SIZE );
@@ -144,6 +156,11 @@ final class StreamableHttpHandler {
 
 		// Detect batch vs single message.
 		if ( is_array( $decoded ) && array_is_list( $decoded ) ) {
+			if ( empty( $decoded ) ) {
+				$this->emit_sse_headers();
+				$this->emit_sse_event( $this->jsonrpc_error( null, self::INVALID_REQUEST, 'Empty batch is invalid' ) );
+				exit;
+			}
 			// Reject oversized batches.
 			if ( count( $decoded ) > self::MAX_BATCH_SIZE ) {
 				$this->emit_sse_headers();
@@ -165,6 +182,10 @@ final class StreamableHttpHandler {
 			}
 
 			$results = $this->dispatch_batch( $decoded );
+			if ( empty( $results ) ) {
+				status_header( 202 );
+				exit;
+			}
 			$this->emit_sse_headers();
 			$this->emit_sse_event( $results );
 			exit;
@@ -193,32 +214,20 @@ final class StreamableHttpHandler {
 	}
 
 	/**
-	 * Handle GET requests (persistent SSE keepalive loop).
+	 * Handle GET requests.
 	 *
-	 * Emits SSE keepalive comments every 25 seconds to keep the connection open
-	 * through PHP-FPM idle timeouts. Checks for client disconnects via
-	 * connection_aborted() before and after each sleep interval, exiting cleanly
-	 * within one keepalive interval when the client disconnects.
+	 * This server has no asynchronous server-message queue, so a standalone SSE
+	 * stream would only consume a PHP worker. MCP permits returning 405 when the
+	 * server does not offer this optional stream.
 	 *
 	 * @param \WP_REST_Request $request The REST request.
 	 * @return void Outputs SSE keepalive stream and exits.
 	 */
 	public function handle_get( \WP_REST_Request $request ): void { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
-		$this->emit_sse_headers();
-		while ( true ) {
-			if ( connection_aborted() ) {
-				break;
-			}
-			echo ": keepalive\n\n";
-			if ( ob_get_level() > 0 ) {
-				ob_flush();
-			}
-			flush();
-			sleep( 25 );
-			if ( connection_aborted() ) {
-				break;
-			}
-		}
+		status_header( 405 );
+		header( 'Allow: POST, DELETE' );
+		header( 'Content-Type: application/json' );
+		echo wp_json_encode( [ 'error' => 'SSE stream not supported; use POST for MCP messages.' ] );
 		exit;
 	}
 
@@ -264,14 +273,20 @@ final class StreamableHttpHandler {
 		$method = $message['method'] ?? '';
 		$params = $message['params'] ?? [];
 
-		// Notification — no response needed.
-		if ( ! array_key_exists( 'id', $message ) ) {
-			return null;
-		}
-
 		// Validate JSON-RPC version.
 		if ( ! isset( $message['jsonrpc'] ) || '2.0' !== $message['jsonrpc'] ) {
 			return $this->jsonrpc_error( $id, self::INVALID_REQUEST, 'Invalid JSON-RPC version' );
+		}
+		if ( ! is_string( $method ) || '' === $method ) {
+			return $this->jsonrpc_error( $id, self::INVALID_REQUEST, 'Invalid JSON-RPC method' );
+		}
+		if ( ! is_array( $params ) ) {
+			return $this->jsonrpc_error( $id, self::INVALID_PARAMS, 'params must be an object or array' );
+		}
+
+		// Valid notification — no response needed.
+		if ( ! array_key_exists( 'id', $message ) ) {
+			return null;
 		}
 
 		// Route to method handler.
@@ -295,7 +310,12 @@ final class StreamableHttpHandler {
 	 * @return array<int, array<string, mixed>> Array of response objects.
 	 */
 	private function dispatch_batch( array $messages ): array {
-		$results = array_map( [ $this, 'dispatch_single' ], $messages );
+		$results = array_map(
+			fn( $message ) => is_array( $message ) && ! array_is_list( $message )
+				? $this->dispatch_single( $message )
+				: $this->jsonrpc_error( null, self::INVALID_REQUEST, 'Batch member must be a JSON-RPC object' ),
+			$messages
+		);
 		return array_values( array_filter( $results, fn( $r ) => null !== $r ) );
 	}
 
@@ -308,7 +328,13 @@ final class StreamableHttpHandler {
 	 * @param array<string, mixed> $params The request params (unused but required by spec).
 	 * @return array<string, mixed> JSON-RPC success response.
 	 */
-	private function handle_initialize( int|string $id, array $params ): array { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
+	private function handle_initialize( int|string $id, array $params ): array {
+		$requested_version = isset( $params['protocolVersion'] ) && is_string( $params['protocolVersion'] )
+			? $params['protocolVersion']
+			: '';
+		$protocol_version  = in_array( $requested_version, self::SUPPORTED_PROTOCOL_VERSIONS, true )
+			? $requested_version
+			: self::PROTOCOL_VERSION;
 		$capabilities = [
 			'tools' => [
 				'listChanged' => true,
@@ -328,7 +354,7 @@ final class StreamableHttpHandler {
 		return $this->jsonrpc_success(
 			$id,
 			[
-				'protocolVersion' => self::PROTOCOL_VERSION,
+				'protocolVersion' => $protocol_version,
 				'capabilities'    => $capabilities,
 				'serverInfo'      => $server_info,
 				'instructions'    => $instructions,

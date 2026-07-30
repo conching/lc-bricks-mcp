@@ -122,4 +122,65 @@ $normalizer->normalize(
 );
 lc_assert_same( [], $normalizer->get_strip_log(), 'normalize() resets the previous log' );
 
+// --- native flat input receives the same sanitization -------------------------
+
+$native_payload = 'Native <script>alert(1)</script> text';
+$native         = $normalizer->normalize(
+	[
+		[
+			'id'       => 'native1',
+			'name'     => 'heading',
+			'parent'   => 0,
+			'children' => [],
+			'settings' => [ 'text' => $native_payload ],
+		],
+	]
+);
+lc_assert(
+	false === strpos( $native[0]['settings']['text'], '<script>' ),
+	'native flat input is sanitized instead of returned unchanged'
+);
+lc_assert_same( 1, count( $normalizer->get_strip_log() ), 'native flat sanitation is recorded' );
+
+// Code source is preserved for the central Dangerous Actions policy to accept
+// or reject; the normalizer must not silently corrupt explicitly allowed code.
+$source = '<?php echo "preserved"; ?>';
+$code   = $normalizer->normalize(
+	[
+		[
+			'id'       => 'code01',
+			'name'     => 'code',
+			'parent'   => 0,
+			'children' => [],
+			'settings' => [ 'code' => $source ],
+		],
+	]
+);
+lc_assert_same( $source, $code[0]['settings']['code'], 'code source is preserved for policy enforcement' );
+
+// Imported flat trees receive new IDs and exact nested references are rewritten.
+$imported = $normalizer->regenerate_flat_ids(
+	[
+		[
+			'id'       => 'old001',
+			'name'     => 'section',
+			'parent'   => 0,
+			'children' => [ 'old002' ],
+			'settings' => [ 'target' => 'old002' ],
+		],
+		[
+			'id'       => 'old002',
+			'name'     => 'heading',
+			'parent'   => 'old001',
+			'children' => [],
+			'settings' => [],
+		],
+	]
+);
+lc_assert( 'old001' !== $imported[0]['id'], 'import regenerates the root ID' );
+lc_assert( 'old002' !== $imported[1]['id'], 'import regenerates the child ID' );
+lc_assert_same( $imported[1]['id'], $imported[0]['children'][0], 'child linkage uses the new ID' );
+lc_assert_same( $imported[0]['id'], $imported[1]['parent'], 'parent linkage uses the new ID' );
+lc_assert_same( $imported[1]['id'], $imported[0]['settings']['target'], 'settings reference uses the new ID' );
+
 lc_test_done( 'StripLogTest' );

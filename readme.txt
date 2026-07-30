@@ -3,7 +3,7 @@ Contributors: conching, cristianuibar, optiwebopz
 Tags: ai, bricks builder, mcp, artificial intelligence, page builder
 Requires at least: 6.4
 Tested up to: 6.8
-Stable tag: 2.1.1
+Stable tag: 2.2.0
 Requires PHP: 8.2
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -122,6 +122,15 @@ Yes, when configured correctly. The plugin enforces WordPress Application Passwo
 3. An AI assistant creating a Bricks Builder hero section from a plain-text prompt.
 
 == Changelog ==
+
+= 2.2.0 =
+* Security: native flat element arrays now receive the same sanitation as simplified input; new or changed executable element payloads are centrally gated by Dangerous Actions.
+* Security: template imports validate before creation, regenerate IDs and internal references, and use the central validated/read-back save path.
+* Reliability: no-op page saves no longer delete and re-add Bricks metadata; menu replacements preserve the old tree until the new tree is complete.
+* Security: update checksums are package-bound, reloaded across requests, and fail closed; release builds emit a matching .zip.sha256 asset.
+* Transport: malformed/empty/mixed JSON-RPC batches are handled safely, batch calls receive weighted rate-limit cost, and the unused GET SSE worker loop now returns 405.
+* Hardening: remote template/media downloads are capped, loopback TLS verification remains enabled, validator failures block saves, and internal exception details stay server-side.
+* Performance: element flattening uses one traversal and media lists omit generated-size expansion unless include_sizes is requested.
 
 = 2.1.1 =
 * Fix: the `stripped` diff in save responses is now anchored at the caller's raw input — sanitization strips recorded inside the normalizer are merged into the persistence read-back diff, so removed content (e.g. a `<script>` tag) actually appears in the response instead of an empty diff.
@@ -253,6 +262,9 @@ Yes, when configured correctly. The plugin enforces WordPress Application Passwo
 * Unsplash API integration for image search.
 
 == Upgrade Notice ==
+
+= 2.2.0 =
+Security and persistence hardening for autonomous writes. Native flat payloads and template imports now use the central policy/save pipeline; updater verification fails closed; destructive replacement windows are removed. Media list sizes are now opt-in via include_sizes.
 
 = 2.1.1 =
 Fixes the empty `stripped` diff in save responses: sanitization strips are now recorded against the caller's raw input and include removed tag names; `page:create` now returns the persisted/stripped fragment. No breaking changes; endpoint and auth unchanged.

@@ -23,6 +23,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class MediaService {
 
+	/** Default hard cap for remote media downloads (25 MiB). */
+	private const MAX_DOWNLOAD_BYTES = 26214400;
+
 	/**
 	 * Unsplash API base URL.
 	 *
@@ -163,10 +166,40 @@ class MediaService {
 			}
 		}
 
-		// Download to temp file.
-		$tmp = download_url( $url, 30 );
-		if ( is_wp_error( $tmp ) ) {
-			return $tmp;
+		// Stream into a capped temporary file. download_url() has no general size
+		// limit, so a public URL could otherwise exhaust disk before MIME checks run.
+		$max_bytes = max( 1, (int) apply_filters( 'lc_bricks_mcp_max_media_download_size', self::MAX_DOWNLOAD_BYTES ) );
+		$tmp       = wp_tempnam( $url );
+		if ( ! is_string( $tmp ) || '' === $tmp ) {
+			return new \WP_Error( 'temp_file_failed', __( 'Could not create a temporary file for the media download.', 'lc-bricks-mcp' ) );
+		}
+
+		$download = wp_safe_remote_get(
+			$url,
+			[
+				'timeout'             => 30,
+				'stream'              => true,
+				'filename'            => $tmp,
+				'limit_response_size' => $max_bytes + 1,
+			]
+		);
+		if ( is_wp_error( $download ) ) {
+			wp_delete_file( $tmp );
+			return $download;
+		}
+
+		$status = (int) wp_remote_retrieve_response_code( $download );
+		$size   = filesize( $tmp );
+		if ( 200 !== $status ) {
+			wp_delete_file( $tmp );
+			return new \WP_Error( 'download_failed', sprintf( __( 'Remote media returned HTTP %d.', 'lc-bricks-mcp' ), $status ) );
+		}
+		if ( false === $size || $size > $max_bytes ) {
+			wp_delete_file( $tmp );
+			return new \WP_Error(
+				'download_too_large',
+				sprintf( __( 'Remote media exceeds the maximum download size of %d bytes.', 'lc-bricks-mcp' ), $max_bytes )
+			);
 		}
 
 		// Build clean filename: strip query string, sanitize.
@@ -289,9 +322,10 @@ class MediaService {
 	 * @param string $mime_type MIME type filter (e.g., 'image', 'image/jpeg').
 	 * @param int    $per_page  Results per page (max 100).
 	 * @param int    $page      Page number.
+	 * @param bool   $include_sizes Include every generated image size (expensive).
 	 * @return array{items: array, total: int, page: int, total_pages: int} Media library results.
 	 */
-	public function get_media_library_items( string $search = '', string $mime_type = 'image', int $per_page = 20, int $page = 1 ): array {
+	public function get_media_library_items( string $search = '', string $mime_type = 'image', int $per_page = 20, int $page = 1, bool $include_sizes = false ): array {
 		$query_args = array(
 			'post_type'      => 'attachment',
 			'post_status'    => 'inherit',
@@ -316,16 +350,18 @@ class MediaService {
 			$attachment_url = wp_get_attachment_url( $post->ID );
 			$alt_text       = get_post_meta( $post->ID, '_wp_attachment_image_alt', true );
 
-			$sizes            = array();
-			$registered_sizes = get_intermediate_image_sizes();
-			foreach ( $registered_sizes as $size_name ) {
-				$src = wp_get_attachment_image_src( $post->ID, $size_name );
-				if ( $src ) {
-					$sizes[ $size_name ] = array(
-						'url'    => $src[0],
-						'width'  => $src[1],
-						'height' => $src[2],
-					);
+			$sizes = array();
+			if ( $include_sizes ) {
+				$registered_sizes = get_intermediate_image_sizes();
+				foreach ( $registered_sizes as $size_name ) {
+					$src = wp_get_attachment_image_src( $post->ID, $size_name );
+					if ( $src ) {
+						$sizes[ $size_name ] = array(
+							'url'    => $src[0],
+							'width'  => $src[1],
+							'height' => $src[2],
+						);
+					}
 				}
 			}
 
