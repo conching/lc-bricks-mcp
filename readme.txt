@@ -3,7 +3,7 @@ Contributors: conching, cristianuibar, optiwebopz
 Tags: ai, bricks builder, mcp, artificial intelligence, page builder
 Requires at least: 6.4
 Tested up to: 6.8
-Stable tag: 2.1.1
+Stable tag: 2.1.2
 Requires PHP: 8.2
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -122,6 +122,11 @@ Yes, when configured correctly. The plugin enforces WordPress Application Passwo
 3. An AI assistant creating a Bricks Builder hero section from a plain-text prompt.
 
 == Changelog ==
+
+= 2.1.2 =
+* Fix: global variable names and typography scale prefixes now use Bricks' bare storage format, preventing doubled `--` CSS properties and empty `var(--name)` references. Inputs accept names with or without `--`.
+* New `global_variable:repair_names` action previews or repairs existing doubled names and scale prefixes; variable responses include `css_var`, and list warns when legacy names remain.
+* Fix: variable and scale writers refuse names that collide with an existing variable after normalization (`name_taken`).
 
 = 2.1.1 =
 * Fix: the `stripped` diff in save responses is now anchored at the caller's raw input — sanitization strips recorded inside the normalizer are merged into the persistence read-back diff, so removed content (e.g. a `<script>` tag) actually appears in the response instead of an empty diff.
@@ -253,6 +258,9 @@ Yes, when configured correctly. The plugin enforces WordPress Application Passwo
 * Unsplash API integration for image search.
 
 == Upgrade Notice ==
+
+= 2.1.2 =
+Fixes doubled `--` CSS custom properties from MCP-written global variables and typography scales. Use `global_variable:repair_names` with `dry_run: true` to preview existing entries, then `dry_run: false` to repair them.
 
 = 2.1.1 =
 Fixes the empty `stripped` diff in save responses: sanitization strips are now recorded against the caller's raw input and include removed tag names; `page:create` now returns the persisted/stripped fragment. No breaking changes; endpoint and auth unchanged.

@@ -6,6 +6,40 @@ Library Creative fork of [`cristianuibar/bricks-mcp`](https://github.com/cristia
 v1.5.1 and remains licensed under GPL-2.0-or-later, retaining the original
 copyright (© 2025 BUFF UP MEDIA S.R.L., author Uibar Ion-Cristian).
 
+## [2.1.2] — 2026-09-23
+
+### Fixed
+
+- Global variable names and typography scale prefixes now use Bricks' bare
+  storage format. Previously, MCP-written names retained a leading `--`, so
+  Bricks emitted doubled CSS property names such as `----brand-space`
+  and `var(--brand-space)` resolved empty.
+
+### Added
+
+- `global_variable:repair_names` previews or repairs previously stored names
+  and scale prefixes with a doubled leading `--`.
+- Variable responses include `css_var`, the property Bricks actually emits
+  (a legacy entry shows its doubled `----name` until repaired); the global variable list includes a
+  `legacy_double_prefix` count and warning when repair is needed.
+
+### Changed
+
+- Variable names and typography scale prefixes accept input with or without
+  leading `--` and are stored without it.
+- Writers refuse a name that is already taken once normalized (`name_taken`),
+  counting a legacy `--name` entry as owning `name`. Previously `--brand` and a
+  native `brand` could coexist and Bricks emitted the property twice.
+- `repair_names` repairs each scale all-or-nothing: if its prefix or any step
+  cannot be repaired, the prefix and every step stay unchanged and are reported
+  (`empty_prefix`, `held_back_scale_conflict`,
+  `prefix_blocked_by_step_conflict`). Legacy entries stored as `--var(--x)`
+  repair to `x`. Renaming a legacy `--x` to `x` via `update` warns that any
+  `var(----x)` reference must change. Also,
+  `typography_scale:update` on such a scale returns `legacy_name_conflict`
+  without writing anything. `typography_scale:update` now validates every new
+  or renamed step before saving the category or its variables.
+
 ## [2.1.1] — 2026-07-14
 
 Fix release from pilot E2E verification: the `stripped` diff now actually

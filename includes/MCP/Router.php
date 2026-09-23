@@ -1132,7 +1132,7 @@ final class Router {
 					),
 					'prefix'          => array(
 						'type'        => 'string',
-						'description' => __( 'CSS variable prefix starting with -- (e.g., "--text-"). Used in create if not inside settings.', 'lc-bricks-mcp' ),
+						'description' => __( 'CSS variable prefix with or without leading -- (e.g., "text-" or "--text-"); stored without it as Bricks does. Used in create if not inside settings.', 'lc-bricks-mcp' ),
 					),
 					'steps'           => array(
 						'type'        => 'array',
@@ -1193,13 +1193,13 @@ final class Router {
 		// Global variable consolidated tool (replaces list_global_variables, create_variable_category, update_variable_category, delete_variable_category, create_global_variable, update_global_variable, delete_global_variable, batch_create_global_variables).
 		$this->register_tool(
 			'global_variable',
-			__( "Manage Bricks global CSS variables.\n\nActions:\n- list: List all global variables (no required params)\n- create_category: Create variable category (requires: category_name)\n- update_category: Rename variable category (requires: category_id, category_name)\n- delete_category: Delete variable category (requires: category_id)\n- create: Create variable (requires: name, value; optional: category)\n- update: Update variable (requires: variable_id; optional: name, value, category)\n- delete: Delete variable (requires: variable_id)\n- batch_create: Create multiple variables (requires: variables)\n- batch_delete: Delete multiple variables (requires: variable_ids; max 50)\n- search: Search variables by name/value (optional: query, value_query, category_id)", 'lc-bricks-mcp' ),
+			__( "Manage Bricks global CSS variables.\n\nActions:\n- list: List all global variables (no required params)\n- create_category: Create variable category (requires: category_name)\n- update_category: Rename variable category (requires: category_id, category_name)\n- delete_category: Delete variable category (requires: category_id)\n- create: Create variable (requires: name, value; optional: category)\n- update: Update variable (requires: variable_id; optional: name, value, category)\n- delete: Delete variable (requires: variable_id)\n- batch_create: Create multiple variables (requires: variables)\n- batch_delete: Delete multiple variables (requires: variable_ids; max 50)\n- search: Search variables by name/value (optional: query, value_query, category_id)\n- repair_names: Fix variables/scale prefixes stored with a doubled leading -- (optional: dry_run, default true)", 'lc-bricks-mcp' ),
 			array(
 				'type'       => 'object',
 				'properties' => array(
 					'action'        => array(
 						'type'        => 'string',
-						'enum'        => array( 'list', 'create_category', 'update_category', 'delete_category', 'create', 'update', 'delete', 'batch_create', 'batch_delete', 'search' ),
+						'enum'        => array( 'list', 'create_category', 'update_category', 'delete_category', 'create', 'update', 'delete', 'batch_create', 'batch_delete', 'search', 'repair_names' ),
 						'description' => __( 'Action to perform', 'lc-bricks-mcp' ),
 					),
 					'category_id'   => array(
@@ -1216,7 +1216,7 @@ final class Router {
 					),
 					'name'          => array(
 						'type'        => 'string',
-						'description' => __( 'Variable name (create: required; update: optional)', 'lc-bricks-mcp' ),
+						'description' => __( 'Variable name; leading -- is optional and is not stored (create: required; update: optional)', 'lc-bricks-mcp' ),
 					),
 					'value'         => array(
 						'type'        => 'string',
@@ -1242,6 +1242,10 @@ final class Router {
 					'value_query'   => array(
 						'type'        => 'string',
 						'description' => __( 'Value substring to search for (search: optional, case-insensitive)', 'lc-bricks-mcp' ),
+					),
+					'dry_run'       => array(
+						'type'        => 'boolean',
+						'description' => __( 'Preview name repairs without writing options (repair_names: optional, default true)', 'lc-bricks-mcp' ),
 					),
 				),
 				'required'   => array( 'action' ),
@@ -4569,7 +4573,7 @@ final class Router {
 	}
 
 	/**
-	 * Tool: Global variable dispatcher — routes to list, create_category, update_category, delete_category, create, update, delete, batch_create, batch_delete, search.
+	 * Tool: Global variable dispatcher — routes to list, category actions, CRUD, search, and repair_names.
 	 *
 	 * @param array<string, mixed> $args Tool arguments including 'action'.
 	 * @return array<string, mixed>|\WP_Error Result data or error.
@@ -4603,11 +4607,12 @@ final class Router {
 			'batch_create'    => $this->tool_batch_create_global_variables( $args ),
 			'batch_delete'    => $this->tool_batch_delete_global_variables( $args ),
 			'search'          => $this->tool_search_global_variables( $args ),
+			'repair_names'    => $this->tool_repair_global_variable_names( $args ),
 			default           => new \WP_Error(
 				'invalid_action',
 				sprintf(
 					/* translators: %s: Action name */
-					__( 'Invalid action "%s". Valid actions: list, create_category, update_category, delete_category, create, update, delete, batch_create, batch_delete, search', 'lc-bricks-mcp' ),
+					__( 'Invalid action "%s". Valid actions: list, create_category, update_category, delete_category, create, update, delete, batch_create, batch_delete, search, repair_names', 'lc-bricks-mcp' ),
 					$action
 				)
 			),
@@ -6273,7 +6278,7 @@ final class Router {
 		if ( empty( $args['prefix'] ) ) {
 			return new \WP_Error(
 				'missing_prefix',
-				__( 'prefix is required. Provide a CSS variable prefix starting with -- (e.g., "--text-").', 'lc-bricks-mcp' )
+				__( 'prefix is required. Provide a CSS variable prefix with or without leading -- (e.g., "text-" or "--text-"); Bricks stores it without --.', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -6868,6 +6873,24 @@ final class Router {
 		$category_id = $args['category_id'] ?? '';
 
 		return $this->bricks_service->search_global_variables( $name, $value, $category_id );
+	}
+
+	/**
+	 * Handler: Preview or repair legacy global variable names and scale prefixes.
+	 *
+	 * @param array<string, mixed> $args Tool arguments.
+	 * @return array<string, mixed>|\WP_Error Repair result or error.
+	 */
+	private function tool_repair_global_variable_names( array $args ): array|\WP_Error {
+		$bricks_error = $this->require_bricks();
+		if ( null !== $bricks_error ) {
+			return $bricks_error;
+		}
+
+		$dry_run = $args['dry_run'] ?? true;
+		$dry_run = ! ( false === $dry_run || 'false' === $dry_run || '0' === $dry_run );
+
+		return $this->bricks_service->repair_variable_names( $dry_run );
 	}
 
 	/**
