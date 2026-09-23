@@ -19,6 +19,7 @@ Thumbs.db
 /CHANGELOG.md
 /phpunit-unit.xml
 /.phpunit.cache
+/.delegate
 
 # Dev-only mu-plugin (App-Passwords-over-HTTP enabler) lives in /dev and is
 # excluded by the /dev rule above. Do NOT add it back to the shipped tree.
