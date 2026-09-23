@@ -6,6 +6,55 @@ Library Creative fork of [`cristianuibar/bricks-mcp`](https://github.com/cristia
 v1.5.1 and remains licensed under GPL-2.0-or-later, retaining the original
 copyright (© 2025 BUFF UP MEDIA S.R.L., author Uibar Ion-Cristian).
 
+## [2.1.3] — 2026-09-23
+
+### Fixed
+
+- `component:create` and `component:update` now find the sole structural root,
+  remap its ID and child references to the component ID, and validate element
+  linkage before writing. Property connections and custom CSS selectors follow
+  the remapped root ID.
+- `component:instantiate` now stores the root element's name so Bricks resolves
+  its element class, and stores instance property values in the property-ID map
+  Bricks reads. Instance property and slot edits repair a legacy `name = cid`
+  element when touched.
+- The `component` tool's `properties` input now accepts an object. It was typed
+  as an array only, so argument validation rejected the `{propertyId: value}`
+  map Bricks reads, leaving only a list shape that Bricks ignores.
+- `component:fill_slot` now saves. Page linkage validation required every
+  element to be listed in its parent's `children`, but Bricks lists slot content
+  in the instance's `slotChildren` map instead. Validation now accepts a
+  `slotChildren` listing on a component instance, and slot content stays out of
+  the instance's `children`. Only top-level slot content is listed in
+  `slotChildren` (a slotChildren entry whose element has a different parent is
+  rejected; one that no longer exists is tolerated, as Bricks skips it), slot
+  edges take part in cycle detection, and a repeated `fill_slot` appends to the
+  slot instead of orphaning its earlier content.
+- `component:update_properties` and `component:fill_slot` no longer fail on an
+  instance that still stores a value for a property since removed from the
+  definition; incoming values are still checked against the definition.
+- A label-only `component:update` labels the root element found by ID and keeps
+  a legacy `description` when the native `desc` is empty.
+
+### Added
+
+- `component:update` without `elements` repairs a tree stored by 2.1.2 or
+  earlier: a child the root lists whose `parent` still names the vanished
+  original root ID is relinked to the component ID, and property connections
+  keyed by that old ID are re-keyed. The response reports `repaired_links`.
+  Any update (a label edit is enough) therefore repairs such a component.
+- `component:update` rejects a change of the root element type
+  (`root_type_change`), since existing instances store the root element name
+  and would keep the old element class.
+
+### Changed
+
+- Component definitions now store Bricks' native `desc`, root label, creation
+  metadata, user ID, and Bricks version. Property definitions use `label` and
+  `desc`; `name` and `description` remain accepted input aliases.
+- Instance property inputs accept a keyed map or a list of `{id, value}` pairs.
+  Unknown property IDs are rejected before writing.
+
 ## [2.1.2] — 2026-09-23
 
 ### Fixed

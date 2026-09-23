@@ -604,9 +604,10 @@ class BricksService {
 					);
 				}
 
-				// Reciprocal check: parent must list this element in its children.
+				// Reciprocal check: parent must list this element in its children
+				// (or, for a component instance, in its slotChildren map).
 				$parent_index    = $id_map[ $parent_str ];
-				$parent_children = $elements[ $parent_index ]['children'];
+				$parent_children = $this->linked_child_ids( $elements[ $parent_index ] );
 
 				if ( ! in_array( $element['id'], $parent_children, true ) ) {
 					return new \WP_Error(
@@ -615,6 +616,21 @@ class BricksService {
 						[
 							'path'   => "elements[{$index}].parent",
 							'reason' => sprintf( 'Linkage mismatch: parent "%s" does not list "%s" in its children array.', $parent, $element['id'] ),
+						]
+					);
+				}
+			}
+
+			// Slot content roots of a component instance must list the instance as parent.
+			// A slotChildren ID that no longer exists is tolerated (Bricks skips it at render).
+			foreach ( $this->slot_child_ids( $element ) as $slot_child_id ) {
+				if ( isset( $id_map[ $slot_child_id ] ) && (string) $elements[ $id_map[ $slot_child_id ] ]['parent'] !== $element['id'] ) {
+					return new \WP_Error(
+						'invalid_element_structure',
+						sprintf( 'Component instance "%s" lists "%s" in slotChildren, but "%s" has a different parent.', $element['id'], $slot_child_id, $slot_child_id ),
+						[
+							'path'   => "elements[{$index}].slotChildren",
+							'reason' => sprintf( 'Slot content root "%s" must have parent "%s". List only top-level slot content in slotChildren.', $slot_child_id, $element['id'] ),
 						]
 					);
 				}
@@ -686,7 +702,7 @@ class BricksService {
 
 		$element = $elements[ $id_map[ $element_id ] ];
 
-		foreach ( $element['children'] as $child_id ) {
+		foreach ( $this->linked_child_ids( $element ) as $child_id ) {
 			if ( ! isset( $visited[ $child_id ] ) ) {
 				$result = $this->detect_cycle( $child_id, $elements, $id_map, $visited, $in_stack );
 				if ( is_wp_error( $result ) ) {
@@ -706,6 +722,42 @@ class BricksService {
 
 		$in_stack[ $element_id ] = false;
 		return true;
+	}
+
+	/**
+	 * IDs an element links to as children: its children array plus, on a component
+	 * instance, the slot content IDs in its slotChildren map. Bricks lists slot
+	 * content there instead of in the instance's children.
+	 *
+	 * @param array $element Element.
+	 * @return array<int, mixed> Linked child IDs.
+	 */
+	private function linked_child_ids( array $element ): array {
+		$ids = is_array( $element['children'] ?? null ) ? array_values( $element['children'] ) : [];
+
+		return array_merge( $ids, $this->slot_child_ids( $element ) );
+	}
+
+	/**
+	 * Slot content root IDs listed in a component instance's slotChildren map.
+	 *
+	 * @param array $element Element.
+	 * @return array<int, string> Slot content root IDs (empty for non-instances).
+	 */
+	private function slot_child_ids( array $element ): array {
+		$ids = [];
+
+		if ( isset( $element['cid'] ) && is_array( $element['slotChildren'] ?? null ) ) {
+			foreach ( $element['slotChildren'] as $slot_child_ids ) {
+				foreach ( is_array( $slot_child_ids ) ? $slot_child_ids : [ $slot_child_ids ] as $slot_child_id ) {
+					if ( is_scalar( $slot_child_id ) && '' !== (string) $slot_child_id ) {
+						$ids[] = (string) $slot_child_id;
+					}
+				}
+			}
+		}
+
+		return $ids;
 	}
 
 	/**

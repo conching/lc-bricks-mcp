@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace LCBricksMCP\MCP;
 
 use LCBricksMCP\MCP\Services\BricksService;
+use LCBricksMCP\MCP\Services\ComponentNormalizer;
 use LCBricksMCP\MCP\Services\ElementIdGenerator;
 use LCBricksMCP\MCP\Services\MediaService;
 use LCBricksMCP\MCP\Services\MenuService;
@@ -1353,7 +1354,7 @@ final class Router {
 		// Component consolidated tool (component definition CRUD + instance operations).
 		$this->register_tool(
 			'component',
-			__( "Manage Bricks Components (reusable element trees with properties and slots).\n\nActions:\n- list: List all component definitions (optional: category) [read]\n- get: Get full component definition (requires: component_id) [read]\n- create: Create component from element tree (requires: label, elements; optional: category, description, properties)\n- update: Update component definition (requires: component_id; optional: label, category, description, elements, properties)\n- delete: Delete component definition (requires: component_id)\n- instantiate: Place component instance on a page (requires: component_id, post_id; optional: parent_id, position, properties)\n- update_properties: Update instance property values (requires: post_id, instance_id, properties)\n- fill_slot: Fill a slot on a component instance with element content (requires: post_id, instance_id, slot_id, slot_elements)", 'lc-bricks-mcp' ),
+			__( "Manage Bricks Components (reusable element trees with properties and slots). Definition properties use label/desc and connections keyed by element ID. Instance name is the component root element name; cid is the component ID. Instance property values are keyed by property ID.\n\nActions:\n- list: List all component definitions (optional: category) [read]\n- get: Get full component definition (requires: component_id) [read]\n- create: Create component from element tree (requires: label, elements; optional: category, description, properties)\n- update: Update component definition (requires: component_id; optional: label, category, description, elements, properties)\n- delete: Delete component definition (requires: component_id)\n- instantiate: Place component instance on a page (requires: component_id, post_id; optional: parent_id, position, properties)\n- update_properties: Update instance property values (requires: post_id, instance_id, properties)\n- fill_slot: Fill a slot on a component instance with element content (requires: post_id, instance_id, slot_id, slot_elements)", 'lc-bricks-mcp' ),
 			array(
 				'type'       => 'object',
 				'properties' => array(
@@ -1380,11 +1381,11 @@ final class Router {
 					),
 					'elements'      => array(
 						'type'        => 'array',
-						'description' => __( 'Flat element array — same structure as page content (create: required; update: optional). Root element ID will be auto-set to match component ID.', 'lc-bricks-mcp' ),
+						'description' => __( 'Flat element array — same structure as page content (create: required; update: optional). The single structural root is moved first; its ID and child references are remapped to the component ID.', 'lc-bricks-mcp' ),
 					),
 					'properties'    => array(
-						'type'        => 'array',
-						'description' => __( 'Property definitions array (create/update: optional) or property values object (instantiate/update_properties: set instance values). Each definition: {id, name, type, default, description, connections}', 'lc-bricks-mcp' ),
+						'oneOf'       => array( array( 'type' => 'array' ), array( 'type' => 'object' ) ),
+						'description' => __( 'Definitions list (create/update): {id?, label, type, desc?, default?, connections?}; name/description are accepted aliases for label/desc. Instance values (instantiate/update_properties): {propertyId: value}, or a list of {id, value}.', 'lc-bricks-mcp' ),
 					),
 					'post_id'       => array(
 						'type'        => 'integer',
@@ -7593,7 +7594,7 @@ final class Router {
 				'id'             => $component['id'],
 				'label'          => $component['label'] ?? '',
 				'category'       => $component['category'] ?? '',
-				'description'    => $component['description'] ?? '',
+				'description'    => ComponentNormalizer::description( $component ),
 				'element_count'  => count( $elements ),
 				'slot_count'     => count( array_filter( $elements, fn( $el ) => ( $el['name'] ?? '' ) === 'slot' ) ),
 				'property_count' => count( $component['properties'] ?? array() ),
@@ -7643,6 +7644,7 @@ final class Router {
 			array_filter( $elements, fn( $el ) => ( $el['name'] ?? '' ) === 'slot' )
 		) );
 		$component['property_count'] = count( $component['properties'] ?? array() );
+		$component['description']    = ComponentNormalizer::description( $component );
 
 		return $component;
 	}
@@ -7658,15 +7660,19 @@ final class Router {
 			return new \WP_Error( 'missing_label', __( 'label is required. Provide a display name for the component.', 'lc-bricks-mcp' ) );
 		}
 
-		if ( empty( $args['elements'] ) || ! is_array( $args['elements'] ) ) {
+		if ( ! array_key_exists( 'elements', $args ) ) {
 			return new \WP_Error( 'missing_elements', __( 'elements is required. Provide a non-empty flat element array (same structure as page content).', 'lc-bricks-mcp' ) );
 		}
+		if ( ! is_array( $args['elements'] ) ) {
+			return new \WP_Error( 'invalid_component_tree', __( 'Component elements must be a flat array with one root.', 'lc-bricks-mcp' ) );
+		}
 
-		$label      = sanitize_text_field( $args['label'] );
-		$category   = isset( $args['category'] ) ? sanitize_text_field( $args['category'] ) : '';
-		$desc       = isset( $args['description'] ) ? sanitize_text_field( $args['description'] ) : '';
-		$elements   = $args['elements'];
-		$properties = isset( $args['properties'] ) && is_array( $args['properties'] ) ? $args['properties'] : array();
+		$label    = sanitize_text_field( $args['label'] );
+		$category = isset( $args['category'] ) ? sanitize_text_field( $args['category'] ) : '';
+		$desc     = isset( $args['description'] ) ? sanitize_text_field( $args['description'] ) : '';
+		if ( array_key_exists( 'properties', $args ) && ! is_array( $args['properties'] ) ) {
+			return new \WP_Error( 'invalid_property_definitions', __( 'Component property definitions must be a list.', 'lc-bricks-mcp' ) );
+		}
 
 		$components   = get_option( self::COMPONENTS_OPTION, array() );
 		$id_generator = new ElementIdGenerator();
@@ -7683,17 +7689,37 @@ final class Router {
 			}
 		}
 
-		// Set root element ID to match component ID.
-		$elements[0]['id']     = $component_id;
-		$elements[0]['parent'] = 0;
+		$normalized = ComponentNormalizer::normalize_definition_elements( $args['elements'], $component_id );
+		if ( is_wp_error( $normalized ) ) {
+			return $normalized;
+		}
+		$elements             = $normalized['elements'];
+		$elements[0]['label'] = $label;
+		$linkage              = $this->bricks_service->validate_element_linkage( $elements );
+		if ( is_wp_error( $linkage ) ) {
+			return $linkage;
+		}
+
+		$properties = ComponentNormalizer::normalize_property_definitions(
+			$args['properties'] ?? array(),
+			$normalized['old_root_id'],
+			$component_id,
+			fn( array $existing ): string => $id_generator->generate_unique( $existing )
+		);
+		if ( is_wp_error( $properties ) ) {
+			return $properties;
+		}
 
 		$new_component = array(
 			'id'          => $component_id,
 			'label'       => $label,
 			'category'    => $category,
-			'description' => $desc,
+			'desc'        => $desc,
 			'elements'    => $elements,
 			'properties'  => $properties,
+			'_created'    => time(),
+			'_user_id'    => get_current_user_id(),
+			'_version'    => defined( 'BRICKS_VERSION' ) ? BRICKS_VERSION : '',
 		);
 
 		$components[] = $new_component;
@@ -7738,30 +7764,95 @@ final class Router {
 			);
 		}
 
-		// Merge allowed fields.
-		$allowed_fields = array( 'label', 'category', 'description', 'elements', 'properties' );
-		foreach ( $allowed_fields as $field ) {
+		$updated         = $components[ $index ];
+		$updated['desc'] = ComponentNormalizer::description( $updated );
+		unset( $updated['description'] );
+
+		foreach ( array( 'label', 'category' ) as $field ) {
 			if ( array_key_exists( $field, $args ) ) {
-				if ( 'label' === $field || 'category' === $field || 'description' === $field ) {
-					$components[ $index ][ $field ] = sanitize_text_field( $args[ $field ] );
-				} else {
-					$components[ $index ][ $field ] = $args[ $field ];
-				}
+				$updated[ $field ] = sanitize_text_field( $args[ $field ] );
+			}
+		}
+		if ( array_key_exists( 'description', $args ) ) {
+			$updated['desc'] = sanitize_text_field( $args['description'] );
+		}
+
+		$old_root_id    = $component_id;
+		$old_root_name  = ComponentNormalizer::root_element_name( $components[ $index ] );
+		$repaired_links = 0;
+		if ( array_key_exists( 'elements', $args ) ) {
+			if ( ! is_array( $args['elements'] ) ) {
+				return new \WP_Error( 'invalid_component_tree', __( 'Component elements must be a flat array with one root.', 'lc-bricks-mcp' ) );
+			}
+			$normalized = ComponentNormalizer::normalize_definition_elements( $args['elements'], $component_id );
+			if ( is_wp_error( $normalized ) ) {
+				return $normalized;
+			}
+			// Instances store the root element name; Bricks picks their class from it.
+			$new_root_name = $normalized['elements'][0]['name'] ?? null;
+			if ( null !== $old_root_name && $new_root_name !== $old_root_name ) {
+				return new \WP_Error(
+					'root_type_change',
+					sprintf(
+						/* translators: %1$s: Current root element name, %2$s: Requested root element name */
+						__( 'The component root is a "%1$s" element and cannot change to "%2$s": existing instances keep the old element type. Keep the root type, or create a new component.', 'lc-bricks-mcp' ),
+						$old_root_name,
+						(string) $new_root_name
+					)
+				);
+			}
+			$updated['elements'] = $normalized['elements'];
+			$old_root_id        = $normalized['old_root_id'];
+		} elseif ( is_array( $updated['elements'] ?? null ) ) {
+			// Repair child links left broken by lc-bricks-mcp 2.1.2 and earlier.
+			$repair              = ComponentNormalizer::repair_legacy_root_links( $updated['elements'], $component_id );
+			$updated['elements'] = $repair['elements'];
+			$old_root_id         = $repair['old_root_id'];
+			$repaired_links      = $repair['repaired'];
+		}
+		if ( empty( $updated['elements'] ) || ! is_array( $updated['elements'] ) ) {
+			return new \WP_Error( 'invalid_component_tree', __( 'Component elements must be a flat array with one root.', 'lc-bricks-mcp' ) );
+		}
+		foreach ( $updated['elements'] as &$stored_element ) {
+			if ( is_array( $stored_element ) && ( $stored_element['id'] ?? null ) === $component_id ) {
+				$stored_element['label'] = $updated['label'] ?? '';
+				break;
+			}
+		}
+		unset( $stored_element );
+		// Validate supplied trees only, so a label or property edit still works on a stored tree.
+		if ( array_key_exists( 'elements', $args ) ) {
+			$linkage = $this->bricks_service->validate_element_linkage( $updated['elements'] );
+			if ( is_wp_error( $linkage ) ) {
+				return $linkage;
 			}
 		}
 
-		// Enforce root element ID = component ID if elements were updated.
-		if ( isset( $args['elements'] ) && is_array( $args['elements'] ) && ! empty( $args['elements'] ) ) {
-			$components[ $index ]['elements'][0]['id']     = $component_id;
-			$components[ $index ]['elements'][0]['parent'] = 0;
+		$property_input = array_key_exists( 'properties', $args ) ? $args['properties'] : ( $updated['properties'] ?? array() );
+		if ( ! is_array( $property_input ) ) {
+			return new \WP_Error( 'invalid_property_definitions', __( 'Component property definitions must be a list.', 'lc-bricks-mcp' ) );
 		}
+		$id_generator = new ElementIdGenerator();
+		$properties   = ComponentNormalizer::normalize_property_definitions(
+			$property_input,
+			$old_root_id,
+			$component_id,
+			fn( array $existing ): string => $id_generator->generate_unique( $existing )
+		);
+		if ( is_wp_error( $properties ) ) {
+			return $properties;
+		}
+		$updated['properties'] = $properties;
+		$updated['_created']   = $updated['_created'] ?? time();
+		$updated['_user_id']   = $updated['_user_id'] ?? get_current_user_id();
+		$updated['_version']   = defined( 'BRICKS_VERSION' ) ? BRICKS_VERSION : ( $updated['_version'] ?? '' );
+		$components[ $index ] = $updated;
 
 		update_option( self::COMPONENTS_OPTION, $components );
 
-		$updated  = $components[ $index ];
 		$elements = $updated['elements'] ?? array();
 
-		return array(
+		$result = array(
 			'updated'        => true,
 			'id'             => $component_id,
 			'label'          => $updated['label'] ?? '',
@@ -7770,6 +7861,11 @@ final class Router {
 			'slot_count'     => count( array_filter( $elements, fn( $el ) => ( $el['name'] ?? '' ) === 'slot' ) ),
 			'property_count' => count( $updated['properties'] ?? array() ),
 		);
+		if ( $repaired_links > 0 ) {
+			$result['repaired_links'] = $repaired_links;
+		}
+
+		return $result;
 	}
 
 	/**
@@ -7847,7 +7943,16 @@ final class Router {
 			);
 		}
 
-		$component_label = $components[ $comp_index ]['label'] ?? '';
+		$component       = $components[ $comp_index ];
+		$component_label = $component['label'] ?? '';
+		$root_name       = ComponentNormalizer::root_element_name( $component );
+		if ( null === $root_name ) {
+			return new \WP_Error( 'component_root_missing', __( 'Component root element is missing or has no name.', 'lc-bricks-mcp' ) );
+		}
+		$properties = ComponentNormalizer::normalize_instance_properties( array_key_exists( 'properties', $args ) ? $args['properties'] : array(), $component );
+		if ( is_wp_error( $properties ) ) {
+			return $properties;
+		}
 
 		// Get existing page elements.
 		$elements = $this->bricks_service->get_elements( $post_id );
@@ -7861,15 +7966,16 @@ final class Router {
 
 		// Build instance element.
 		$instance_element = array(
-			'id'           => $instance_id,
-			'name'         => $component_id,
-			'cid'          => $component_id,
-			'parent'       => $parent,
-			'children'     => array(),
-			'settings'     => array(),
-			'properties'   => isset( $args['properties'] ) && is_array( $args['properties'] ) ? $args['properties'] : array(),
-			'slotChildren' => array(),
+			'id'       => $instance_id,
+			'name'     => $root_name,
+			'cid'      => $component_id,
+			'parent'   => $parent,
+			'children' => array(),
+			'settings' => array(),
 		);
+		if ( ! empty( $properties ) ) {
+			$instance_element['properties'] = $properties;
+		}
 
 		// If parent is specified and not root, validate parent exists and update its children.
 		if ( '0' !== $parent_id ) {
@@ -7935,15 +8041,16 @@ final class Router {
 			return new \WP_Error( 'missing_instance_id', __( 'instance_id is required. Use page:get to find component instance element IDs.', 'lc-bricks-mcp' ) );
 		}
 
-		if ( ! isset( $args['properties'] ) || ! is_array( $args['properties'] ) ) {
-			return new \WP_Error( 'missing_properties', __( 'properties object is required. Provide property ID to value mappings.', 'lc-bricks-mcp' ) );
+		if ( ! array_key_exists( 'properties', $args ) ) {
+			return new \WP_Error( 'missing_properties', __( 'properties is required. Provide property ID to value mappings or a list of id/value objects.', 'lc-bricks-mcp' ) );
 		}
 
 		$post_id     = (int) $args['post_id'];
 		$instance_id = sanitize_text_field( $args['instance_id'] );
 		$elements    = $this->bricks_service->get_elements( $post_id );
 
-		$found = false;
+		$components = get_option( self::COMPONENTS_OPTION, array() );
+		$found      = false;
 		foreach ( $elements as &$element ) {
 			if ( $element['id'] === $instance_id ) {
 				if ( ! isset( $element['cid'] ) ) {
@@ -7956,7 +8063,32 @@ final class Router {
 						)
 					);
 				}
-				$element['properties'] = array_merge( $element['properties'] ?? array(), $args['properties'] );
+				$component_id = $element['cid'];
+				$comp_index   = array_search( $component_id, array_column( $components, 'id' ), true );
+				if ( false === $comp_index ) {
+					return new \WP_Error( 'component_not_found', __( 'Component definition for this instance was not found.', 'lc-bricks-mcp' ) );
+				}
+				$component = $components[ $comp_index ];
+				$root_name = ComponentNormalizer::root_element_name( $component );
+				if ( null === $root_name ) {
+					return new \WP_Error( 'component_root_missing', __( 'Component root element is missing or has no name.', 'lc-bricks-mcp' ) );
+				}
+				// Stored values are converted but not ID-checked: a property removed from the
+				// definition must not block edits to the ones that remain.
+				$stored_props = ComponentNormalizer::stored_instance_properties( $element['properties'] ?? array() );
+				$new_props    = ComponentNormalizer::normalize_instance_properties( $args['properties'], $component );
+				if ( is_wp_error( $new_props ) ) {
+					return $new_props;
+				}
+				$merged_props = array_replace( $stored_props, $new_props );
+				if ( empty( $merged_props ) ) {
+					unset( $element['properties'] );
+				} else {
+					$element['properties'] = $merged_props;
+				}
+				if ( $element['name'] === $component_id ) {
+					$element['name'] = $root_name;
+				}
 				$found                 = true;
 				break;
 			}
@@ -7986,7 +8118,7 @@ final class Router {
 				return array(
 					'updated'     => true,
 					'instance_id' => $instance_id,
-					'properties'  => $el['properties'],
+					'properties'  => $el['properties'] ?? array(),
 				);
 			}
 		}
@@ -7994,7 +8126,7 @@ final class Router {
 		return array(
 			'updated'     => true,
 			'instance_id' => $instance_id,
-			'properties'  => $args['properties'],
+			'properties'  => $merged_props,
 		);
 	}
 
@@ -8077,6 +8209,12 @@ final class Router {
 				)
 			);
 		}
+		$component = $components[ $comp_index ];
+		$root_name = ComponentNormalizer::root_element_name( $component );
+		if ( null === $root_name ) {
+			return new \WP_Error( 'component_root_missing', __( 'Component root element is missing or has no name.', 'lc-bricks-mcp' ) );
+		}
+		$stored_props = ComponentNormalizer::stored_instance_properties( $elements[ $instance_index ]['properties'] ?? array() );
 
 		$comp_elements = $components[ $comp_index ]['elements'] ?? array();
 		$slot_found    = false;
@@ -8098,10 +8236,19 @@ final class Router {
 				)
 			);
 		}
+		if ( $elements[ $instance_index ]['name'] === $component_id ) {
+			$elements[ $instance_index ]['name'] = $root_name;
+		}
+		if ( empty( $stored_props ) ) {
+			unset( $elements[ $instance_index ]['properties'] );
+		} else {
+			$elements[ $instance_index ]['properties'] = $stored_props;
+		}
 
 		// Generate IDs for slot content elements and set parent to instance.
-		$id_generator   = new ElementIdGenerator();
+		$id_generator    = new ElementIdGenerator();
 		$new_element_ids = array();
+		$slot_root_ids   = array();
 
 		foreach ( $slot_elements as &$slot_el ) {
 			// Generate new ID if missing or conflicting.
@@ -8130,15 +8277,23 @@ final class Router {
 			}
 
 			$new_element_ids[] = $slot_el['id'];
+			// Only top-level content goes in slotChildren; descendants link through children.
+			if ( $slot_el['parent'] === $instance_id ) {
+				$slot_root_ids[] = $slot_el['id'];
+			}
 
 			// Add to the tracking array for conflict checking.
 			$elements[] = $slot_el;
 		}
 		unset( $slot_el );
 
-		// Update instance element's slotChildren.
-		$elements[ $instance_index ]['slotChildren']              = $elements[ $instance_index ]['slotChildren'] ?? array();
-		$elements[ $instance_index ]['slotChildren'][ $slot_id ] = $new_element_ids;
+		// Append the new top-level content to the slot's existing content in slotChildren.
+		$slot_children = $elements[ $instance_index ]['slotChildren'] ?? array();
+		$slot_children = is_array( $slot_children ) ? $slot_children : array();
+		$existing_ids  = is_array( $slot_children[ $slot_id ] ?? null ) ? $slot_children[ $slot_id ] : array();
+
+		$slot_children[ $slot_id ]                  = array_values( array_unique( array_merge( $existing_ids, $slot_root_ids ) ) );
+		$elements[ $instance_index ]['slotChildren'] = $slot_children;
 
 		$save_result = $this->bricks_service->save_elements( $post_id, $elements );
 		if ( is_wp_error( $save_result ) ) {
@@ -8219,6 +8374,14 @@ final class Router {
 				),
 				'note'        => 'Without connections, property values have no effect on rendering.',
 			),
+			'property_definition'   => array(
+				'id'          => '<property_id>',
+				'label'       => 'Title',
+				'type'        => 'text',
+				'desc'        => 'Optional description',
+				'connections' => array( '<element_id>' => array( 'text' ) ),
+				'note'        => 'The input aliases name and description are stored as label and desc. A missing id is generated.',
+			),
 			'slot_mechanics'       => array(
 				'description'        => "Slots are special elements with name='slot' placed inside a component definition. Instance slot content is stored in the page element array, referenced via slotChildren on the instance element.",
 				'slot_element'       => array(
@@ -8233,18 +8396,19 @@ final class Router {
 				'fill_note'          => 'Slot content elements live in the page\'s flat element array with parent = instance element ID. Use component:fill_slot action to manage this atomically.',
 			),
 			'instantiation_pattern' => array(
-				'description'      => 'To place a component on a page, use component:instantiate. The instance is an element with name=cid=component_id.',
+				'description'      => 'To place a component on a page, use component:instantiate. The instance name is the root element name; cid is the component ID.',
 				'instance_keys'    => array(
-					'name'         => '<component_id>',
-					'cid'          => '<component_id>',
-					'properties'   => array(),
-					'slotChildren' => array(),
+					'name'       => '<root_element_name>',
+					'cid'        => '<component_id>',
+					'properties' => array( '<property_id>' => '<value>' ),
 				),
+				'optional_keys'     => 'Omit properties and slotChildren when empty. Property values may be supplied as a keyed map or a list of {id, value} objects.',
 				'propagation_note' => 'Changes to the component definition automatically affect all instances at render time.',
 			),
 			'important_notes'      => array(
 				'Root element ID in component elements array MUST equal the component ID',
-				'Element name for instances equals the component ID (not a human-readable element type)',
+				'Instance element name equals the component root element name; cid equals the component ID',
+				'Instance properties are keyed by property ID',
 				'Properties without connections have no effect on rendering — always set connections',
 				'Slot elements MUST use name=\'slot\' — other nestable elements do not trigger slot behavior',
 				'Component IDs use the same 6-char alphanumeric format as element IDs',

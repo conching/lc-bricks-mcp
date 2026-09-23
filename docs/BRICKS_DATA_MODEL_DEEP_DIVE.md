@@ -779,22 +779,32 @@ Bricks stores global configuration as WordPress options. All loaded via `Databas
 
 ```php
 [
-    'component-id' => [
-        'id'         => 'cmp-card',
-        'name'       => 'Card Component',
-        'elements'   => [...],        // Element array (same as page content)
+    [
+        'id'         => 'abc123',
+        'label'      => 'Card Component',
+        'category'   => 'Cards',
+        'desc'       => 'Reusable card',
+        '_created'   => 1780000000,
+        '_user_id'   => 1,
+        '_version'   => '2.4.1',
+        'elements'   => [
+            ['id' => 'abc123', 'name' => 'container', 'label' => 'Card Component', 'parent' => 0, 'children' => ['def456'], 'settings' => []],
+            ['id' => 'def456', 'name' => 'heading', 'parent' => 'abc123', 'children' => [], 'settings' => ['text' => 'Card Title']],
+        ],
         'properties' => [
             [
-                'id'      => 'prop-title',
-                'name'    => 'title',
-                'type'    => 'text',
-                'default' => 'Card Title'
+                'id'          => 'prop01',
+                'label'       => 'Title',
+                'type'        => 'text',
+                'default'     => 'Card Title',
+                'connections' => ['def456' => ['text']],
             ]
         ],
-        'settings'   => [...]
     ]
 ]
 ```
+
+`bricks_components` is a zero-indexed list. Bricks finds a definition by `array_search( $cid, array_column( $components, 'id' ) )`, then finds its root element by `id === cid`.
 
 ### Multisite Support
 
@@ -1945,9 +1955,9 @@ The class definitions are stored separately in `bricks_global_classes` option.
 
 When an element is part of a component instance:
 1. `cid` points to component definition
-2. `instanceId` uniquely identifies this instance
-3. Settings may contain `{property:propName}` placeholders
-4. Placeholders are resolved from instance `properties` array
+2. `id` uniquely identifies this instance; `name` is the component root element's name (such as `container`), so Bricks can resolve its element class
+3. `properties` is a map keyed by property ID, such as `['prop01' => 'Custom Title']`; Bricks applies values through the definition's `connections` map
+4. `slotChildren`, when present, maps slot IDs to page element IDs; empty `properties` and `slotChildren` may be omitted
 
 ### CSS Loading Modes
 

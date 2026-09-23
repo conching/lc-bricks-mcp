@@ -3,7 +3,7 @@ Contributors: conching, cristianuibar, optiwebopz
 Tags: ai, bricks builder, mcp, artificial intelligence, page builder
 Requires at least: 6.4
 Tested up to: 6.8
-Stable tag: 2.1.2
+Stable tag: 2.1.3
 Requires PHP: 8.2
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -122,6 +122,13 @@ Yes, when configured correctly. The plugin enforces WordPress Application Passwo
 3. An AI assistant creating a Bricks Builder hero section from a plain-text prompt.
 
 == Changelog ==
+
+= 2.1.3 =
+* Fix: component create/update remap the structural root ID, child links, property connections, and custom CSS selectors, then validate the stored tree.
+* Fix: component instances use the root element name and property values keyed by property ID; instance edits repair legacy names and property lists when touched.
+* Fix: the component `properties` input accepts a `{propertyId: value}` object (it was rejected as non-array), and `component:fill_slot` saves slot content in Bricks' native `slotChildren` shape (top-level content only; repeat fills append).
+* New: `component:update` repairs child links left broken by 2.1.2 and earlier (any update, e.g. a label edit, reports `repaired_links`) and rejects a root element type change (`root_type_change`).
+* Changed: component definitions use Bricks' native `desc`, `label`, and metadata fields. Definition input still accepts `name` and `description` property aliases.
 
 = 2.1.2 =
 * Fix: global variable names and typography scale prefixes now use Bricks' bare storage format, preventing doubled `--` CSS properties and empty `var(--name)` references. Inputs accept names with or without `--`.
@@ -258,6 +265,9 @@ Yes, when configured correctly. The plugin enforces WordPress Application Passwo
 * Unsplash API integration for image search.
 
 == Upgrade Notice ==
+
+= 2.1.3 =
+Fixes component definitions and instances written in a shape Bricks could not render. Newly created or updated components use Bricks' native tree and property format. Components stored by earlier versions are repaired by any `component:update`; existing instances stored with `name` equal to the component ID are repaired when edited with `component:update_properties` or `component:fill_slot`.
 
 = 2.1.2 =
 Fixes doubled `--` CSS custom properties from MCP-written global variables and typography scales. Use `global_variable:repair_names` with `dry_run: true` to preview existing entries, then `dry_run: false` to repair them.

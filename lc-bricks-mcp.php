@@ -15,7 +15,7 @@
  * Plugin Name:       LC Bricks MCP
  * Plugin URI:        https://github.com/conching/lc-bricks-mcp
  * Description:       AI-powered assistant for Bricks Builder. Control your website with natural language through MCP-compatible AI tools like Claude. Library Creative fork of Bricks MCP with correctness fixes (template elements, header/footer conditions, root placement, read-back verification).
- * Version:           2.1.2
+ * Version:           2.1.3
  * Requires at least: 6.4
  * Requires PHP:      8.2
  * Author:            Library Creative
@@ -35,7 +35,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Plugin version.
-define( 'LC_BRICKS_MCP_VERSION', '2.1.2' );
+define( 'LC_BRICKS_MCP_VERSION', '2.1.3' );
 
 // Minimum PHP version.
 define( 'LC_BRICKS_MCP_MIN_PHP_VERSION', '8.2' );
