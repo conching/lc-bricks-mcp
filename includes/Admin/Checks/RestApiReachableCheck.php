@@ -85,8 +85,7 @@ class RestApiReachableCheck implements DiagnosticCheck {
 		$response = wp_remote_get(
 			$rest_url,
 			array(
-				'timeout'   => 5,
-				'sslverify' => false,
+				'timeout' => 5,
 			)
 		);
 

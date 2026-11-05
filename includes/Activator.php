@@ -41,6 +41,15 @@ final class Activator {
 		// Set default options if they don't exist.
 		self::set_default_options();
 
+		if ( false === get_option( 'lc_feedback_settings', false ) ) {
+			add_option(
+				'lc_feedback_settings',
+				array( 'enabled' => false, 'markup_ids' => '' ),
+				'',
+				false
+			);
+		}
+
 		// Run lightweight activation checks and store results for admin notice.
 		self::run_activation_checks();
 

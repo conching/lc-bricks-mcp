@@ -3,7 +3,7 @@ Contributors: conching, cristianuibar, optiwebopz
 Tags: ai, bricks builder, mcp, artificial intelligence, page builder
 Requires at least: 6.4
 Tested up to: 6.8
-Stable tag: 2.1.3
+Stable tag: 2.3.5
 Requires PHP: 8.2
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -26,7 +26,7 @@ The plugin registers a REST API endpoint on your WordPress site that speaks the 
 
 = Available Tools =
 
-The tool surface is consolidated into 21 action-based tools. Each tool takes an `action` parameter that selects the operation.
+The core tool surface is consolidated into 21 action-based tools. The optional feedback module adds one extension tool. Each tool takes an `action` parameter that selects the operation.
 
 * **get_site_info** — Site info and connection diagnostics (info, diagnose)
 * **wordpress** — Query WordPress data (get_posts, get_post, get_users, get_plugins)
@@ -49,6 +49,7 @@ The tool surface is consolidated into 21 action-based tools. Each tool takes an 
 * **font** — Font settings (get_status, get_adobe_fonts, update_settings)
 * **code** — Page CSS/scripts (get/set_page_css, get/set_page_scripts)
 * **verify** — Read-only page verification (page: ordered root sections + parent chains, stored or rendered; orphaned_css: find `#brxe-<id>` rules with no matching or id-overridden element)
+* **feedback_workflow** — Markup feedback sync/triage and private preview preparation (sync, list, get, set_triage, prepare_preview, mark_ready). Human approvals, rejection, resolution retry, and rollback stay in signed Slack or nonce-protected wp-admin controls.
 
 All tools are free to use. The plugin is open source and hosted on [GitHub](https://github.com/conching/lc-bricks-mcp).
 
@@ -85,7 +86,32 @@ This plugin optionally connects to the Unsplash API to search for images.
 
 No data is sent to Unsplash unless you explicitly configure an API key and an AI assistant invokes the image search tool.
 
-No other external services are contacted by this plugin.
+The optional feedback workflow connects to MarkUp.io to list unresolved threads
+and resolve or reopen a thread after an approved promotion or rollback.
+
+**Service:** MarkUp.io (api.markup.io)
+**When used:** When background/manual feedback sync runs, when an approved task is
+resolved, or when an applied task is rolled back.
+**What is sent:** The configured Markup ID or thread ID and a server-side Bearer
+token. Site content and Bricks element trees are not sent to Markup by this module.
+**Markup Terms:** https://www.markup.io/terms-of-service/
+**Markup Privacy:** https://www.markup.io/privacy-policy/
+
+When configured, the feedback workflow connects to Slack to post and update an
+approval card. Incoming Slack button requests are verified with Slack's signing
+secret, workspace ID, and an approver-user allowlist.
+
+**Service:** Slack (slack.com)
+**When used:** When a verified private preview is submitted for approval or its
+decision status changes.
+**What is sent:** The normalized client comment, category/risk, proposed change
+summary, verification note, and private preview/Markup links. Bricks element
+trees and API credentials are not sent.
+**Slack Terms:** https://slack.com/terms-of-service
+**Slack Privacy:** https://slack.com/trust/privacy/privacy-policy
+
+No Markup or Slack credentials are stored in WordPress options. See
+`docs/MARKUP_FEEDBACK_MVP.md` for configuration and scope details.
 
 == Installation ==
 
@@ -122,6 +148,38 @@ Yes, when configured correctly. The plugin enforces WordPress Application Passwo
 3. An AI assistant creating a Bricks Builder hero section from a plain-text prompt.
 
 == Changelog ==
+
+= 2.3.5 =
+* Merges the 2.1.2 and 2.1.3 fixes into the 2.3 line: component trees and instances in Bricks' native format, `component:fill_slot`, `global_variable:repair_names`, and bare global variable names and typography scale prefixes. The 2.2.0 to 2.3.4 releases did not include them.
+* Fix: settings sanitation no longer empties lists such as gallery images, repeater rows and array query values (present since 2.2.0).
+* Security: component definitions and instance property overrides now pass the Dangerous Actions gate and sanitation.
+* Fix: template import remaps `slotChildren`; component instance and slot responses include `persisted` and `stripped`.
+
+= 2.3.4 =
+* Fixes navigation after page 2 by leaving the pagination base URL unescaped until WordPress renders each link.
+
+= 2.3.3 =
+* Paginates the private feedback queue in 50-item pages with an authoritative visible range, total count, and numbered navigation.
+* Keeps the existing private-preview, explicit-approval, audit, and rollback boundaries unchanged.
+
+= 2.3.2 =
+* Fixes MarkUp.io ingestion by omitting the rejected `resolved=false` query parameter and filtering resolved threads locally.
+
+= 2.3.1 =
+* Adds bounded, credential-redacted upstream diagnostics with request IDs for failed MarkUp.io requests.
+
+= 2.3.0 =
+* Adds safe Markup feedback polling and local triage, private Bricks previews, independent Slack/wp-admin approval, optimistic-concurrency promotion, audit records, rollback snapshots, and Markup resolution.
+* Human approval/rejection/rollback actions are deliberately unavailable through MCP.
+
+= 2.2.0 =
+* Security: native flat element arrays now receive the same sanitation as simplified input; new or changed executable element payloads are centrally gated by Dangerous Actions.
+* Security: template imports validate before creation, regenerate IDs and internal references, and use the central validated/read-back save path.
+* Reliability: no-op page saves no longer delete and re-add Bricks metadata; menu replacements preserve the old tree until the new tree is complete.
+* Security: update checksums are package-bound, reloaded across requests, and fail closed; release builds emit a matching .zip.sha256 asset.
+* Transport: malformed/empty/mixed JSON-RPC batches are handled safely, batch calls receive weighted rate-limit cost, and the unused GET SSE worker loop now returns 405.
+* Hardening: remote template/media downloads are capped, loopback TLS verification remains enabled, validator failures block saves, and internal exception details stay server-side.
+* Performance: element flattening uses one traversal and media lists omit generated-size expansion unless include_sizes is requested.
 
 = 2.1.3 =
 * Fix: component create/update remap the structural root ID, child links, property connections, and custom CSS selectors, then validate the stored tree.
@@ -265,6 +323,21 @@ Yes, when configured correctly. The plugin enforces WordPress Application Passwo
 * Unsplash API integration for image search.
 
 == Upgrade Notice ==
+
+= 2.3.5 =
+Brings the 2.1.2 and 2.1.3 component and global variable fixes into the 2.3 line. Use `global_variable:repair_names` with `dry_run: true` to preview existing doubled names.
+
+= 2.3.4 =
+Fixes pagination navigation for feedback queues with more than two pages.
+
+= 2.3.3 =
+Adds paginated feedback review so queues larger than 100 items are fully visible. Existing MCP and approval safety boundaries are unchanged.
+
+= 2.3.0 =
+Adds the opt-in Markup feedback MVP. It is disabled until a rotated server-side key and at least one Markup ID are configured. Existing MCP/Bricks behavior is unchanged.
+
+= 2.2.0 =
+Security and persistence hardening for autonomous writes. Native flat payloads and template imports now use the central policy/save pipeline; updater verification fails closed; destructive replacement windows are removed. Media list sizes are now opt-in via include_sizes.
 
 = 2.1.3 =
 Fixes component definitions and instances written in a shape Bricks could not render. Newly created or updated components use Bricks' native tree and property format. Components stored by earlier versions are repaired by any `component:update`; existing instances stored with `name` equal to the component ID are repaired when edited with `component:update_properties` or `component:fill_slot`.

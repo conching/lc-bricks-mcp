@@ -73,8 +73,7 @@ class McpEndpointCheck implements DiagnosticCheck {
 		$response = wp_remote_get(
 			$endpoint_url,
 			array(
-				'timeout'   => 5,
-				'sslverify' => false,
+				'timeout' => 5,
 			)
 		);
 

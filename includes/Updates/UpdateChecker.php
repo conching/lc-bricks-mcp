@@ -48,16 +48,6 @@ final class UpdateChecker {
 	private const CACHE_TTL = 12 * HOUR_IN_SECONDS;
 
 	/**
-	 * Expected SHA-256 hash for the update ZIP.
-	 *
-	 * Populated by check_update() from cached release data.
-	 * Used by verify_download() to verify the downloaded file before WordPress installs it.
-	 *
-	 * @var string
-	 */
-	private string $expected_sha256 = '';
-
-	/**
 	 * Initialize update checker hooks.
 	 *
 	 * @return void
@@ -107,12 +97,14 @@ final class UpdateChecker {
 	public function check_update( $update, array $plugin_data, string $plugin_file, array $locales ) {
 		$remote = $this->get_update_data();
 
-		if ( empty( $remote['version'] ) ) {
+		if (
+			empty( $remote['version'] ) ||
+			empty( $remote['package'] ) ||
+			empty( $remote['sha256'] ) ||
+			1 !== preg_match( '/^[a-f0-9]{64}$/i', (string) $remote['sha256'] )
+		) {
 			return $update;
 		}
-
-		// Cache expected hash so verify_download() can use it when WP downloads the ZIP.
-		$this->expected_sha256 = $remote['sha256'] ?? '';
 
 		// Only return update data if remote version is newer.
 		if ( version_compare( $plugin_data['Version'], $remote['version'], '>=' ) ) {
@@ -127,7 +119,6 @@ final class UpdateChecker {
 			'package'      => $remote['package'] ?? '',
 			'tested'       => $remote['tested'] ?? '',
 			'requires_php' => $remote['requires_php'] ?? '8.2',
-			'autoupdate'   => true,
 		];
 	}
 
@@ -173,40 +164,56 @@ final class UpdateChecker {
 
 		// Strip leading "v" from tag name (e.g. "v1.2.3" → "1.2.3").
 		$version = ltrim( $release['tag_name'], 'v' );
+		if ( 1 !== preg_match( '/^[0-9]+\.[0-9]+\.[0-9]+(?:[-+][A-Za-z0-9.-]+)?$/', $version ) ) {
+			set_transient( self::TRANSIENT_KEY, [], 5 * MINUTE_IN_SECONDS );
+			return [];
+		}
+		$expected_package_name = 'lc-bricks-mcp-' . $version . '.zip';
 
-		// Scan assets for the plugin ZIP and a matching .sha256 checksum file.
-		$package = '';
-		$sha256  = '';
+		// Select the plugin ZIP, then require the checksum asset bound to that
+		// exact filename (for example plugin.zip.sha256).
+		$package       = '';
+		$package_name  = '';
+		$checksum_urls = [];
 		if ( ! empty( $release['assets'] ) && is_array( $release['assets'] ) ) {
 			foreach ( $release['assets'] as $asset ) {
-				$name = $asset['name'] ?? '';
-				if ( str_ends_with( $name, '.zip' ) && empty( $package ) ) {
-					$package = $asset['browser_download_url'] ?? '';
+				$name = isset( $asset['name'] ) ? (string) $asset['name'] : '';
+				if ( $expected_package_name === $name && empty( $package ) ) {
+					$package      = $asset['browser_download_url'] ?? '';
+					$package_name = $name;
 				} elseif ( str_ends_with( $name, '.sha256' ) ) {
-					$checksum_url = $asset['browser_download_url'] ?? '';
-					if ( ! empty( $checksum_url ) ) {
-						$checksum_response = wp_remote_get(
-							$checksum_url,
-							[
-								'timeout'    => 10,
-								'User-Agent' => 'Bricks-MCP-UpdateChecker/1.0',
-							]
-						);
-						if ( ! is_wp_error( $checksum_response ) && 200 === wp_remote_retrieve_response_code( $checksum_response ) ) {
-							// sha256sum format: "hexhash  filename" — extract only the 64-char hex hash.
-							$raw    = trim( wp_remote_retrieve_body( $checksum_response ) );
-							$sha256 = substr( $raw, 0, 64 );
-						}
+					$checksum_urls[ $name ] = $asset['browser_download_url'] ?? '';
+				}
+			}
+		}
+
+		$sha256       = '';
+		$checksum_url = '' !== $package_name ? ( $checksum_urls[ $package_name . '.sha256' ] ?? '' ) : '';
+		if ( '' !== $checksum_url ) {
+			$checksum_response = wp_remote_get(
+				$checksum_url,
+				[
+					'timeout' => 10,
+					'headers' => [ 'User-Agent' => 'Bricks-MCP-UpdateChecker/1.0' ],
+				]
+			);
+			if ( ! is_wp_error( $checksum_response ) && 200 === wp_remote_retrieve_response_code( $checksum_response ) ) {
+				$raw = trim( wp_remote_retrieve_body( $checksum_response ) );
+				if ( 1 === preg_match( '/^([a-f0-9]{64})(?:\s+\*?([^\s]+))?$/i', $raw, $matches ) ) {
+					$listed_name = isset( $matches[2] ) ? basename( $matches[2] ) : $package_name;
+					if ( $listed_name === $package_name ) {
+						$sha256 = strtolower( $matches[1] );
 					}
 				}
 			}
 		}
 
 		$data = [
-			'version' => $version,
-			'package' => $package,
-			'url'     => $release['html_url'] ?? '',
-			'sha256'  => $sha256,
+			'version'      => $version,
+			'package'      => $package,
+			'package_name' => $package_name,
+			'url'          => $release['html_url'] ?? '',
+			'sha256'       => $sha256,
 		];
 
 		set_transient( self::TRANSIENT_KEY, $data, self::CACHE_TTL );
@@ -240,9 +247,24 @@ final class UpdateChecker {
 			return $reply;
 		}
 
-		// If no expected hash is cached, degrade gracefully — allow the update to proceed.
-		if ( empty( $this->expected_sha256 ) ) {
-			return $reply;
+		// Discovery and download commonly happen in separate requests. Reload the
+		// bound package/hash manifest instead of relying on request-local state.
+		$remote        = $this->get_update_data();
+		$expected_hash = isset( $remote['sha256'] ) ? strtolower( (string) $remote['sha256'] ) : '';
+		$expected_url  = isset( $remote['package'] ) ? (string) $remote['package'] : '';
+
+		if ( '' === $expected_url || ! hash_equals( $expected_url, $package ) ) {
+			return new \WP_Error(
+				'update_package_mismatch',
+				__( 'Update integrity check failed: package URL does not match the verified release manifest.', 'lc-bricks-mcp' )
+			);
+		}
+
+		if ( 1 !== preg_match( '/^[a-f0-9]{64}$/', $expected_hash ) ) {
+			return new \WP_Error(
+				'checksum_missing',
+				__( 'Update integrity check failed: a valid SHA-256 checksum is required.', 'lc-bricks-mcp' )
+			);
 		}
 
 		// Download the ZIP ourselves so we can verify it before WordPress uses it.
@@ -254,7 +276,7 @@ final class UpdateChecker {
 
 		$actual_hash = hash_file( 'sha256', $temp_file );
 
-		if ( $actual_hash !== $this->expected_sha256 ) {
+		if ( ! is_string( $actual_hash ) || ! hash_equals( $expected_hash, strtolower( $actual_hash ) ) ) {
 			wp_delete_file( $temp_file );
 			return new \WP_Error(
 				'checksum_mismatch',

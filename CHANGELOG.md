@@ -6,6 +6,102 @@ Library Creative fork of [`cristianuibar/bricks-mcp`](https://github.com/cristia
 v1.5.1 and remains licensed under GPL-2.0-or-later, retaining the original
 copyright (© 2025 BUFF UP MEDIA S.R.L., author Uibar Ion-Cristian).
 
+## [2.3.5] — 2026-11-04
+
+### Fixed
+
+- Merge the 2.1.2 and 2.1.3 fixes into the 2.3 line. Releases 2.2.0 to 2.3.4 were
+  built from a branch that predates them, so those versions lack component trees
+  and instances in Bricks' native format, `component:fill_slot`,
+  `global_variable:repair_names`, and bare global variable names and typography
+  scale prefixes. Entries below are in version order, not date order.
+- Settings sanitation no longer empties lists. Since 2.2.0, native saves dropped
+  numeric entries such as gallery images, repeater rows and array query values.
+- Component definitions now pass the Dangerous Actions gate, sanitation and
+  read-back before storage. Instance property overrides are gated and sanitized
+  in `save_elements()`.
+- Template import remaps `slotChildren` IDs, so filled slots survive it.
+- `instantiate`, `update_properties` and `fill_slot` return `persisted` and
+  `stripped`, and `update_properties` returns the stored values.
+
+### Known limitation
+
+- A property override connected to a code element's `code` setting is sanitized
+  as ordinary content and reported in `stripped`. Edit the code element directly.
+
+## [2.3.4] — 2026-07-17
+
+### Fixed
+
+- Leave the pagination base URL unescaped until `paginate_links()` renders each
+  link, preventing page-2 navigation from double-encoding the query separator.
+
+## [2.3.3] — 2026-07-17
+
+### Changed
+
+- Paginate the private feedback dashboard in 50-item pages with an authoritative
+  visible range, total count, and numbered navigation. MCP write and human
+  approval boundaries are unchanged.
+
+## [2.3.2] — 2026-07-17
+
+### Fixed
+
+- Omit MarkUp.io's rejected `resolved=false` query parameter and filter resolved
+  threads locally after retrieval.
+
+## [2.3.1] — 2026-07-17
+
+### Changed
+
+- Add bounded, allowlisted upstream error diagnostics with request IDs while
+  redacting credentials and never surfacing raw response bodies.
+
+## [2.3.0] — 2026-07-17
+
+### Added
+
+- Add a Markup feedback workflow with authenticated polling, deterministic local
+  triage, private Bricks page previews, audit records, optimistic-concurrency
+  promotion, exact rollback snapshots, and post-persistence Markup resolution.
+- Add an allowlisted Slack Block Kit approval path with documented v0 HMAC
+  verification and replay protection, plus a nonce-protected wp-admin queue.
+- Add the `feedback_workflow` MCP tool for sync, inspection, triage, private
+  preview preparation, and approval submission. Human decision actions are
+  intentionally not exposed through MCP.
+
+### Security
+
+- Read Markup and Slack credentials only from constants/environment variables;
+  never store or render them in WordPress options.
+- Limit automatic preview preparation to published same-site pages. The active
+  source is untouched until an independent Slack/WP administrator approves.
+- Block promotion and rollback on source drift so later work cannot be silently
+  overwritten.
+
+## [2.2.0] — 2026-07-17
+
+### Security
+
+- Enforce executable-element policy and native-flat sanitation at the final
+  persistence boundary; unchanged existing code elements can still be moved.
+- Route template imports through validation/read-back persistence and regenerate
+  imported IDs and exact internal references.
+- Make release checksum verification package-bound, cross-request, and fail-closed.
+- Cap template/media downloads, retain TLS verification, fail closed on schema
+  validator errors, and replace client-visible exceptions with error references.
+
+### Reliability and performance
+
+- Remove the destructive delete/add page-meta fallback and require exact read-back.
+- Build complete replacement menus before deleting the old tree.
+- Reject malformed JSON-RPC batches, weight batches for rate limiting, use fixed
+  transient windows, and return 405 instead of holding idle PHP workers for GET SSE.
+- Flatten simplified element trees in one traversal and make media-size expansion
+  opt-in.
+- Add dependency metadata, CI matrices, and focused security regression tests.
+
 ## [2.1.3] — 2026-09-23
 
 ### Fixed

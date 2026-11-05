@@ -52,6 +52,13 @@ final class Plugin {
 	private ?Admin\Settings $admin_settings = null;
 
 	/**
+	 * Markup feedback workflow module.
+	 *
+	 * @var Feedback\Module|null
+	 */
+	private ?Feedback\Module $feedback_module = null;
+
+	/**
 	 * Get the singleton instance.
 	 *
 	 * @return self The plugin instance.
@@ -102,6 +109,11 @@ final class Plugin {
 		// Initialize update checker (unconditional — fires on admin and cron).
 		$this->update_checker = new Updates\UpdateChecker();
 		$this->update_checker->init();
+
+		// Register the bounded feedback module before Router construction so its
+		// MCP tool extension hook is available during default tool registration.
+		$this->feedback_module = new Feedback\Module();
+		$this->feedback_module->init();
 
 		// Initialize MCP server.
 		$this->init_mcp_server();

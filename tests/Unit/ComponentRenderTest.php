@@ -17,6 +17,9 @@ $GLOBALS['component_writes']  = 0;
 function get_option( $key, $default = false ) { return $GLOBALS['component_options'][ $key ] ?? $default; }
 function update_option( $key, $value, $autoload = null ) { $GLOBALS['component_options'][ $key ] = $value; ++$GLOBALS['component_writes']; return true; }
 function get_current_user_id() { return 42; }
+function wp_cache_delete( $key, $group = '' ) { return true; }
+function wp_kses_post( $value ) { return preg_replace( '#<script\b[^>]*>.*?</script>#is', '', (string) $value ); }
+function wp_strip_all_tags( $value ) { return strip_tags( (string) $value ); }
 function sanitize_text_field( $value ) { return trim( strip_tags( (string) $value ) ); }
 function __( $message, $domain = null ) { return $message; }
 function is_wp_error( $value ) { return $value instanceof WP_Error; }
@@ -47,6 +50,7 @@ class RenderSectionElement {}
 class ComponentPageService extends BricksService {
 	public function __construct() {}
 	public function get_elements( int $post_id ): array { return $GLOBALS['component_pages'][ $post_id ] ?? []; }
+	public function prepare_component_elements( array $elements, array $existing, array &$strips = [] ): array|\WP_Error { return $elements; }
 	public function save_elements( int $post_id, array $elements, ?array &$persistence = null ): true|\WP_Error {
 		$valid = $this->validate_element_linkage( $elements );
 		if ( is_wp_error( $valid ) ) {
@@ -326,5 +330,34 @@ $type_change = component_call( $router, 'tool_update_component', [
 	'elements' => [ [ 'id' => 'hdr001', 'name' => 'heading', 'parent' => 0, 'children' => [], 'settings' => [] ] ],
 ] );
 lc_assert( is_wp_error( $type_change ) && $type_change->code === 'root_type_change' && $GLOBALS['component_writes'] === $before, 'root element type change rejected without write' );
+
+// The real service gates and sanitizes definition trees before storage.
+$real_service = new BricksService();
+$exec_tree    = [
+	[ 'id' => 'root01', 'name' => 'section', 'parent' => 0, 'children' => [ 'code01' ], 'settings' => [] ],
+	[ 'id' => 'code01', 'name' => 'code', 'parent' => 'root01', 'children' => [], 'settings' => [ 'code' => '<?php echo 1;', 'executeCode' => true ] ],
+];
+$blocked = $real_service->prepare_component_elements( $exec_tree, [] );
+lc_assert( is_wp_error( $blocked ) && 'dangerous_actions_disabled' === $blocked->code, 'executable definition child is blocked while the toggle is off' );
+$strips  = [];
+$cleaned = $real_service->prepare_component_elements(
+	[ [ 'id' => 'root02', 'name' => 'heading', 'parent' => 0, 'children' => [], 'settings' => [ 'text' => 'Hi<script>x</script>' ] ] ],
+	[],
+	$strips
+);
+lc_assert( is_wp_error( $cleaned ), 'script in a definition setting is blocked while the toggle is off' );
+$safe = $real_service->prepare_component_elements(
+	[ [ 'id' => 'root03', 'name' => 'heading', 'parent' => 0, 'children' => [], 'settings' => [ 'text' => 'Hi<iframe src="x"></iframe>', 'list' => [ [ 'a' => 'b' ] ] ] ] ],
+	[],
+	$strips
+);
+lc_assert_same( [ [ 'a' => 'b' ] ], $safe[0]['settings']['list'] ?? null, 'definition lists survive sanitation' );
+
+// A legacy stored root may use an old ID; an unchanged executable tree must still pass once both are repaired.
+$legacy_root = [
+	[ 'id' => 'oldroot', 'name' => 'code', 'parent' => 0, 'children' => [], 'settings' => [ 'code' => '<?php echo 1;', 'executeCode' => true ] ],
+];
+$proposed = LCBricksMCP\MCP\Services\ComponentNormalizer::normalize_definition_elements( $legacy_root, 'comp99' );
+lc_assert( ! is_wp_error( $real_service->prepare_component_elements( $proposed['elements'], $proposed['elements'] ) ), 'unchanged legacy executable root passes once both trees share an ID space' );
 
 lc_test_done( 'ComponentRenderTest' );

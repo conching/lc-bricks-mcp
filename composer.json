@@ -1,0 +1,17 @@
+{
+  "name": "librarycreative/lc-bricks-mcp",
+  "description": "MCP server plugin for administering Bricks Builder sites.",
+  "type": "wordpress-plugin",
+  "license": "GPL-2.0-or-later",
+  "require": {
+    "php": ">=8.2",
+    "opis/json-schema": "2.6.0",
+    "opis/string": "2.1.0",
+    "opis/uri": "1.1.0"
+  },
+  "config": {
+    "allow-plugins": {},
+    "optimize-autoloader": true,
+    "sort-packages": true
+  }
+}

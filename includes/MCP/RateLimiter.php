@@ -58,19 +58,20 @@ final class RateLimiter {
 	 * @param string $identifier The rate limit identifier (e.g. 'user_42' or 'ip_1.2.3.4').
 	 * @return true|\WP_Error True if within limit, WP_Error with status 429 if exceeded.
 	 */
-	public static function check( string $identifier ): true|\WP_Error {
+	public static function check( string $identifier, int $cost = 1 ): true|\WP_Error {
 		$settings = get_option( 'lc_bricks_mcp_settings', [] );
 		$limit    = (int) ( $settings['rate_limit_rpm'] ?? 120 );
+		$cost     = max( 1, $cost );
 
 		if ( wp_using_ext_object_cache() ) {
-			$count = self::increment_via_object_cache( $identifier );
+			$state = self::increment_via_object_cache( $identifier, $cost );
 		} else {
-			$count = self::increment_via_transient( $identifier );
+			$state = self::increment_via_transient( $identifier, $cost );
 		}
 
-		if ( false === $count || (int) $count > $limit ) {
+		if ( false === $state || $state['count'] > $limit ) {
 			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- suppress "headers already sent" in test environments.
-			@header( 'Retry-After: ' . self::WINDOW );
+			@header( 'Retry-After: ' . ( false === $state ? self::WINDOW : $state['retry_after'] ) );
 
 			return new \WP_Error(
 				'lc_bricks_mcp_rate_limit',
@@ -88,14 +89,15 @@ final class RateLimiter {
 	 * @param string $identifier Rate limit identifier.
 	 * @return int|false New counter value, or false on failure.
 	 */
-	private static function increment_via_object_cache( string $identifier ): int|false {
+	private static function increment_via_object_cache( string $identifier, int $cost ): array|false {
 		$key = 'rl_' . $identifier;
 
 		// Initialize counter only if it does not already exist (atomic on persistent cache).
 		wp_cache_add( $key, 0, self::CACHE_GROUP, self::WINDOW );
 
 		// Atomically increment and return the new count.
-		return wp_cache_incr( $key, 1, self::CACHE_GROUP );
+		$count = wp_cache_incr( $key, $cost, self::CACHE_GROUP );
+		return false === $count ? false : [ 'count' => (int) $count, 'retry_after' => self::WINDOW ];
 	}
 
 	/**
@@ -107,18 +109,24 @@ final class RateLimiter {
 	 * @param string $identifier Rate limit identifier.
 	 * @return int New counter value.
 	 */
-	private static function increment_via_transient( string $identifier ): int {
+	private static function increment_via_transient( string $identifier, int $cost ): array {
 		$transient_key = 'lc_bricks_mcp_rl_' . $identifier;
 		$current       = get_transient( $transient_key );
+		$now           = time();
 
-		if ( false === $current ) {
-			$count = 1;
+		if ( ! is_array( $current ) || ! isset( $current['count'], $current['reset_at'] ) || (int) $current['reset_at'] <= $now ) {
+			$state = [
+				'count'    => $cost,
+				'reset_at' => $now + self::WINDOW,
+			];
 		} else {
-			$count = (int) $current + 1;
+			$state          = $current;
+			$state['count'] = (int) $state['count'] + $cost;
 		}
 
-		set_transient( $transient_key, $count, self::WINDOW );
+		$retry_after = max( 1, (int) $state['reset_at'] - $now );
+		set_transient( $transient_key, $state, $retry_after );
 
-		return $count;
+		return [ 'count' => (int) $state['count'], 'retry_after' => $retry_after ];
 	}
 }

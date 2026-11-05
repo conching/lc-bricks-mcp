@@ -113,4 +113,26 @@ class ElementIdGenerator {
 		);
 		// phpcs:enable WordPress.Security.EscapeOutput.ExceptionNotEscaped
 	}
+
+	/**
+	 * Generate a unique ID using an O(1) lookup set keyed by existing IDs.
+	 *
+	 * @param array<string, bool> $existing_ids Existing IDs as array keys.
+	 * @return string A unique element ID.
+	 */
+	public function generate_unique_from_set( array $existing_ids ): string {
+		for ( $attempt = 0; $attempt < self::MAX_ATTEMPTS; $attempt++ ) {
+			$id = $this->generate();
+			if ( ! isset( $existing_ids[ $id ] ) ) {
+				return $id;
+			}
+		}
+
+		throw new \RuntimeException(
+			sprintf(
+				'Unable to generate a unique element ID after %d attempts. The ID set may be too large.',
+				self::MAX_ATTEMPTS
+			)
+		);
+	}
 }

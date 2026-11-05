@@ -25,6 +25,7 @@ fi
 BUILD="${ROOT}/dist/_build"
 STAGE="${BUILD}/${SLUG}"
 OUT="${ROOT}/dist/${SLUG}-${VERSION}.zip"
+CHECKSUM="${OUT}.sha256"
 
 echo "==> Building ${SLUG} v${VERSION}"
 
@@ -85,5 +86,18 @@ rm -f "${OUT}"
 ( cd "${BUILD}" && zip -rqX "${OUT}" "${SLUG}" -x '*.DS_Store' )
 rm -rf "${BUILD}"
 
+# Bind the checksum to the exact release asset filename. UpdateChecker requires
+# this adjacent <zip>.sha256 asset and verifies the listed filename as well as
+# the digest before WordPress installs an update.
+if command -v shasum >/dev/null 2>&1; then
+	( cd "${ROOT}/dist" && shasum -a 256 "$(basename "${OUT}")" > "$(basename "${CHECKSUM}")" )
+elif command -v sha256sum >/dev/null 2>&1; then
+	( cd "${ROOT}/dist" && sha256sum "$(basename "${OUT}")" > "$(basename "${CHECKSUM}")" )
+else
+	echo "ERROR: shasum or sha256sum is required to produce the release checksum." >&2
+	exit 1
+fi
+
 SIZE="$(du -h "${OUT}" | cut -f1 | tr -d ' ')"
 echo "==> Built ${OUT} (${SIZE})"
+echo "==> Checksum ${CHECKSUM}"

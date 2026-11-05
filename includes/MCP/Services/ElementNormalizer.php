@@ -86,9 +86,68 @@ class ElementNormalizer {
 			return [];
 		}
 		if ( $this->is_flat_format( $input ) ) {
-			return $input;
+			return $this->sanitize_flat_elements( $input, $existing_elements, false );
 		}
 		return $this->simplified_to_flat( $input, $existing_elements );
+	}
+
+	/**
+	 * Sanitize native Bricks flat arrays without changing their IDs or linkage.
+	 *
+	 * Settings copied unchanged from the stored tree are preserved. New or changed
+	 * settings receive the same key correction and sanitization as simplified input.
+	 * Executable code values are intentionally preserved here and enforced by the
+	 * central ElementPolicy in BricksService::save_elements().
+	 *
+	 * @param array<int, array<string, mixed>> $elements          Proposed flat elements.
+	 * @param array<int, array<string, mixed>> $existing_elements Stored flat elements.
+	 * @param bool                             $reset_log         Whether to clear the strip log first.
+	 * @return array<int, array<string, mixed>>
+	 */
+	public function sanitize_flat_elements( array $elements, array $existing_elements = [], bool $reset_log = true ): array {
+		if ( $reset_log ) {
+			$this->strip_log = [];
+		}
+
+		$existing_by_id = [];
+		foreach ( $existing_elements as $existing ) {
+			if ( isset( $existing['id'] ) ) {
+				$existing_by_id[ (string) $existing['id'] ] = $existing;
+			}
+		}
+
+		$sanitized = [];
+		foreach ( $elements as $element ) {
+			$id       = isset( $element['id'] ) ? (string) $element['id'] : '';
+			$name     = isset( $element['name'] ) && is_string( $element['name'] ) ? $element['name'] : 'div';
+			$settings = isset( $element['settings'] ) && is_array( $element['settings'] ) ? $element['settings'] : [];
+			$previous = $existing_by_id[ $id ]['settings'] ?? null;
+
+			$element['name'] = sanitize_text_field( $name );
+			if ( is_array( $previous ) && $settings === $previous ) {
+				$element['settings'] = $settings;
+			} else {
+				$corrected           = $this->apply_key_corrections( $settings, $name );
+				$clean               = $this->sanitize_settings( $corrected, $name );
+				$element['settings'] = $clean;
+				$this->log_strips( $corrected, $clean, $id );
+			}
+
+			// Component property overrides render through connected settings, so
+			// changed values get the same sanitation as the settings themselves.
+			if ( isset( $element['properties'] ) && is_array( $element['properties'] ) ) {
+				$previous_properties = $existing_by_id[ $id ]['properties'] ?? null;
+				if ( ! is_array( $previous_properties ) || $element['properties'] !== $previous_properties ) {
+					$raw_properties        = $element['properties'];
+					$element['properties'] = $this->sanitize_nested_value( 'properties', $raw_properties, $name );
+					$this->log_strips( $raw_properties, $element['properties'], $id, 'properties' );
+				}
+			}
+
+			$sanitized[] = $element;
+		}
+
+		return $sanitized;
 	}
 
 	/**
@@ -138,53 +197,56 @@ class ElementNormalizer {
 	 * Convert simplified nested format to Bricks native flat array.
 	 */
 	public function simplified_to_flat( array $tree, array $existing_elements, int|string $parent_id = 0 ): array {
-		$flat = [];
+		$used_ids = [];
+		foreach ( $existing_elements as $element ) {
+			if ( isset( $element['id'] ) ) {
+				$used_ids[ (string) $element['id'] ] = true;
+			}
+		}
 
+		$flat = [];
+		$this->append_simplified_nodes( $tree, $parent_id, $used_ids, $flat );
+		return $flat;
+	}
+
+	/**
+	 * Append simplified nodes to one flat accumulator in a single traversal.
+	 *
+	 * @param array<int, mixed>                     $tree      Nodes at this level.
+	 * @param int|string                            $parent_id Parent element ID.
+	 * @param array<string, bool>                    $used_ids  Collision lookup set.
+	 * @param array<int, array<string, mixed>>       $flat      Output accumulator.
+	 * @return array<int, string> Direct child IDs created at this level.
+	 */
+	private function append_simplified_nodes( array $tree, int|string $parent_id, array &$used_ids, array &$flat ): array {
+		$direct_ids = [];
 		foreach ( $tree as $node ) {
 			if ( ! is_array( $node ) ) {
 				continue;
 			}
 
-			$name     = $node['name'] ?? 'div';
-			$settings = isset( $node['settings'] ) && is_array( $node['settings'] ) ? $node['settings'] : [];
-			$children = isset( $node['children'] ) && is_array( $node['children'] ) ? $node['children'] : [];
-
-			$all_existing = array_merge( $existing_elements, $flat );
-			$element_id   = $this->id_generator->generate_unique( $all_existing );
-
-			// Apply key corrections before sanitization.
-			$settings = $this->apply_key_corrections( $settings, $name );
-
-			// Sanitize with Bricks-aware strategy.
+			$name               = isset( $node['name'] ) ? (string) $node['name'] : 'div';
+			$settings           = isset( $node['settings'] ) && is_array( $node['settings'] ) ? $node['settings'] : [];
+			$children           = isset( $node['children'] ) && is_array( $node['children'] ) ? $node['children'] : [];
+			$element_id         = $this->id_generator->generate_unique_from_set( $used_ids );
+			$used_ids[ $element_id ] = true;
+			$settings           = $this->apply_key_corrections( $settings, $name );
 			$sanitized_settings = $this->sanitize_settings( $settings, $name );
-
-			// Record what sanitization altered, against the caller's raw values.
 			$this->log_strips( $settings, $sanitized_settings, $element_id );
 
-			$child_flat   = $this->simplified_to_flat( $children, array_merge( $all_existing, [ [ 'id' => $element_id ] ] ), $element_id );
-			$children_ids = array_map(
-				static fn( array $el ) => $el['id'],
-				array_filter(
-					$child_flat,
-					static fn( array $el ) => (string) $el['parent'] === (string) $element_id
-				)
-			);
-
-			$element = [
+			$index  = count( $flat );
+			$flat[] = [
 				'id'       => $element_id,
 				'name'     => sanitize_text_field( $name ),
 				'parent'   => $parent_id,
-				'children' => array_values( $children_ids ),
+				'children' => [],
 				'settings' => $sanitized_settings,
 			];
-
-			$flat[] = $element;
-			foreach ( $child_flat as $child_element ) {
-				$flat[] = $child_element;
-			}
+			$flat[ $index ]['children'] = $this->append_simplified_nodes( $children, $element_id, $used_ids, $flat );
+			$direct_ids[]               = $element_id;
 		}
 
-		return $flat;
+		return $direct_ids;
 	}
 
 	/**
@@ -238,6 +300,14 @@ class ElementNormalizer {
 			$is_css_key  = $this->is_css_style_key( $base_key );
 			$is_css_code = $this->is_css_code_key( $base_key );
 
+			// Bricks code elements must retain source exactly. The central element
+			// policy rejects new or changed executable payloads unless the explicit
+			// Dangerous Actions setting is enabled.
+			if ( 'code' === $element_name && 'code' === $base_key && is_string( $value ) ) {
+				$sanitized[ $key ] = $value;
+				continue;
+			}
+
 			// CSS code blocks: preserve newlines, braces, combinators.
 			if ( $is_css_code ) {
 				if ( is_string( $value ) ) {
@@ -264,7 +334,7 @@ class ElementNormalizer {
 
 			// Non-style arrays (query, link, icon, etc.): recurse.
 			if ( is_array( $value ) ) {
-				$sanitized[ $key ] = $this->sanitize_settings( $value, $element_name );
+				$sanitized[ $key ] = $this->sanitize_nested_value( (string) $key, $value, $element_name );
 				continue;
 			}
 
@@ -288,6 +358,119 @@ class ElementNormalizer {
 		}
 
 		return $sanitized;
+	}
+
+	/**
+	 * Sanitize an array nested inside settings, keeping numeric list entries.
+	 *
+	 * Top-level settings keys are always strings, but values such as gallery
+	 * images, repeater rows and query arrays are lists. List entries take the
+	 * sanitation rules of the key that holds them.
+	 *
+	 * @param string              $parent_key   Settings key that holds this array.
+	 * @param array<string|int, mixed> $value   Nested array.
+	 * @param string              $element_name Bricks element name.
+	 * @return array<string|int, mixed>
+	 */
+	private function sanitize_nested_value( string $parent_key, array $value, string $element_name ): array {
+		$sanitized = [];
+
+		foreach ( $value as $key => $item ) {
+			if ( is_int( $key ) && is_array( $item ) ) {
+				$sanitized[ $key ] = $this->sanitize_nested_value( $parent_key, $item, $element_name );
+				continue;
+			}
+
+			$rule_key = is_int( $key ) ? $parent_key : $key;
+			$clean    = $this->sanitize_settings( [ $rule_key => $item ], $element_name );
+			if ( array_key_exists( $rule_key, $clean ) ) {
+				$sanitized[ $key ] = $clean[ $rule_key ];
+			}
+		}
+
+		return $sanitized;
+	}
+
+	/**
+	 * Regenerate all IDs and internal references in an imported flat tree.
+	 *
+	 * @param array<int, array<string, mixed>> $elements Flat imported elements.
+	 * @return array<int, array<string, mixed>> Elements with collision-free IDs.
+	 */
+	public function regenerate_flat_ids( array $elements ): array {
+		$id_map    = [];
+		$generated = [];
+
+		foreach ( $elements as $element ) {
+			$old_id = isset( $element['id'] ) ? (string) $element['id'] : '';
+			if ( '' === $old_id || isset( $id_map[ $old_id ] ) ) {
+				continue;
+			}
+			$new_id            = $this->id_generator->generate_unique_from_set( $generated );
+			$id_map[ $old_id ] = $new_id;
+			$generated[ $new_id ] = true;
+		}
+
+		foreach ( $elements as &$element ) {
+			$old_id = isset( $element['id'] ) ? (string) $element['id'] : '';
+			if ( isset( $id_map[ $old_id ] ) ) {
+				$element['id'] = $id_map[ $old_id ];
+			}
+
+			$parent = isset( $element['parent'] ) ? (string) $element['parent'] : '0';
+			if ( isset( $id_map[ $parent ] ) ) {
+				$element['parent'] = $id_map[ $parent ];
+			}
+
+			if ( isset( $element['children'] ) && is_array( $element['children'] ) ) {
+				$element['children'] = array_values(
+					array_map(
+						static fn( $child_id ) => $id_map[ (string) $child_id ] ?? $child_id,
+						$element['children']
+					)
+				);
+			}
+
+			// Slot map keys are slot IDs in the component definition and must not
+			// change; the values are this tree's slot content root IDs.
+			if ( isset( $element['slotChildren'] ) && is_array( $element['slotChildren'] ) ) {
+				foreach ( $element['slotChildren'] as $slot_id => $slot_child_ids ) {
+					if ( is_array( $slot_child_ids ) ) {
+						$element['slotChildren'][ $slot_id ] = array_values(
+							array_map(
+								static fn( $child_id ) => $id_map[ (string) $child_id ] ?? $child_id,
+								$slot_child_ids
+							)
+						);
+					}
+				}
+			}
+
+			if ( isset( $element['settings'] ) && is_array( $element['settings'] ) ) {
+				$element['settings'] = $this->replace_id_references( $element['settings'], $id_map );
+			}
+		}
+		unset( $element );
+
+		return $elements;
+	}
+
+	/**
+	 * Replace exact element-ID references in nested settings.
+	 *
+	 * @param array<string|int, mixed> $values Nested settings.
+	 * @param array<string, string>     $id_map Old-to-new ID map.
+	 * @return array<string|int, mixed>
+	 */
+	private function replace_id_references( array $values, array $id_map ): array {
+		foreach ( $values as $key => $value ) {
+			if ( is_array( $value ) ) {
+				$values[ $key ] = $this->replace_id_references( $value, $id_map );
+			} elseif ( is_string( $value ) && isset( $id_map[ $value ] ) ) {
+				$values[ $key ] = $id_map[ $value ];
+			}
+		}
+		return $values;
 	}
 
 	/**

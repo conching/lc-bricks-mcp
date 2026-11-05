@@ -250,7 +250,7 @@ final class Server {
 	 * @param \WP_REST_Request $request The REST request.
 	 * @return bool|\WP_Error True if allowed, WP_Error otherwise.
 	 */
-	public function check_permissions( \WP_REST_Request $request ): bool|\WP_Error { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
+	public function check_permissions( \WP_REST_Request $request ): bool|\WP_Error {
 		$settings = get_option( 'lc_bricks_mcp_settings', [] );
 
 		// Check if plugin is enabled.
@@ -287,7 +287,12 @@ final class Server {
 		$identifier  = is_user_logged_in()
 			? 'user_' . get_current_user_id()
 			: 'ip_' . $remote_addr;
-		$rate_check  = RateLimiter::check( $identifier );
+		$cost        = 1;
+		$decoded     = json_decode( $request->get_body(), true );
+		if ( is_array( $decoded ) && array_is_list( $decoded ) && ! empty( $decoded ) ) {
+			$cost = min( StreamableHttpHandler::MAX_BATCH_SIZE, count( $decoded ) );
+		}
+		$rate_check  = RateLimiter::check( $identifier, $cost );
 		if ( is_wp_error( $rate_check ) ) {
 			return $rate_check;
 		}
