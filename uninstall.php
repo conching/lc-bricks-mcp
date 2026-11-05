@@ -26,6 +26,9 @@ function lc_bricks_mcp_delete_options(): void {
 		'lc_bricks_mcp_settings',
 		'lc_bricks_mcp_version',
 		'lc_bricks_mcp_activated_at',
+		'lc_feedback_settings',
+		'lc_feedback_last_sync_at',
+		'lc_feedback_last_sync_error',
 	];
 
 	foreach ( $options as $option ) {
@@ -76,6 +79,8 @@ function lc_bricks_mcp_delete_user_meta(): void {
 function lc_bricks_mcp_clear_cron(): void {
 	$cron_hooks = [
 		'lc_bricks_mcp_cleanup',
+		'lc_bricks_mcp_feedback_sync',
+		'lc_bricks_mcp_feedback_slack_action',
 	];
 
 	foreach ( $cron_hooks as $hook ) {
@@ -86,11 +91,42 @@ function lc_bricks_mcp_clear_cron(): void {
 	}
 }
 
+/**
+ * Delete private feedback tasks, snapshots, and preview pages on uninstall.
+ */
+function lc_bricks_mcp_delete_feedback_posts(): void {
+	$task_ids = get_posts(
+		[
+			'post_type'      => [ 'lc_feedback_task', 'lc_feedback_snap' ],
+			'post_status'    => 'any',
+			'posts_per_page' => -1,
+			'fields'         => 'ids',
+		]
+	);
+	foreach ( $task_ids as $post_id ) {
+		wp_delete_post( (int) $post_id, true );
+	}
+
+	$preview_ids = get_posts(
+		[
+			'post_type'      => 'page',
+			'post_status'    => [ 'private', 'trash' ],
+			'posts_per_page' => -1,
+			'fields'         => 'ids',
+			'meta_key'       => '_lc_feedback_preview_task',
+		]
+	);
+	foreach ( $preview_ids as $post_id ) {
+		wp_delete_post( (int) $post_id, true );
+	}
+}
+
 // Run cleanup.
 lc_bricks_mcp_delete_options();
 lc_bricks_mcp_delete_transients();
 lc_bricks_mcp_delete_user_meta();
 lc_bricks_mcp_clear_cron();
+lc_bricks_mcp_delete_feedback_posts();
 
 // Flush rewrite rules.
 flush_rewrite_rules();

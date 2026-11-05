@@ -60,6 +60,25 @@ Recommendation: only enable on development sites or when working with a trusted 
 - No cross-site data access — the plugin operates within the single WordPress installation it is installed on
 - The MCP route does not add a wildcard CORS policy. Public `/.well-known/` authentication metadata intentionally sends `Access-Control-Allow-Origin: *` and contains no credentials.
 
+## Markup Feedback Workflow
+
+The optional feedback module is disabled by default. Markup and Slack secrets are
+read only from server-side constants/environment variables and are not saved in
+WordPress options. Markup intake uses authenticated polling because Markup's
+current public webhook documentation does not specify how to verify the exposed
+webhook signing key.
+
+The MCP tool can triage feedback and edit only a private duplicate returned by
+the workflow. It cannot approve, reject, retry resolution, or roll back. Those
+mutations require either a nonce-protected `manage_options` wp-admin form or a
+Slack request with a current v0 HMAC signature, the expected workspace ID, and
+an explicitly allowlisted Slack user ID.
+
+Before approval, the active source tree must match the hash captured at preview
+creation. Before rollback, it must match the exact approved tree. Conflicts stop
+instead of overwriting later work. Markup resolution happens only after exact
+Bricks read-back succeeds.
+
 ## Reporting Vulnerabilities
 
 Report vulnerabilities privately through the repository's [GitHub Security Advisory form](https://github.com/conching/lc-bricks-mcp/security/advisories/new). Do not open a public issue for an unpatched vulnerability.

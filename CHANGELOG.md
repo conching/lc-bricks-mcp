@@ -6,6 +6,57 @@ Library Creative fork of [`cristianuibar/bricks-mcp`](https://github.com/cristia
 v1.5.1 and remains licensed under GPL-2.0-or-later, retaining the original
 copyright (© 2025 BUFF UP MEDIA S.R.L., author Uibar Ion-Cristian).
 
+## [2.3.4] — 2026-07-17
+
+### Fixed
+
+- Leave the pagination base URL unescaped until `paginate_links()` renders each
+  link, preventing page-2 navigation from double-encoding the query separator.
+
+## [2.3.3] — 2026-07-17
+
+### Changed
+
+- Paginate the private feedback dashboard in 50-item pages with an authoritative
+  visible range, total count, and numbered navigation. MCP write and human
+  approval boundaries are unchanged.
+
+## [2.3.2] — 2026-07-17
+
+### Fixed
+
+- Omit MarkUp.io's rejected `resolved=false` query parameter and filter resolved
+  threads locally after retrieval.
+
+## [2.3.1] — 2026-07-17
+
+### Changed
+
+- Add bounded, allowlisted upstream error diagnostics with request IDs while
+  redacting credentials and never surfacing raw response bodies.
+
+## [2.3.0] — 2026-07-17
+
+### Added
+
+- Add a Markup feedback workflow with authenticated polling, deterministic local
+  triage, private Bricks page previews, audit records, optimistic-concurrency
+  promotion, exact rollback snapshots, and post-persistence Markup resolution.
+- Add an allowlisted Slack Block Kit approval path with documented v0 HMAC
+  verification and replay protection, plus a nonce-protected wp-admin queue.
+- Add the `feedback_workflow` MCP tool for sync, inspection, triage, private
+  preview preparation, and approval submission. Human decision actions are
+  intentionally not exposed through MCP.
+
+### Security
+
+- Read Markup and Slack credentials only from constants/environment variables;
+  never store or render them in WordPress options.
+- Limit automatic preview preparation to published same-site pages. The active
+  source is untouched until an independent Slack/WP administrator approves.
+- Block promotion and rollback on source drift so later work cannot be silently
+  overwritten.
+
 ## [2.2.0] — 2026-07-17
 
 ### Security

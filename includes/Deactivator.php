@@ -31,6 +31,9 @@ final class Deactivator {
 	 * @return void
 	 */
 	public static function deactivate(): void {
+		wp_clear_scheduled_hook( Feedback\Module::SYNC_HOOK );
+		wp_clear_scheduled_hook( Feedback\SlackController::CRON_HOOK );
+
 		// Flush rewrite rules to clean up REST API endpoints.
 		flush_rewrite_rules();
 	}
