@@ -627,9 +627,10 @@ class BricksService {
 					);
 				}
 
-				// Reciprocal check: parent must list this element in its children.
+				// Reciprocal check: parent must list this element in its children
+				// (or, for a component instance, in its slotChildren map).
 				$parent_index    = $id_map[ $parent_str ];
-				$parent_children = $elements[ $parent_index ]['children'];
+				$parent_children = $this->linked_child_ids( $elements[ $parent_index ] );
 
 				if ( ! in_array( $element['id'], $parent_children, true ) ) {
 					return new \WP_Error(
@@ -638,6 +639,21 @@ class BricksService {
 						[
 							'path'   => "elements[{$index}].parent",
 							'reason' => sprintf( 'Linkage mismatch: parent "%s" does not list "%s" in its children array.', $parent, $element['id'] ),
+						]
+					);
+				}
+			}
+
+			// Slot content roots of a component instance must list the instance as parent.
+			// A slotChildren ID that no longer exists is tolerated (Bricks skips it at render).
+			foreach ( $this->slot_child_ids( $element ) as $slot_child_id ) {
+				if ( isset( $id_map[ $slot_child_id ] ) && (string) $elements[ $id_map[ $slot_child_id ] ]['parent'] !== $element['id'] ) {
+					return new \WP_Error(
+						'invalid_element_structure',
+						sprintf( 'Component instance "%s" lists "%s" in slotChildren, but "%s" has a different parent.', $element['id'], $slot_child_id, $slot_child_id ),
+						[
+							'path'   => "elements[{$index}].slotChildren",
+							'reason' => sprintf( 'Slot content root "%s" must have parent "%s". List only top-level slot content in slotChildren.', $slot_child_id, $element['id'] ),
 						]
 					);
 				}
@@ -709,7 +725,7 @@ class BricksService {
 
 		$element = $elements[ $id_map[ $element_id ] ];
 
-		foreach ( $element['children'] as $child_id ) {
+		foreach ( $this->linked_child_ids( $element ) as $child_id ) {
 			if ( ! isset( $visited[ $child_id ] ) ) {
 				$result = $this->detect_cycle( $child_id, $elements, $id_map, $visited, $in_stack );
 				if ( is_wp_error( $result ) ) {
@@ -729,6 +745,42 @@ class BricksService {
 
 		$in_stack[ $element_id ] = false;
 		return true;
+	}
+
+	/**
+	 * IDs an element links to as children: its children array plus, on a component
+	 * instance, the slot content IDs in its slotChildren map. Bricks lists slot
+	 * content there instead of in the instance's children.
+	 *
+	 * @param array $element Element.
+	 * @return array<int, mixed> Linked child IDs.
+	 */
+	private function linked_child_ids( array $element ): array {
+		$ids = is_array( $element['children'] ?? null ) ? array_values( $element['children'] ) : [];
+
+		return array_merge( $ids, $this->slot_child_ids( $element ) );
+	}
+
+	/**
+	 * Slot content root IDs listed in a component instance's slotChildren map.
+	 *
+	 * @param array $element Element.
+	 * @return array<int, string> Slot content root IDs (empty for non-instances).
+	 */
+	private function slot_child_ids( array $element ): array {
+		$ids = [];
+
+		if ( isset( $element['cid'] ) && is_array( $element['slotChildren'] ?? null ) ) {
+			foreach ( $element['slotChildren'] as $slot_child_ids ) {
+				foreach ( is_array( $slot_child_ids ) ? $slot_child_ids : [ $slot_child_ids ] as $slot_child_id ) {
+					if ( is_scalar( $slot_child_id ) && '' !== (string) $slot_child_id ) {
+						$ids[] = (string) $slot_child_id;
+					}
+				}
+			}
+		}
+
+		return $ids;
 	}
 
 	/**
@@ -4533,9 +4585,10 @@ class BricksService {
 
 			$formatted_vars = array_map(
 				static fn( array $var ) => [
-					'id'    => $var['id'] ?? '',
-					'name'  => $var['name'] ?? '',
-					'value' => $var['value'] ?? '',
+					'id'      => $var['id'] ?? '',
+					'name'    => $var['name'] ?? '',
+					'css_var' => VariableNameNormalizer::emitted_property( $var['name'] ?? '' ),
+					'value'   => $var['value'] ?? '',
 				],
 				$cat_variables
 			);
@@ -4561,7 +4614,7 @@ class BricksService {
 	 *
 	 * @param string                                         $name            Scale name.
 	 * @param array<int, array{name: string, value: string}> $steps Steps with name and value.
-	 * @param string                                         $prefix          CSS variable prefix (must start with --).
+	 * @param string                                         $prefix          CSS variable prefix (with or without --).
 	 * @param array<int, array<string, mixed>>               $utility_classes Utility class configs (optional).
 	 * @return array<string, mixed>|\WP_Error Created scale object or WP_Error on failure.
 	 */
@@ -4575,10 +4628,12 @@ class BricksService {
 			);
 		}
 
-		if ( ! str_starts_with( $prefix, '--' ) ) {
+		$normalized_prefix = VariableNameNormalizer::normalize_prefix( $prefix );
+
+		if ( '' === $normalized_prefix ) {
 			return new \WP_Error(
 				'invalid_prefix',
-				__( 'CSS variable prefix must start with "--" (e.g., "--text-", "--heading-").', 'lc-bricks-mcp' )
+				__( 'CSS variable prefix is required (e.g., "text-" or "--text-").', 'lc-bricks-mcp' )
 			);
 		}
 
@@ -4615,6 +4670,27 @@ class BricksService {
 			$variables = [];
 		}
 
+		// Refuse step names that are empty or already taken, before anything is written.
+		$step_names = [];
+		foreach ( $steps as $index => $step ) {
+			$step_name = VariableNameNormalizer::to_storage( sanitize_text_field( $step['name'] ) );
+			$var_name  = $normalized_prefix . $step_name;
+
+			if ( '' === $step_name || isset( $step_names[ $var_name ] ) || null !== VariableNameNormalizer::name_owner( $variables, $var_name ) ) {
+				return new \WP_Error(
+					'name_taken',
+					sprintf(
+						/* translators: 1: Step index, 2: CSS custom property name */
+						__( 'Step at index %1$d would create %2$s, which is empty, repeated in this scale, or already used by another global variable.', 'lc-bricks-mcp' ),
+						$index,
+						'--' . $var_name
+					)
+				);
+			}
+
+			$step_names[ $var_name ] = true;
+		}
+
 		// Generate collision-free category ID.
 		$id_generator = new ElementIdGenerator();
 		$existing_ids = array_column( $categories, 'id' );
@@ -4624,8 +4700,7 @@ class BricksService {
 
 		// Default utility classes if empty.
 		if ( empty( $utility_classes ) ) {
-			$class_prefix    = str_replace( '--', '', $prefix );
-			$class_prefix    = rtrim( $class_prefix, '-' );
+			$class_prefix    = rtrim( $normalized_prefix, '-' );
 			$utility_classes = [
 				[
 					'className'   => $class_prefix . '-*',
@@ -4638,7 +4713,7 @@ class BricksService {
 		$new_category = [
 			'id'             => $cat_id,
 			'name'           => $sanitized_name,
-			'scale'          => [ 'prefix' => $prefix ],
+			'scale'          => [ 'prefix' => $normalized_prefix ],
 			'utilityClasses' => $utility_classes,
 		];
 
@@ -4656,7 +4731,7 @@ class BricksService {
 
 			$new_var = [
 				'id'       => $var_id,
-				'name'     => $prefix . sanitize_text_field( $step['name'] ),
+				'name'     => $normalized_prefix . VariableNameNormalizer::to_storage( sanitize_text_field( $step['name'] ) ),
 				'value'    => sanitize_text_field( $step['value'] ),
 				'category' => $cat_id,
 			];
@@ -4674,13 +4749,14 @@ class BricksService {
 		return [
 			'id'              => $cat_id,
 			'name'            => $sanitized_name,
-			'prefix'          => $prefix,
+			'prefix'          => $normalized_prefix,
 			'utility_classes' => $utility_classes,
 			'variables'       => array_map(
 				static fn( array $var ) => [
-					'id'    => $var['id'],
-					'name'  => $var['name'],
-					'value' => $var['value'],
+					'id'      => $var['id'],
+					'name'    => $var['name'],
+					'css_var' => VariableNameNormalizer::to_css_property( $var['name'] ),
+					'value'   => $var['value'],
 				],
 				$new_variables
 			),
@@ -4747,6 +4823,30 @@ class BricksService {
 			$variables = [];
 		}
 
+		// Repair this scale's legacy names before comparing or changing its prefix.
+		$heal = VariableNameNormalizer::plan_repair( $variables, $categories, $category_id );
+
+		if ( ! empty( $heal['conflicts'] ) ) {
+			return new \WP_Error(
+				'legacy_name_conflict',
+				__( 'This scale has steps stored with a doubled leading -- that cannot be repaired because the bare name is empty or already used by another variable. Run global_variable action repair_names with dry_run: true to see the conflicts, resolve them, then retry.', 'lc-bricks-mcp' ),
+				$heal['conflicts']
+			);
+		}
+
+		$variables          = $heal['variables'];
+		$categories         = $heal['categories'];
+		$repaired_prefix    = ! empty( $heal['prefixes'] );
+		$repaired_variables = count( $heal['renamed'] );
+
+		// Names before this update, to detect renames that collide with other variables.
+		$names_before = [];
+		foreach ( $variables as $variable ) {
+			if ( is_array( $variable ) && isset( $variable['id'] ) ) {
+				$names_before[ $variable['id'] ] = $variable['name'] ?? '';
+			}
+		}
+
 		// Update name if provided.
 		if ( null !== $name ) {
 			$categories[ $cat_index ]['name'] = sanitize_text_field( $name );
@@ -4754,22 +4854,23 @@ class BricksService {
 
 		// Update prefix if provided — also rename existing variables.
 		if ( null !== $prefix ) {
-			if ( ! str_starts_with( $prefix, '--' ) ) {
+			$normalized_prefix = VariableNameNormalizer::normalize_prefix( $prefix );
+			if ( '' === $normalized_prefix ) {
 				return new \WP_Error(
 					'invalid_prefix',
-					__( 'CSS variable prefix must start with "--" (e.g., "--text-", "--heading-").', 'lc-bricks-mcp' )
+					__( 'CSS variable prefix is required (e.g., "text-" or "--text-").', 'lc-bricks-mcp' )
 				);
 			}
 
 			$old_prefix                                  = $categories[ $cat_index ]['scale']['prefix'] ?? '';
-			$categories[ $cat_index ]['scale']['prefix'] = $prefix;
+			$categories[ $cat_index ]['scale']['prefix'] = $normalized_prefix;
 
 			// Rename existing variables for this category.
 			if ( '' !== $old_prefix ) {
 				foreach ( $variables as &$var ) {
 					if ( ( $var['category'] ?? '' ) === $category_id && str_starts_with( $var['name'] ?? '', $old_prefix ) ) {
 						$step_name   = substr( $var['name'], strlen( $old_prefix ) );
-						$var['name'] = $prefix . $step_name;
+						$var['name'] = $normalized_prefix . $step_name;
 					}
 				}
 				unset( $var );
@@ -4780,8 +4881,6 @@ class BricksService {
 		if ( null !== $utility_classes ) {
 			$categories[ $cat_index ]['utilityClasses'] = $utility_classes;
 		}
-
-		update_option( 'bricks_global_variables_categories', $categories );
 
 		// Update steps if provided.
 		if ( null !== $steps ) {
@@ -4804,7 +4903,7 @@ class BricksService {
 						foreach ( $variables as &$var ) {
 							if ( ( $var['id'] ?? '' ) === $step['id'] ) {
 								if ( isset( $step['name'] ) ) {
-									$var['name'] = $current_prefix . sanitize_text_field( $step['name'] );
+									$var['name'] = $current_prefix . VariableNameNormalizer::to_storage( sanitize_text_field( $step['name'] ) );
 								}
 								if ( isset( $step['value'] ) ) {
 									$var['value'] = sanitize_text_field( $step['value'] );
@@ -4826,7 +4925,7 @@ class BricksService {
 
 					$variables[]        = [
 						'id'       => $var_id,
-						'name'     => $current_prefix . sanitize_text_field( $step['name'] ),
+						'name'     => $current_prefix . VariableNameNormalizer::to_storage( sanitize_text_field( $step['name'] ) ),
 						'value'    => sanitize_text_field( $step['value'] ),
 						'category' => $category_id,
 					];
@@ -4835,6 +4934,32 @@ class BricksService {
 			}
 		}
 
+		// Refuse the whole update if a new or renamed step is empty or takes another variable's name.
+		foreach ( $variables as $variable ) {
+			if ( ! is_array( $variable ) || ( $variable['category'] ?? '' ) !== $category_id ) {
+				continue;
+			}
+
+			$var_id   = (string) ( $variable['id'] ?? '' );
+			$var_name = (string) ( $variable['name'] ?? '' );
+
+			if ( isset( $names_before[ $var_id ] ) && $names_before[ $var_id ] === $var_name ) {
+				continue;
+			}
+
+			if ( '' === $var_name || $var_name === ( $categories[ $cat_index ]['scale']['prefix'] ?? '' ) || null !== VariableNameNormalizer::name_owner( $variables, $var_name, $var_id ) ) {
+				return new \WP_Error(
+					'name_taken',
+					sprintf(
+						/* translators: %s: CSS custom property name */
+						__( 'Update would create %s, which has an empty step name or is already used by another global variable. Nothing was saved.', 'lc-bricks-mcp' ),
+						'--' . $var_name
+					)
+				);
+			}
+		}
+
+		update_option( 'bricks_global_variables_categories', $categories );
 		update_option( 'bricks_global_variables', $variables );
 
 		// Regenerate style manager CSS.
@@ -4848,22 +4973,33 @@ class BricksService {
 			)
 		);
 
-		return [
+		$result = [
 			'id'              => $category_id,
 			'name'            => $categories[ $cat_index ]['name'] ?? '',
 			'prefix'          => $categories[ $cat_index ]['scale']['prefix'] ?? '',
 			'utility_classes' => $categories[ $cat_index ]['utilityClasses'] ?? [],
 			'variables'       => array_map(
 				static fn( array $var ) => [
-					'id'    => $var['id'] ?? '',
-					'name'  => $var['name'] ?? '',
-					'value' => $var['value'] ?? '',
+					'id'      => $var['id'] ?? '',
+					'name'    => $var['name'] ?? '',
+					'css_var' => VariableNameNormalizer::emitted_property( $var['name'] ?? '' ),
+					'value'   => $var['value'] ?? '',
 				],
 				$cat_variables
 			),
 			'variable_count'  => count( $cat_variables ),
 			'css_regenerated' => $css_regenerated,
 		];
+
+		if ( $repaired_prefix || $repaired_variables > 0 ) {
+			$result['repaired'] = [
+				'prefix'    => $repaired_prefix,
+				'variables' => $repaired_variables,
+			];
+			$result['warning']  = __( 'This scale had legacy names with a doubled leading -- and was repaired to the native format. Its steps are now emitted as --prefix-step instead of ----prefix-step: references written as var(--prefix-step) resolve now, but any reference to the old var(----prefix-step) property must be changed.', 'lc-bricks-mcp' );
+		}
+
+		return $result;
 	}
 
 	/**
@@ -5719,6 +5855,7 @@ class BricksService {
 				static fn( array $var ) => [
 					'id'       => $var['id'] ?? '',
 					'name'     => $var['name'] ?? '',
+					'css_var'  => VariableNameNormalizer::emitted_property( $var['name'] ?? '' ),
 					'value'    => $var['value'] ?? '',
 					'category' => $var['category'] ?? '',
 				],
@@ -5746,6 +5883,7 @@ class BricksService {
 			static fn( array $var ) => [
 				'id'       => $var['id'] ?? '',
 				'name'     => $var['name'] ?? '',
+				'css_var'  => VariableNameNormalizer::emitted_property( $var['name'] ?? '' ),
 				'value'    => $var['value'] ?? '',
 				'category' => $var['category'] ?? '',
 			],
@@ -5758,11 +5896,80 @@ class BricksService {
 		}
 		$total += count( $formatted_uncategorized );
 
-		return [
+		$result = [
 			'categories'      => $result_categories,
 			'uncategorized'   => $formatted_uncategorized,
 			'total_variables' => $total,
-			'note'            => __( 'Plain global variables are stored as design tokens for AI reference. Only color palette colors and typography scale variables generate CSS output in style-manager.min.css.', 'lc-bricks-mcp' ),
+			'note'            => __( 'Bricks outputs every global variable as a CSS custom property in :root. Names are stored without the leading --; reference them as var(--name).', 'lc-bricks-mcp' ),
+		];
+
+		$legacy_variables = 0;
+		foreach ( $variables as $variable ) {
+			if ( is_array( $variable ) && VariableNameNormalizer::is_double_prefixed( $variable['name'] ?? '' ) ) {
+				++$legacy_variables;
+			}
+		}
+
+		$legacy_prefixes = 0;
+		foreach ( $categories as $category ) {
+			if ( is_array( $category ) && isset( $category['scale'] ) && is_array( $category['scale'] ) && VariableNameNormalizer::is_double_prefixed( $category['scale']['prefix'] ?? '' ) ) {
+				++$legacy_prefixes;
+			}
+		}
+
+		if ( $legacy_variables > 0 || $legacy_prefixes > 0 ) {
+			$result['legacy_double_prefix'] = [
+				'variables'      => $legacy_variables,
+				'scale_prefixes' => $legacy_prefixes,
+			];
+			$result['warning'] = __( 'Some stored names have a doubled leading --. Run global_variable action repair_names with dry_run: true first, then dry_run: false to apply the repair.', 'lc-bricks-mcp' );
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Preview or repair legacy double-prefixed variable names and scale prefixes.
+	 *
+	 * @param bool $dry_run Whether to preview without writing options.
+	 * @return array<string, mixed> Repair plan, counts, and CSS regeneration status.
+	 */
+	public function repair_variable_names( bool $dry_run = true ): array {
+		$categories = get_option( 'bricks_global_variables_categories', [] );
+		$variables  = get_option( 'bricks_global_variables', [] );
+
+		if ( ! is_array( $categories ) ) {
+			$categories = [];
+		}
+		if ( ! is_array( $variables ) ) {
+			$variables = [];
+		}
+
+		$plan            = VariableNameNormalizer::plan_repair( $variables, $categories );
+		$renamed_count   = count( $plan['renamed'] );
+		$prefix_count    = count( $plan['prefixes'] );
+		$css_regenerated = false;
+
+		if ( ! $dry_run && ( $renamed_count > 0 || $prefix_count > 0 ) ) {
+			update_option( 'bricks_global_variables_categories', $plan['categories'] );
+			update_option( 'bricks_global_variables', $plan['variables'] );
+			$css_regenerated = $this->regenerate_style_manager_css();
+		}
+
+		$note = $dry_run
+			? __( 'The repair will store names in native bare format. Element references written as var(--name) already point at the repaired names, so no content rewrite is needed; a reference to the old doubled property var(----name) would need changing. Scales are repaired all-or-nothing. Call again with dry_run: false to apply.', 'lc-bricks-mcp' )
+			: __( 'Stored names are rewritten to native bare format. Element references written as var(--name) already point at the repaired names, so no content rewrite is needed; a reference to the old doubled property var(----name) would need changing.', 'lc-bricks-mcp' );
+
+		return [
+			'dry_run'         => $dry_run,
+			'renamed'         => $plan['renamed'],
+			'prefixes'        => $plan['prefixes'],
+			'conflicts'       => $plan['conflicts'],
+			'renamed_count'   => $renamed_count,
+			'prefix_count'    => $prefix_count,
+			'conflict_count'  => count( $plan['conflicts'] ),
+			'css_regenerated' => $css_regenerated,
+			'note'            => $note,
 		];
 	}
 
@@ -5961,25 +6168,19 @@ class BricksService {
 	}
 
 	/**
-	 * Normalize a variable name to include the -- prefix.
+	 * Normalize a variable name to Bricks' bare storage format.
 	 *
 	 * @param string $name Variable name.
-	 * @return string Normalized name (e.g., "--spacing-md").
+	 * @return string Normalized name (e.g., "spacing-md").
 	 */
 	private function normalize_variable_name( string $name ): string {
-		$name = sanitize_text_field( $name );
-
-		if ( ! str_starts_with( $name, '--' ) ) {
-			$name = '--' . $name;
-		}
-
-		return $name;
+		return VariableNameNormalizer::to_storage( sanitize_text_field( $name ) );
 	}
 
 	/**
 	 * Create a global CSS custom property variable.
 	 *
-	 * Normalizes name to include -- prefix. Validates category if provided.
+	 * Stores the bare name without --. Validates category if provided.
 	 *
 	 * @param string $name        Variable name (e.g., "spacing-md" or "--spacing-md").
 	 * @param string $value       CSS value (e.g., "1rem", "clamp(1rem, 2.5vw, 2rem)").
@@ -5989,7 +6190,7 @@ class BricksService {
 	public function create_global_variable( string $name, string $value, string $category_id = '' ): array|\WP_Error {
 		$normalized_name = $this->normalize_variable_name( $name );
 
-		if ( '--' === $normalized_name ) {
+		if ( '' === $normalized_name ) {
 			return new \WP_Error(
 				'missing_name',
 				__( 'Variable name is required.', 'lc-bricks-mcp' )
@@ -6049,6 +6250,17 @@ class BricksService {
 			$variables = [];
 		}
 
+		if ( null !== VariableNameNormalizer::name_owner( $variables, $normalized_name ) ) {
+			return new \WP_Error(
+				'name_taken',
+				sprintf(
+					/* translators: %s: CSS custom property name */
+					__( 'A global variable named %s already exists. Use a different name or update the existing variable.', 'lc-bricks-mcp' ),
+					'--' . $normalized_name
+				)
+			);
+		}
+
 		$id_generator = new ElementIdGenerator();
 		$existing_ids = array_column( $variables, 'id' );
 
@@ -6071,6 +6283,7 @@ class BricksService {
 		return [
 			'id'              => $var_id,
 			'name'            => $normalized_name,
+			'css_var'         => VariableNameNormalizer::to_css_property( $normalized_name ),
 			'value'           => $sanitized_value,
 			'category'        => $category_id,
 			'css_regenerated' => $css_regenerated,
@@ -6119,20 +6332,41 @@ class BricksService {
 		if ( isset( $fields['name'] ) ) {
 			$new_name = $this->normalize_variable_name( $fields['name'] );
 
-			if ( '--' === $new_name ) {
+			if ( '' === $new_name ) {
 				return new \WP_Error(
 					'missing_name',
 					__( 'Variable name cannot be empty.', 'lc-bricks-mcp' )
 				);
 			}
 
+			if ( $new_name !== $old_name && null !== VariableNameNormalizer::name_owner( $variables, $new_name, $variable_id ) ) {
+				return new \WP_Error(
+					'name_taken',
+					sprintf(
+						/* translators: %s: CSS custom property name */
+						__( 'A global variable named %s already exists. Use a different name or update the existing variable.', 'lc-bricks-mcp' ),
+						'--' . $new_name
+					)
+				);
+			}
+
 			if ( $new_name !== $old_name ) {
 				$variables[ $var_index ]['name'] = $new_name;
-				$rename_warning                  = sprintf(
-					/* translators: %s: Old variable name */
-					__( 'Variable renamed. Existing references to var(%s) in elements and styles will NOT be automatically updated.', 'lc-bricks-mcp' ),
-					$old_name
-				);
+				if ( VariableNameNormalizer::to_storage( $old_name ) !== $new_name ) {
+					$rename_warning = sprintf(
+						/* translators: %s: Old CSS custom property name */
+						__( 'Variable renamed. Existing references to var(%s) in elements and styles will NOT be automatically updated.', 'lc-bricks-mcp' ),
+						VariableNameNormalizer::to_css_property( $old_name )
+					);
+				} else {
+					// Legacy repair: var(--name) references now resolve; only the old doubled property changes.
+					$rename_warning = sprintf(
+						/* translators: 1: Old emitted property, 2: New CSS custom property name */
+						__( 'Repaired a legacy doubled name. Bricks now emits %2$s instead of %1$s; references written as var(%2$s) resolve now, but any reference to var(%1$s) must be changed.', 'lc-bricks-mcp' ),
+						'--' . $old_name,
+						VariableNameNormalizer::to_css_property( $new_name )
+					);
+				}
 			}
 		}
 
@@ -6201,6 +6435,7 @@ class BricksService {
 		$result = [
 			'id'              => $variable_id,
 			'name'            => $variables[ $var_index ]['name'] ?? '',
+			'css_var'         => VariableNameNormalizer::emitted_property( $variables[ $var_index ]['name'] ?? '' ),
 			'value'           => $variables[ $var_index ]['value'] ?? '',
 			'category'        => $variables[ $var_index ]['category'] ?? '',
 			'css_regenerated' => $css_regenerated,
@@ -6257,9 +6492,9 @@ class BricksService {
 			'id'              => $variable_id,
 			'name'            => $var_name,
 			'note'            => sprintf(
-				/* translators: %s: Variable name */
+				/* translators: %s: CSS custom property name */
 				__( 'Existing elements referencing var(%s) will show CSS fallback values.', 'lc-bricks-mcp' ),
-				$var_name
+				VariableNameNormalizer::to_css_property( $var_name )
 			),
 			'css_regenerated' => $css_regenerated,
 		];
@@ -6332,13 +6567,23 @@ class BricksService {
 
 			$normalized_name = $this->normalize_variable_name( $def['name'] );
 
-			if ( '--' === $normalized_name ) {
+			if ( '' === $normalized_name ) {
 				$errors[ $index ] = __( 'Empty name after normalization', 'lc-bricks-mcp' );
 				continue;
 			}
 
 			if ( ! isset( $def['value'] ) || '' === $def['value'] ) {
 				$errors[ $index ] = __( 'Missing value', 'lc-bricks-mcp' );
+				continue;
+			}
+
+			// $variables already holds the entries created earlier in this batch.
+			if ( null !== VariableNameNormalizer::name_owner( $variables, $normalized_name ) ) {
+				$errors[ $index ] = sprintf(
+					/* translators: %s: CSS custom property name */
+					__( 'Name already exists: %s', 'lc-bricks-mcp' ),
+					'--' . $normalized_name
+				);
 				continue;
 			}
 
@@ -6357,7 +6602,13 @@ class BricksService {
 			];
 
 			$variables[] = $new_variable;
-			$created[]   = $new_variable;
+			$created[]   = [
+				'id'       => $var_id,
+				'name'     => $normalized_name,
+				'css_var'  => VariableNameNormalizer::to_css_property( $normalized_name ),
+				'value'    => $sanitized_value,
+				'category' => $category_id,
+			];
 		}
 
 		if ( ! empty( $created ) ) {
@@ -6456,11 +6707,17 @@ class BricksService {
 		if ( ! is_array( $variables ) ) {
 			$variables = [];
 		}
+		$name = VariableNameNormalizer::to_storage( $name );
+
+		$format_variable = static function ( array $var ): array {
+			$var['css_var'] = VariableNameNormalizer::emitted_property( $var['name'] ?? '' );
+			return $var;
+		};
 
 		// If all filters are empty, return all variables.
 		if ( '' === $name && '' === $value && '' === $category_id ) {
 			return [
-				'variables' => array_values( $variables ),
+				'variables' => array_map( $format_variable, array_values( $variables ) ),
 				'count'     => count( $variables ),
 				'filters'   => [],
 			];
@@ -6488,7 +6745,7 @@ class BricksService {
 		);
 
 		return [
-			'variables' => $filtered,
+			'variables' => array_map( $format_variable, $filtered ),
 			'count'     => count( $filtered ),
 			'filters'   => array_filter(
 				[

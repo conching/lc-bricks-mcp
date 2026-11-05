@@ -6,6 +6,16 @@ Library Creative fork of [`cristianuibar/bricks-mcp`](https://github.com/cristia
 v1.5.1 and remains licensed under GPL-2.0-or-later, retaining the original
 copyright (© 2025 BUFF UP MEDIA S.R.L., author Uibar Ion-Cristian).
 
+## [2.3.5] — 2026-11-04
+
+### Fixed
+
+- Merge the 2.1.2 and 2.1.3 fixes into the 2.3 line. Releases 2.2.0 to 2.3.4 were
+  built from a branch that predates them, so those versions lack component trees
+  and instances in Bricks' native format, `component:fill_slot`,
+  `global_variable:repair_names`, and bare global variable names and typography
+  scale prefixes. Entries below are in version order, not date order.
+
 ## [2.3.4] — 2026-07-17
 
 ### Fixed
@@ -78,6 +88,89 @@ copyright (© 2025 BUFF UP MEDIA S.R.L., author Uibar Ion-Cristian).
 - Flatten simplified element trees in one traversal and make media-size expansion
   opt-in.
 - Add dependency metadata, CI matrices, and focused security regression tests.
+
+## [2.1.3] — 2026-09-23
+
+### Fixed
+
+- `component:create` and `component:update` now find the sole structural root,
+  remap its ID and child references to the component ID, and validate element
+  linkage before writing. Property connections and custom CSS selectors follow
+  the remapped root ID.
+- `component:instantiate` now stores the root element's name so Bricks resolves
+  its element class, and stores instance property values in the property-ID map
+  Bricks reads. Instance property and slot edits repair a legacy `name = cid`
+  element when touched.
+- The `component` tool's `properties` input now accepts an object. It was typed
+  as an array only, so argument validation rejected the `{propertyId: value}`
+  map Bricks reads, leaving only a list shape that Bricks ignores.
+- `component:fill_slot` now saves. Page linkage validation required every
+  element to be listed in its parent's `children`, but Bricks lists slot content
+  in the instance's `slotChildren` map instead. Validation now accepts a
+  `slotChildren` listing on a component instance, and slot content stays out of
+  the instance's `children`. Only top-level slot content is listed in
+  `slotChildren` (a slotChildren entry whose element has a different parent is
+  rejected; one that no longer exists is tolerated, as Bricks skips it), slot
+  edges take part in cycle detection, and a repeated `fill_slot` appends to the
+  slot instead of orphaning its earlier content.
+- `component:update_properties` and `component:fill_slot` no longer fail on an
+  instance that still stores a value for a property since removed from the
+  definition; incoming values are still checked against the definition.
+- A label-only `component:update` labels the root element found by ID and keeps
+  a legacy `description` when the native `desc` is empty.
+
+### Added
+
+- `component:update` without `elements` repairs a tree stored by 2.1.2 or
+  earlier: a child the root lists whose `parent` still names the vanished
+  original root ID is relinked to the component ID, and property connections
+  keyed by that old ID are re-keyed. The response reports `repaired_links`.
+  Any update (a label edit is enough) therefore repairs such a component.
+- `component:update` rejects a change of the root element type
+  (`root_type_change`), since existing instances store the root element name
+  and would keep the old element class.
+
+### Changed
+
+- Component definitions now store Bricks' native `desc`, root label, creation
+  metadata, user ID, and Bricks version. Property definitions use `label` and
+  `desc`; `name` and `description` remain accepted input aliases.
+- Instance property inputs accept a keyed map or a list of `{id, value}` pairs.
+  Unknown property IDs are rejected before writing.
+
+## [2.1.2] — 2026-09-23
+
+### Fixed
+
+- Global variable names and typography scale prefixes now use Bricks' bare
+  storage format. Previously, MCP-written names retained a leading `--`, so
+  Bricks emitted doubled CSS property names such as `----brand-space`
+  and `var(--brand-space)` resolved empty.
+
+### Added
+
+- `global_variable:repair_names` previews or repairs previously stored names
+  and scale prefixes with a doubled leading `--`.
+- Variable responses include `css_var`, the property Bricks actually emits
+  (a legacy entry shows its doubled `----name` until repaired); the global variable list includes a
+  `legacy_double_prefix` count and warning when repair is needed.
+
+### Changed
+
+- Variable names and typography scale prefixes accept input with or without
+  leading `--` and are stored without it.
+- Writers refuse a name that is already taken once normalized (`name_taken`),
+  counting a legacy `--name` entry as owning `name`. Previously `--brand` and a
+  native `brand` could coexist and Bricks emitted the property twice.
+- `repair_names` repairs each scale all-or-nothing: if its prefix or any step
+  cannot be repaired, the prefix and every step stay unchanged and are reported
+  (`empty_prefix`, `held_back_scale_conflict`,
+  `prefix_blocked_by_step_conflict`). Legacy entries stored as `--var(--x)`
+  repair to `x`. Renaming a legacy `--x` to `x` via `update` warns that any
+  `var(----x)` reference must change. Also,
+  `typography_scale:update` on such a scale returns `legacy_name_conflict`
+  without writing anything. `typography_scale:update` now validates every new
+  or renamed step before saving the category or its variables.
 
 ## [2.1.1] — 2026-07-14
 

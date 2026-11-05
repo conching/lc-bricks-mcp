@@ -889,24 +889,28 @@ Components (Bricks 2.0+) are reusable element trees stored globally. They suppor
   "id": "abc123",
   "label": "Card Component",
   "category": "Cards",
-  "description": "Reusable card with title and content slot",
+  "desc": "Reusable card with title and content slot",
+  "_created": 1780000000,
+  "_user_id": 1,
+  "_version": "2.4.1",
   "elements": [
-    {"id": "abc123", "name": "container", "parent": 0, "children": ["def456", "ghi789"], "settings": {}},
+    {"id": "abc123", "name": "container", "label": "Card Component", "parent": 0, "children": ["def456", "ghi789"], "settings": {}},
     {"id": "def456", "name": "heading", "parent": "abc123", "children": [], "settings": {"text": "Card Title"}},
     {"id": "ghi789", "name": "slot", "parent": "abc123", "children": [], "settings": {}}
   ],
   "properties": [
-    {"id": "prop01", "name": "title", "type": "text", "default": "Card Title", "connections": {"def456": ["text"]}}
+    {"id": "prop01", "label": "Title", "type": "text", "default": "Card Title", "connections": {"def456": ["text"]}}
   ]
 }
 ```
 
 ### Critical Rules
 
-- **Root element ID MUST equal the component ID** — `elements[0].id === component.id`. Auto-enforced by `component:create`.
+- **Root element ID MUST equal the component ID** — `elements[0].id === component.id`. `component:create` and `component:update` find the sole structural root, move it first, and remap its ID, child links, property connections, and custom CSS selectors.
 - **Component IDs** are 6-char alphanumeric (auto-generated, same format as element IDs).
 - **Slot elements MUST use `name: "slot"`** — no other element type triggers slot behavior.
 - **Properties need `connections`** to have any effect — without wiring, property values are ignored.
+- **Property definitions use `label` and `desc`** — `name` and `description` are accepted as input aliases. Instance values are keyed by property ID.
 
 ### Instance Element Structure
 
@@ -915,9 +919,9 @@ When you instantiate a component on a page, the instance is stored as a regular 
 ```json
 {
   "id": "xyz789",
-  "name": "abc123",
+  "name": "container",
   "cid": "abc123",
-  "parent": "0",
+  "parent": 0,
   "children": [],
   "settings": {},
   "properties": {"prop01": "My Custom Title"},
@@ -925,7 +929,7 @@ When you instantiate a component on a page, the instance is stored as a regular 
 }
 ```
 
-Both `name` and `cid` equal the component ID. Property values override defaults via the `connections` map.
+`name` equals the component root element's `name`; `cid` equals the component ID. Property values override defaults via the `connections` map. Omit `properties` and `slotChildren` when empty. The tool also accepts a list of `{id, value}` inputs and stores the keyed map shown above.
 
 ### Property Types
 
@@ -1593,7 +1597,7 @@ Export is read-only (no license). Import requires a license (write operation).
 9. **Dynamic tags need context** — `{post_title}`, `{post_url}` only work inside query loops or single post templates. On static pages they render empty.
 10. **Image vs text dynamic data format** — text fields use bare `{tag}`, image fields use `{"useDynamicData": "{tag}"}`, links use `{"type": "dynamic", "dynamicData": "{tag}"}`
 11. **`_animation` is deprecated** — `_animation`, `_animationDuration`, `_animationDelay` are deprecated since Bricks 1.6. Always use the `_interactions` array. Bricks shows a converter warning for deprecated keys.
-12. **Component instance `name` = component ID** — the element `name` for a component instance is the 6-char component ID (e.g., `"abc123"`), not a human-readable type like `"card"`. Both `name` and `cid` must equal the component ID.
+12. **Component instance `name` = root element name** — for a component rooted at a `container`, the instance has `name: "container"` and `cid: "abc123"`. Bricks resolves the element class from `name` and the definition from `cid`.
 13. **Properties without `connections` do nothing** — defining properties on a component without setting the `connections` map means instance property values are stored but never applied to any element setting.
 14. **Slot content lives in the page array, not the component definition** — slot filler elements are stored as regular elements in the page's flat array with `parent = instance_id`. The component definition only contains the slot placeholder element (`name: "slot"`).
 15. **Popup triggers are NOT popup settings** — triggers use `_interactions` on elements (click, scroll, exit intent). `_bricks_template_settings` only stores display behavior (close, backdrop, sizing, limits). These are separate systems managed by different tools.
