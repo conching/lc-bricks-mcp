@@ -151,6 +151,9 @@ Yes, when configured correctly. The plugin enforces WordPress Application Passwo
 
 = 2.3.5 =
 * Merges the 2.1.2 and 2.1.3 fixes into the 2.3 line: component trees and instances in Bricks' native format, `component:fill_slot`, `global_variable:repair_names`, and bare global variable names and typography scale prefixes. The 2.2.0 to 2.3.4 releases did not include them.
+* Fix: settings sanitation no longer empties lists such as gallery images, repeater rows and array query values (present since 2.2.0).
+* Security: component definitions and instance property overrides now pass the Dangerous Actions gate and sanitation.
+* Fix: template import remaps `slotChildren`; component instance and slot responses include `persisted` and `stripped`.
 
 = 2.3.4 =
 * Fixes navigation after page 2 by leaving the pagination base URL unescaped until WordPress renders each link.

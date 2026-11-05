@@ -7711,7 +7711,11 @@ final class Router {
 		if ( is_wp_error( $normalized ) ) {
 			return $normalized;
 		}
-		$elements             = $normalized['elements'];
+		$strips   = array();
+		$elements = $this->bricks_service->prepare_component_elements( $normalized['elements'], array(), $strips );
+		if ( is_wp_error( $elements ) ) {
+			return $elements;
+		}
 		$elements[0]['label'] = $label;
 		$linkage              = $this->bricks_service->validate_element_linkage( $elements );
 		if ( is_wp_error( $linkage ) ) {
@@ -7741,7 +7745,10 @@ final class Router {
 		);
 
 		$components[] = $new_component;
-		update_option( self::COMPONENTS_OPTION, $components );
+		$saved        = $this->persist_components( $components );
+		if ( is_wp_error( $saved ) ) {
+			return $saved;
+		}
 
 		$slot_count = count( array_filter( $elements, fn( $el ) => ( $el['name'] ?? '' ) === 'slot' ) );
 
@@ -7753,7 +7760,30 @@ final class Router {
 			'element_count'  => count( $elements ),
 			'slot_count'     => $slot_count,
 			'property_count' => count( $properties ),
+			'persisted'      => true,
+			'stripped'       => $strips,
 		);
+	}
+
+	/**
+	 * Store component definitions and confirm they read back unchanged.
+	 *
+	 * @param array<int, array<string, mixed>> $components Full definition list.
+	 * @return true|\WP_Error
+	 */
+	private function persist_components( array $components ): true|\WP_Error {
+		update_option( self::COMPONENTS_OPTION, $components );
+		wp_cache_delete( self::COMPONENTS_OPTION, 'options' );
+		wp_cache_delete( 'alloptions', 'options' );
+
+		if ( get_option( self::COMPONENTS_OPTION, array() ) !== $components ) {
+			return new \WP_Error(
+				'component_save_failed',
+				__( 'Component definitions appeared to save but verification read-back failed.', 'lc-bricks-mcp' )
+			);
+		}
+
+		return true;
 	}
 
 	/**
@@ -7819,7 +7849,18 @@ final class Router {
 					)
 				);
 			}
-			$updated['elements'] = $normalized['elements'];
+			// Compare in the same ID space: a legacy stored root may not use the component ID yet.
+			$baseline = is_array( $updated['elements'] ?? null ) ? ComponentNormalizer::normalize_definition_elements( $updated['elements'], $component_id ) : array( 'elements' => array() );
+			$strips   = array();
+			$prepared = $this->bricks_service->prepare_component_elements(
+				$normalized['elements'],
+				is_wp_error( $baseline ) ? $updated['elements'] : $baseline['elements'],
+				$strips
+			);
+			if ( is_wp_error( $prepared ) ) {
+				return $prepared;
+			}
+			$updated['elements'] = $prepared;
 			$old_root_id        = $normalized['old_root_id'];
 		} elseif ( is_array( $updated['elements'] ?? null ) ) {
 			// Repair child links left broken by lc-bricks-mcp 2.1.2 and earlier.
@@ -7866,11 +7907,16 @@ final class Router {
 		$updated['_version']   = defined( 'BRICKS_VERSION' ) ? BRICKS_VERSION : ( $updated['_version'] ?? '' );
 		$components[ $index ] = $updated;
 
-		update_option( self::COMPONENTS_OPTION, $components );
+		$saved = $this->persist_components( $components );
+		if ( is_wp_error( $saved ) ) {
+			return $saved;
+		}
 
 		$elements = $updated['elements'] ?? array();
 
 		$result = array(
+			'persisted'      => true,
+			'stripped'       => $strips ?? array(),
 			'updated'        => true,
 			'id'             => $component_id,
 			'label'          => $updated['label'] ?? '',
@@ -8029,18 +8075,22 @@ final class Router {
 
 		$elements[] = $instance_element;
 
-		$save_result = $this->bricks_service->save_elements( $post_id, $elements );
+		$persistence = null;
+		$save_result = $this->bricks_service->save_elements( $post_id, $elements, $persistence );
 		if ( is_wp_error( $save_result ) ) {
 			return $save_result;
 		}
 
-		return array(
-			'instantiated'    => true,
-			'instance_id'     => $instance_id,
-			'component_id'    => $component_id,
-			'component_label' => $component_label,
-			'post_id'         => $post_id,
-			'parent_id'       => $parent_id,
+		return array_merge(
+			array(
+				'instantiated'    => true,
+				'instance_id'     => $instance_id,
+				'component_id'    => $component_id,
+				'component_label' => $component_label,
+				'post_id'         => $post_id,
+				'parent_id'       => $parent_id,
+			),
+			$this->bricks_service->build_persistence_response( $persistence, ! empty( $args['return_persisted'] ) )
 		);
 	}
 
@@ -8125,26 +8175,33 @@ final class Router {
 			);
 		}
 
-		$save_result = $this->bricks_service->save_elements( $post_id, $elements );
+		$persistence = null;
+		$save_result = $this->bricks_service->save_elements( $post_id, $elements, $persistence );
 		if ( is_wp_error( $save_result ) ) {
 			return $save_result;
 		}
 
-		// Re-find element for response.
-		foreach ( $elements as $el ) {
+		// Re-find element for response from what was actually stored.
+		foreach ( $persistence['stored'] ?? $elements as $el ) {
 			if ( $el['id'] === $instance_id ) {
-				return array(
-					'updated'     => true,
-					'instance_id' => $instance_id,
-					'properties'  => $el['properties'] ?? array(),
+				return array_merge(
+					array(
+						'updated'     => true,
+						'instance_id' => $instance_id,
+						'properties'  => $el['properties'] ?? array(),
+					),
+					$this->bricks_service->build_persistence_response( $persistence, ! empty( $args['return_persisted'] ) )
 				);
 			}
 		}
 
-		return array(
-			'updated'     => true,
-			'instance_id' => $instance_id,
-			'properties'  => $merged_props,
+		return array_merge(
+			array(
+				'updated'     => true,
+				'instance_id' => $instance_id,
+				'properties'  => $merged_props,
+			),
+			$this->bricks_service->build_persistence_response( $persistence, ! empty( $args['return_persisted'] ) )
 		);
 	}
 
@@ -8313,17 +8370,21 @@ final class Router {
 		$slot_children[ $slot_id ]                  = array_values( array_unique( array_merge( $existing_ids, $slot_root_ids ) ) );
 		$elements[ $instance_index ]['slotChildren'] = $slot_children;
 
-		$save_result = $this->bricks_service->save_elements( $post_id, $elements );
+		$persistence = null;
+		$save_result = $this->bricks_service->save_elements( $post_id, $elements, $persistence );
 		if ( is_wp_error( $save_result ) ) {
 			return $save_result;
 		}
 
-		return array(
-			'filled'         => true,
-			'instance_id'    => $instance_id,
-			'slot_id'        => $slot_id,
-			'elements_added' => count( $slot_elements ),
-			'element_ids'    => $new_element_ids,
+		return array_merge(
+			array(
+				'filled'         => true,
+				'instance_id'    => $instance_id,
+				'slot_id'        => $slot_id,
+				'elements_added' => count( $slot_elements ),
+				'element_ids'    => $new_element_ids,
+			),
+			$this->bricks_service->build_persistence_response( $persistence, ! empty( $args['return_persisted'] ) )
 		);
 	}
 

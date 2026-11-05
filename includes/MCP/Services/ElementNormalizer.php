@@ -133,6 +133,17 @@ class ElementNormalizer {
 				$this->log_strips( $corrected, $clean, $id );
 			}
 
+			// Component property overrides render through connected settings, so
+			// changed values get the same sanitation as the settings themselves.
+			if ( isset( $element['properties'] ) && is_array( $element['properties'] ) ) {
+				$previous_properties = $existing_by_id[ $id ]['properties'] ?? null;
+				if ( ! is_array( $previous_properties ) || $element['properties'] !== $previous_properties ) {
+					$raw_properties        = $element['properties'];
+					$element['properties'] = $this->sanitize_nested_value( 'properties', $raw_properties, $name );
+					$this->log_strips( $raw_properties, $element['properties'], $id, 'properties' );
+				}
+			}
+
 			$sanitized[] = $element;
 		}
 
@@ -323,7 +334,7 @@ class ElementNormalizer {
 
 			// Non-style arrays (query, link, icon, etc.): recurse.
 			if ( is_array( $value ) ) {
-				$sanitized[ $key ] = $this->sanitize_settings( $value, $element_name );
+				$sanitized[ $key ] = $this->sanitize_nested_value( (string) $key, $value, $element_name );
 				continue;
 			}
 
@@ -344,6 +355,37 @@ class ElementNormalizer {
 
 			// Default: plain text sanitization.
 			$sanitized[ $key ] = sanitize_text_field( $value );
+		}
+
+		return $sanitized;
+	}
+
+	/**
+	 * Sanitize an array nested inside settings, keeping numeric list entries.
+	 *
+	 * Top-level settings keys are always strings, but values such as gallery
+	 * images, repeater rows and query arrays are lists. List entries take the
+	 * sanitation rules of the key that holds them.
+	 *
+	 * @param string              $parent_key   Settings key that holds this array.
+	 * @param array<string|int, mixed> $value   Nested array.
+	 * @param string              $element_name Bricks element name.
+	 * @return array<string|int, mixed>
+	 */
+	private function sanitize_nested_value( string $parent_key, array $value, string $element_name ): array {
+		$sanitized = [];
+
+		foreach ( $value as $key => $item ) {
+			if ( is_int( $key ) && is_array( $item ) ) {
+				$sanitized[ $key ] = $this->sanitize_nested_value( $parent_key, $item, $element_name );
+				continue;
+			}
+
+			$rule_key = is_int( $key ) ? $parent_key : $key;
+			$clean    = $this->sanitize_settings( [ $rule_key => $item ], $element_name );
+			if ( array_key_exists( $rule_key, $clean ) ) {
+				$sanitized[ $key ] = $clean[ $rule_key ];
+			}
 		}
 
 		return $sanitized;
@@ -387,6 +429,21 @@ class ElementNormalizer {
 						$element['children']
 					)
 				);
+			}
+
+			// Slot map keys are slot IDs in the component definition and must not
+			// change; the values are this tree's slot content root IDs.
+			if ( isset( $element['slotChildren'] ) && is_array( $element['slotChildren'] ) ) {
+				foreach ( $element['slotChildren'] as $slot_id => $slot_child_ids ) {
+					if ( is_array( $slot_child_ids ) ) {
+						$element['slotChildren'][ $slot_id ] = array_values(
+							array_map(
+								static fn( $child_id ) => $id_map[ (string) $child_id ] ?? $child_id,
+								$slot_child_ids
+							)
+						);
+					}
+				}
 			}
 
 			if ( isset( $element['settings'] ) && is_array( $element['settings'] ) ) {

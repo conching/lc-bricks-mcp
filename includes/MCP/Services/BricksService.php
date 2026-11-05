@@ -514,6 +514,36 @@ class BricksService {
 	}
 
 	/**
+	 * Apply the save-path content policy to a component definition tree.
+	 *
+	 * Component definitions live in an option rather than post meta, so they never
+	 * reach save_elements(). This gives them the same executable-content gate and
+	 * sanitation before they are stored.
+	 *
+	 * @param array<int, array<string, mixed>> $elements Proposed definition elements.
+	 * @param array<int, array<string, mixed>> $existing Stored definition elements.
+	 * @param array<int, array<string, mixed>> $strips   Out-param: sanitation record.
+	 * @return array<int, array<string, mixed>>|\WP_Error Sanitized elements or policy error.
+	 */
+	public function prepare_component_elements( array $elements, array $existing, array &$strips = [] ): array|\WP_Error {
+		if ( ! $this->is_dangerous_actions_enabled() ) {
+			$violations = $this->element_policy->changed_executable_payloads( $elements, $existing );
+			if ( ! empty( $violations ) ) {
+				return new \WP_Error(
+					'dangerous_actions_disabled',
+					__( 'Creating or changing executable Bricks element content requires Dangerous Actions to be enabled.', 'lc-bricks-mcp' ),
+					[ 'violations' => $violations ]
+				);
+			}
+		}
+
+		$sanitized = $this->normalizer->sanitize_flat_elements( $elements, $existing );
+		$strips    = $this->normalizer->consume_strip_log();
+
+		return $sanitized;
+	}
+
+	/**
 	 * Validate Bricks element parent/children dual-linkage integrity.
 	 *
 	 * Checks:

@@ -89,14 +89,43 @@ final class ElementPolicy {
 		$name     = isset( $element['name'] ) ? (string) $element['name'] : '';
 		$settings = isset( $element['settings'] ) && is_array( $element['settings'] ) ? $element['settings'] : [];
 
+		$signature = [];
 		if ( in_array( $name, self::EXECUTABLE_ELEMENT_TYPES, true ) ) {
-			return [ 'settings' => $settings ];
+			$signature['settings'] = $settings;
+		} else {
+			$this->collect_executable_values( $settings, 'settings', $signature );
 		}
 
-		$signature = [];
-		$this->collect_executable_values( $settings, 'settings', $signature );
+		// Component instance overrides reach connected settings at render time.
+		if ( isset( $element['properties'] ) && is_array( $element['properties'] ) ) {
+			$this->collect_executable_values( $this->canonical_properties( $element['properties'] ), 'properties', $signature );
+		}
+
 		ksort( $signature );
 		return $signature;
+	}
+
+	/**
+	 * Convert a legacy [{id, value}] override list to the native property-ID map.
+	 *
+	 * @param array<string|int, mixed> $properties Stored or proposed overrides.
+	 * @return array<string|int, mixed>
+	 */
+	private function canonical_properties( array $properties ): array {
+		if ( ! array_is_list( $properties ) ) {
+			return $properties;
+		}
+
+		$map = [];
+		foreach ( $properties as $index => $entry ) {
+			if ( is_array( $entry ) && isset( $entry['id'] ) && array_key_exists( 'value', $entry ) ) {
+				$map[ (string) $entry['id'] ] = $entry['value'];
+			} else {
+				$map[ $index ] = $entry;
+			}
+		}
+
+		return $map;
 	}
 
 	/**

@@ -15,6 +15,19 @@ copyright (© 2025 BUFF UP MEDIA S.R.L., author Uibar Ion-Cristian).
   and instances in Bricks' native format, `component:fill_slot`,
   `global_variable:repair_names`, and bare global variable names and typography
   scale prefixes. Entries below are in version order, not date order.
+- Settings sanitation no longer empties lists. Since 2.2.0, native saves dropped
+  numeric entries such as gallery images, repeater rows and array query values.
+- Component definitions now pass the Dangerous Actions gate, sanitation and
+  read-back before storage. Instance property overrides are gated and sanitized
+  in `save_elements()`.
+- Template import remaps `slotChildren` IDs, so filled slots survive it.
+- `instantiate`, `update_properties` and `fill_slot` return `persisted` and
+  `stripped`, and `update_properties` returns the stored values.
+
+### Known limitation
+
+- A property override connected to a code element's `code` setting is sanitized
+  as ordinary content and reported in `stripped`. Edit the code element directly.
 
 ## [2.3.4] — 2026-07-17
 
